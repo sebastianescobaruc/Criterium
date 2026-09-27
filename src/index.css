@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --bg:#F4F8F9;--card:#FFFFFF;--soft:#EAF2F3;
+  --ink:#0D2B35;--ink-2:#3F5F69;--ink-3:#5F7C85;
+  --line:#DCE7EA;--line-2:#ECF3F4;
+  --deep:#0E3A4A;--acento:#14707F;--acento-soft:#E1EFF1;--acento-deep:#0F5663;
+  --ok:#2F6B4F;--ok-soft:#E6F2EB;--warn:#8A5A1E;--warn-soft:#F8EFE1;--bad:#A33A2A;--bad-soft:#FBE9E5;
+  --onc:#FFFFFF;--band:#0E3A4A;--toast:#0E3A4A;--toast-ink:#FFFFFF;
+  --sh:0 1px 2px rgba(13,43,53,.04),0 10px 30px -22px rgba(13,43,53,.35);
+  --sh-lg:0 2px 4px rgba(13,43,53,.05),0 24px 50px -30px rgba(13,43,53,.45);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#08171C;--card:#0F252C;--soft:#14313A;
+    --ink:#E6EEF0;--ink-2:#A9C0C6;--ink-3:#809AA2;
+    --line:#1F404A;--line-2:#17343D;
+    --deep:#A3E0EA;--acento:#4FB6C6;--acento-soft:#133B44;--acento-deep:#92D5E0;
+    --ok:#80C6A0;--ok-soft:#102B21;--warn:#DAA967;--warn-soft:#2D2417;--bad:#EF9785;--bad-soft:#341A15;
+    --onc:#051A20;--band:#123A46;--toast:#DDEEF1;--toast-ink:#08171C;
+    --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
+    --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#08171C;--card:#0F252C;--soft:#14313A;
+  --ink:#E6EEF0;--ink-2:#A9C0C6;--ink-3:#809AA2;
+  --line:#1F404A;--line-2:#17343D;
+  --deep:#A3E0EA;--acento:#4FB6C6;--acento-soft:#133B44;--acento-deep:#92D5E0;
+  --ok:#80C6A0;--ok-soft:#102B21;--warn:#DAA967;--warn-soft:#2D2417;--bad:#EF9785;--bad-soft:#341A15;
+  --onc:#051A20;--band:#123A46;--toast:#DDEEF1;--toast-ink:#08171C;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
+  --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
+}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit}
+input[type="checkbox"]{accent-color:var(--acento)}
+summary{cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+h1,h2,h3{text-wrap:balance}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
