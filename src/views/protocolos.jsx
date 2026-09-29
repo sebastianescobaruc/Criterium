@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { PROTOS, DATOS } from '../data.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
-import { Ic, Pill, Btn, cx, Aviso, EstadoPill } from '../ui.jsx';
+import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
+import { useAprobadoresProtocolo } from '../db.js';
 
 const CHIPS = ['todas', 'Rehabilitación oral', 'Periodoncia', 'Endodoncia', 'Cirugía'];
 
@@ -301,6 +302,7 @@ export function Protocolo() {
   const toggle = (i) => setChecks((c) => { const l = c[id] || []; return { ...c, [id]: l.includes(i) ? l.filter((x) => x !== i) : [...l, i].sort((a, b) => a - b) }; });
   const reiniciar = () => setChecks((c) => ({ ...c, [id]: [] }));
   const [bajando, setBajando] = useState(false);
+  const aprobadores = useAprobadoresProtocolo(id);
   const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
   const bajarPdf = async () => {
     setBajando(true);
@@ -358,6 +360,16 @@ export function Protocolo() {
           <p className="m-0 mb-3 text-[12px] font-semibold text-acentodeep">{d.esp} · Criterium</p>
           <h1 className="m-0 mb-3.5 text-[27px] font-extrabold leading-[1.12] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{d.titulo}</h1>
           <div className="mb-4 flex flex-wrap gap-1.5">{d.tags.map((t) => <Pill key={t}>{t}</Pill>)}</div>
+          {aprobadores.length > 0 && (
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex flex-none -space-x-2">{aprobadores.slice(0, 3).map((r) => <span key={r.id || r.nombre} className="rounded-full ring-2 ring-bg"><Avatar nombre={r.nombre} verificado={r.verificado} size={26} /></span>)}</div>
+              <p className="m-0 text-[12.5px] leading-snug text-ink3">
+                <b className="font-semibold text-ink2">Mención honrosa:</b>{' '}
+                {aprobadores.map((r, i) => <span key={r.id || r.nombre}>{i > 0 && (i === aprobadores.length - 1 ? ' y ' : ', ')}<span className="font-semibold text-ink2">{r.nombre}</span></span>)}
+                {', por aprobar '}{(() => { const n = aprobadores.reduce((t, r) => t + r.casos, 0); return n === 1 ? 'un caso' : n + ' casos'; })()} con este protocolo.
+              </p>
+            </div>
+          )}
           <p className="m-0 font-serif text-[15px] leading-relaxed text-ink2"><b className="font-sans text-[13.5px] text-ink">Alcance:</b> {d.alcance}</p>
         </header>
 

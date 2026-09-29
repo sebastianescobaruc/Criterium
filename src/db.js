@@ -45,6 +45,31 @@ export function useColaRevision() {
   return [cola, listo];
 }
 
+/** Revisores que aprobaron casos con un protocolo (para la mención honrosa). Lee casos aprobados de cualquier autor. */
+export function useAprobadoresProtocolo(protocoloId) {
+  const [lista, setLista] = useState([]);
+
+  useEffect(() => {
+    if (!protocoloId) return;
+    const q = query(collection(db, 'casos'), where('protocoloId', '==', protocoloId), where('estado', '==', 'aprobado'));
+    const unsub = onSnapshot(q, (snap) => {
+      const porRevisor = new Map();
+      snap.docs.forEach((d) => {
+        const revs = d.data().revisiones || [];
+        const r = [...revs].reverse().find((x) => x.veredicto === 'aprobado');
+        if (!r || !r.revisor) return;
+        const k = r.revisor.id || r.revisor.nombre;
+        const prev = porRevisor.get(k);
+        porRevisor.set(k, { ...r.revisor, casos: (prev ? prev.casos : 0) + 1 });
+      });
+      setLista([...porRevisor.values()].sort((a, b) => b.casos - a.casos));
+    }, () => setLista([]));
+    return unsub;
+  }, [protocoloId]);
+
+  return lista;
+}
+
 /** Guardar o actualizar un caso */
 export async function guardarCasoFS(caso, uid) {
   const ahora = new Date().toISOString();
