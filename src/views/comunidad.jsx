@@ -62,6 +62,65 @@ export function PerfilModal({ open, onClose }) {
 }
 
 /* ═════════ FEED (inicio) ═════════ */
+/* ═════════ GUÍA: qué se puede hacer en Criterium ═════════ */
+const PASOS_GUIA = [
+  { n: 1, icon: 'book', t: 'Aprende', d: 'Busca un protocolo. Cada paso dice qué hacer, cuándo está listo y con qué evidencia.', cta: 'Ver la biblioteca', ir: (a) => a.go('biblioteca') },
+  { n: 2, icon: 'folder', t: 'Registra', d: 'Sube tu caso sin datos del paciente, con fotos y cómo seguiste cada paso.', cta: 'Nuevo caso', ir: (a) => a.nuevoCaso() },
+  { n: 3, icon: 'stamp', t: 'Valida', d: 'Un revisor del área lo puntúa y lo aprueba, pide cambios o lo deniega. Siempre justificado.', cta: 'Ver revisión', ir: (a) => a.go('revision') },
+  { n: 4, icon: 'chat', t: 'Conversa', d: 'Pregunta lo que te pasó en el box, responde a otros y sigue a tus colegas.', cta: 'Escribir', ir: () => { const el = document.getElementById('feed-txt'); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }); } } }
+];
+const leerGuia = () => { try { return localStorage.getItem('criterium-guia') === 'oculta'; } catch (e) { return false; } };
+const guardarGuia = (oculta) => { try { oculta ? localStorage.setItem('criterium-guia', 'oculta') : localStorage.removeItem('criterium-guia'); } catch (e) {} };
+
+function Guia() {
+  const app = useApp();
+  const [oculta, setOculta] = useState(leerGuia);
+  const cambiar = (v) => { setOculta(v); guardarGuia(v); };
+  if (oculta) {
+    return (
+      <button type="button" onClick={() => cambiar(false)} className="inline-flex items-center gap-1.5 self-start text-[13px] font-semibold text-acento hover:text-acentodeep">
+        <Ic n="sparkle" s={15} />¿Qué se puede hacer en Criterium?
+      </button>
+    );
+  }
+  return (
+    <section aria-labelledby="guia-titulo" className="-mx-4 border-y border-line bg-card px-4 py-5 sm:mx-0 sm:rounded-r sm:border-x sm:px-5">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 id="guia-titulo" className="m-0 text-[17px] font-semibold tracking-[-.015em] text-deep">Qué puedes hacer en Criterium</h2>
+          <p className="m-0 mt-0.5 text-[13px] text-ink3">Un ciclo de cuatro pasos. Toca uno para ir directo.</p>
+        </div>
+        <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-ink" aria-label="Ocultar la guía"><Ic n="x" s={16} /></button>
+      </div>
+
+      {/* Móvil: línea vertical. Desde sm: cuatro columnas unidas por una línea horizontal. */}
+      <ol className="relative m-0 grid list-none gap-0 p-0 sm:grid-cols-4 sm:gap-3">
+        <span aria-hidden="true" className="absolute bottom-6 left-[19px] top-6 w-[2px] bg-line sm:bottom-auto sm:left-[12.5%] sm:right-[12.5%] sm:top-[19px] sm:h-[2px] sm:w-auto" />
+        {PASOS_GUIA.map((p) => (
+          <li key={p.n} className="relative">
+            <button type="button" onClick={() => p.ir(app)} className="group grid w-full grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-rs py-2 text-left sm:flex sm:flex-col sm:items-center sm:px-1 sm:text-center">
+              <span className="relative z-10 grid h-10 w-10 place-items-center rounded-full border-2 border-acento bg-card text-acento transition-colors group-hover:bg-acento group-hover:text-onc">
+                <Ic n={p.icon} s={18} sw={1.9} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[11px] font-semibold uppercase tracking-[.06em] text-ink3">Paso {p.n}</span>
+                <span className="block text-[15px] font-semibold leading-tight text-deep">{p.t}</span>
+                <span className="mt-1 block text-[12.5px] leading-snug text-ink2">{p.d}</span>
+                <span className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-acento group-hover:underline">{p.cta} →</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-4 flex flex-col gap-2 rounded-rs bg-soft px-3.5 py-3 text-[12.5px] leading-snug text-ink2 sm:flex-row sm:items-center sm:justify-between">
+        <span className="inline-flex items-start gap-2"><Ic n="sparkle" s={15} className="mt-px text-acento" />Lo que se aprueba y se resuelve aquí vuelve a mejorar los protocolos.</span>
+        <button type="button" onClick={() => app.go('herramientas')} className="inline-flex flex-none items-center gap-1.5 self-start font-semibold text-acento hover:underline sm:self-auto"><Ic n="tool" s={14} />También: calculadoras clínicas</button>
+      </div>
+    </section>
+  );
+}
+
 function Historias() {
   const { abrirProto, nuevoCaso } = useApp();
   const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0));
@@ -213,6 +272,7 @@ export function Feed() {
     <div className="mx-auto grid max-w-[980px] grid-cols-[minmax(0,1fr)] items-start gap-10 xl:grid-cols-[minmax(0,600px)_300px] xl:justify-between">
       <div className="mx-auto flex w-full min-w-0 max-w-[600px] flex-col gap-4">
         <h1 className="sr-only">Inicio</h1>
+        <Guia />
         <Historias />
         <div className="-mx-4 border-y border-line bg-card px-4 py-3.5 sm:mx-0 sm:rounded-r sm:border-x">
           <div className="flex gap-3">

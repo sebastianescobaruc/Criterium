@@ -57,7 +57,7 @@ storage.rules        reglas de seguridad de Storage
 ```
 
 La navegación es por estado (`view` en App.jsx), no por URL. `go(view, extra)` cambia de vista.
-La vista inicial es el **feed** (`view = 'feed'`, rotulado "Inicio"), con estilo de red social: franja de protocolos tipo historias, publicaciones y, en escritorio, la columna "Tu día". La antigua portada (`view = 'inicio'`) quedó como "Sobre Criterium".
+La vista inicial es el **feed** (`view = 'feed'`, rotulado "Inicio"), con estilo de red social: franja de protocolos tipo historias, publicaciones y, en escritorio, la columna "Tu día". La antigua portada (`view = 'inicio'`) quedó como "Sobre Criterium". Arriba del feed va la guía "Qué puedes hacer en Criterium" (`Guia` en `comunidad.jsx`): cuatro pasos (aprende, registra, valida, conversa) que llevan a su sección; se puede ocultar.
 
 ## Modelo de datos
 
@@ -131,7 +131,7 @@ Están en `logic.js`. Si cambias alguna, cambia también el texto que la explica
 - **Firebase Auth** maneja la autenticación con email/contraseña. El UID de Firebase identifica al usuario en todo el sistema.
 - **IndexedDB legacy**: `logic.js` conserva las funciones `leer()` y `escribir()` para la migración de datos locales al registrarse.
 - **Firestore offline**: habilitado con `enableIndexedDbPersistence`. Los datos se sincronizan cuando hay conexión.
-- localStorage (solo comodidades): `criterium-tema`, `criterium-checks` (modo box), `criterium-revisor`.
+- localStorage (solo comodidades): `criterium-tema`, `criterium-checks` (modo box), `criterium-revisor`, `criterium-guia` (la guía del inicio quedó oculta).
 - Las fotos se comprimen en el navegador a 1600 px de lado mayor, JPEG 0,84, sin recortar, y luego se suben a Storage.
 - **Variables de entorno**: las credenciales de Firebase van en `.env` (nunca en el código). Ver `.env.example`.
 - **Migración**: al registrarse o iniciar sesión por primera vez, la app detecta datos en IndexedDB y ofrece subirlos a Firestore.
