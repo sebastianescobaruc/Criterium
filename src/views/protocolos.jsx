@@ -129,9 +129,9 @@ export function Inicio() {
       <section className="grid items-center gap-6 rounded-[26px] bg-band px-6 py-8 sm:px-10 sm:py-10 md:grid-cols-[minmax(0,1.3fr)_auto]">
         <div>
           <h2 className="m-0 mb-3 text-[26px] font-extrabold leading-[1.1] tracking-[-.03em] text-white [text-wrap:balance] sm:text-[32px]">Ningún protocolo está validado todavía.</h2>
-          <p className="m-0 max-w-[60ch] font-serif text-[16px] leading-relaxed text-[#DDD8CB] sm:text-[17px]">Las ocho plazas de revisor están abiertas y cada una cubre un área distinta. Ningún protocolo se publica como validado sin la firma de un especialista del área que corresponde.</p>
+          <p className="m-0 max-w-[60ch] font-serif text-[16px] leading-relaxed text-[#D5E3E8] sm:text-[17px]">Las ocho plazas de revisor están abiertas y cada una cubre un área distinta. Ningún protocolo se publica como validado sin la firma de un especialista del área que corresponde.</p>
         </div>
-        <button type="button" onClick={() => go('postular')} className="justify-self-start rounded-full bg-[#F6F4EF] px-6 py-3 text-[14.5px] font-bold text-[#17160F] hover:bg-white">Ver las ocho plazas</button>
+        <button type="button" onClick={() => go('postular')} className="justify-self-start rounded-full bg-[#F6F8F9] px-6 py-3 text-[14.5px] font-bold text-[#1B3949] hover:bg-white">Ver las ocho plazas</button>
       </section>
 
       <section>

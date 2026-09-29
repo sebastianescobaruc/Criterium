@@ -2,41 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Paleta inspirada en Apple: gris claro #F5F5F7, tinta #1D1D1F, azul #0071E3 (oscuro: negro, #1C1C1E, #0A84FF). */
+/* Paleta de la marca: azul petróleo #1B3949 y verde azulado #346F7D sobre #F6F8F9. Tipografía del sistema (estilo Apple). */
 :root{
-  --bg:#F5F5F7;--card:#FFFFFF;--soft:#EDEDF0;
-  --ink:#1D1D1F;--ink-2:#424245;--ink-3:#6E6E73;
-  --line:#D2D2D7;--line-2:#E8E8ED;
-  --deep:#1D1D1F;--acento:#0071E3;--acento-soft:#E8F1FC;--acento-deep:#0058B0;
-  --ok:#248A3D;--ok-soft:#E7F5EA;--warn:#B25000;--warn-soft:#FFF3E5;--bad:#D70015;--bad-soft:#FDECEE;
-  --onc:#FFFFFF;--logo-1:#2E9BFF;--logo-2:#0060DF;--band:#1D1D1F;--toast:#1D1D1F;--toast-ink:#F5F5F7;
-  --ring:conic-gradient(from 210deg,#0071E3,#5E5CE6,#64D2FF,#0071E3);
-  --sh:0 1px 2px rgba(0,0,0,.04),0 8px 28px -18px rgba(0,0,0,.18);
-  --sh-lg:0 2px 6px rgba(0,0,0,.05),0 24px 60px -28px rgba(0,0,0,.28);
+  --bg:#F6F8F9;--card:#FFFFFF;--soft:#EDF2F4;
+  --ink:#15303D;--ink-2:#3E5A67;--ink-3:#5A717C;
+  --line:#DCE5E9;--line-2:#EAF0F2;
+  --deep:#1B3949;--acento:#2F6A78;--acento-soft:#E3EEF1;--acento-deep:#1B3949;
+  --ok:#2F7A55;--ok-soft:#E5F2EB;--warn:#9A5B12;--warn-soft:#FAF0E2;--bad:#B3261E;--bad-soft:#FBE9E7;
+  --onc:#FFFFFF;--logo-bg:#1B3949;--logo-acc:#346F7D;--band:#1B3949;--toast:#1B3949;--toast-ink:#FFFFFF;
+  --ring:conic-gradient(from 200deg,#1B3949,#346F7D,#7FB3BF,#1B3949);
+  --sh:0 1px 2px rgba(27,57,73,.05),0 10px 30px -20px rgba(27,57,73,.28);
+  --sh-lg:0 2px 6px rgba(27,57,73,.06),0 24px 56px -28px rgba(27,57,73,.38);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#000000;--card:#1C1C1E;--soft:#2C2C2E;
-    --ink:#F5F5F7;--ink-2:#D1D1D6;--ink-3:#98989D;
-    --line:#38383A;--line-2:#2C2C2E;
-    --deep:#F5F5F7;--acento:#0A84FF;--acento-soft:#0F2A45;--acento-deep:#64B0FF;
-    --ok:#30C35A;--ok-soft:#0F2A17;--warn:#FF9F0A;--warn-soft:#2E2008;--bad:#FF453A;--bad-soft:#3A1212;
-    --onc:#FFFFFF;--logo-1:#409CFF;--logo-2:#0A6CFF;--band:#1C1C1E;--toast:#F5F5F7;--toast-ink:#000000;
-    --ring:conic-gradient(from 210deg,#0A84FF,#5E5CE6,#64D2FF,#0A84FF);
+    --bg:#0B1419;--card:#12212A;--soft:#1A2E38;
+    --ink:#E6EEF1;--ink-2:#B3C4CB;--ink-3:#87A0AA;
+    --line:#243A45;--line-2:#1B303A;
+    --deep:#DCEBF0;--acento:#5FA9B9;--acento-soft:#163540;--acento-deep:#8FCAD6;
+    --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
+    --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
+    --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
     --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
     --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#000000;--card:#1C1C1E;--soft:#2C2C2E;
-  --ink:#F5F5F7;--ink-2:#D1D1D6;--ink-3:#98989D;
-  --line:#38383A;--line-2:#2C2C2E;
-  --deep:#F5F5F7;--acento:#0A84FF;--acento-soft:#0F2A45;--acento-deep:#64B0FF;
-  --ok:#30C35A;--ok-soft:#0F2A17;--warn:#FF9F0A;--warn-soft:#2E2008;--bad:#FF453A;--bad-soft:#3A1212;
-  --onc:#FFFFFF;--logo-1:#409CFF;--logo-2:#0A6CFF;--band:#1C1C1E;--toast:#F5F5F7;--toast-ink:#000000;
-  --ring:conic-gradient(from 210deg,#0A84FF,#5E5CE6,#64D2FF,#0A84FF);
+  --bg:#0B1419;--card:#12212A;--soft:#1A2E38;
+  --ink:#E6EEF1;--ink-2:#B3C4CB;--ink-3:#87A0AA;
+  --line:#243A45;--line-2:#1B303A;
+  --deep:#DCEBF0;--acento:#5FA9B9;--acento-soft:#163540;--acento-deep:#8FCAD6;
+  --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
+  --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
+  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
   --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
   --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
 }

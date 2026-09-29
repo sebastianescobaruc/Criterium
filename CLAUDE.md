@@ -149,10 +149,10 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 - Colores solo desde los tokens de `index.css` (`--bg`, `--card`, `--ink`, `--acento`, `--ok`, `--warn`, `--bad`…), mapeados en `tailwind.config.js`. Nada de colores sueltos, salvo la banda oscura del inicio y el lightbox.
 - Tres estados de tema: claro, oscuro y "sistema" (sin `data-theme`). Todo color nuevo se define en los tres bloques.
 - Texto sobre fondos de color sólido: `text-onc` (no `text-white`), para que funcione en tema oscuro.
-- Estilo inspirado en Apple: fondo gris claro `#F5F5F7`, tarjetas blancas, tinta `#1D1D1F`, acento azul `#0071E3` (oscuro: negro, `#1C1C1E`, `#0A84FF`). El anillo de las historias usa `--ring`; el logo, `--logo-1` y `--logo-2`.
+- Colores de la marca (del logo oficial): azul petróleo `#1B3949` (`--deep`, títulos y logo) y verde azulado `#346F7D` (`--acento` `#2F6A78` para botones y enlaces), sobre fondo `#F6F8F9`. En oscuro: `#0B1419`, tarjetas `#12212A`, acento `#5FA9B9`. El anillo de las historias usa `--ring`; el ícono del logo, `--logo-bg` y `--logo-acc`.
 - Tipografías del sistema: San Francisco (`-apple-system`) con Inter como respaldo fuera de Apple; `font-serif` es New York (`ui-serif`) para las explicaciones. Los `h1` van en SF Pro Display semibold con tracking apretado. **No usar tipografía monoespaciada.**
 - Los `<select>` no usan el estilo nativo del sistema: `index.css` les quita la apariencia y dibuja el chevron con el color del tema.
-- Logo: componente `Logo` en `ui.jsx` (ícono de app con degradado azul y una muela blanca). El favicon está en `public/favicon.svg`.
+- Logo: componente `Logo` en `ui.jsx`, recreado en SVG desde el logo oficial (C con una muela al centro y un tramo verde azulado; "Criter" en `text-deep` e "ium" en `text-acento`). El favicon está en `public/favicon.svg`.
 - **Fotos clínicas siempre completas dentro de su marco** (`object-contain`), nunca recortadas.
 - Todo en español de Chile, simple y directo, que lo entienda un estudiante de primer año. Frases cortas. Los tecnicismos se dejan y se explican en el mismo texto.
 - Debe funcionar a 390 px de ancho sin scroll horizontal. En móvil la navegación va en la barra inferior.

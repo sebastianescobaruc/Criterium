@@ -36,21 +36,17 @@ const PATHS = {
   sparkle: <><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" /><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></>
 };
 
-/* Logo: ícono de app (esquinas continuas, degradado azul) con una muela en blanco. */
+/* Logo: la C de Criterium con una muela al centro y un tramo en verde azulado. Recreado en SVG desde el logo oficial. */
 export function Logo({ size = 26, texto = true, className = '' }) {
   return (
     <span className={cx('inline-flex items-center gap-2', className)}>
-      <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="flex-none">
-        <defs>
-          <linearGradient id="criterium-logo" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" style={{ stopColor: 'var(--logo-1)' }} />
-            <stop offset="1" style={{ stopColor: 'var(--logo-2)' }} />
-          </linearGradient>
-        </defs>
-        <path d="M16 0c9.9 0 16 2.1 16 16s-6.1 16-16 16S0 29.9 0 16 6.1 0 16 0z" fill="url(#criterium-logo)" />
-        <path d="M16 9.4c-1.3-.9-2.4-1.3-3.7-1.3-2.4 0-4 1.8-4 4.3 0 2.2.9 3.7 1.5 5.9.5 2 .8 5.3 2.2 5.3 1.5 0 1.7-3.3 2.6-4.6.5-.7 2.3-.7 2.8 0 .9 1.3 1.1 4.6 2.6 4.6 1.4 0 1.7-3.3 2.2-5.3.6-2.2 1.5-3.7 1.5-5.9 0-2.5-1.6-4.3-4-4.3-1.3 0-2.4.4-3.7 1.3z" fill="#FFFFFF" />
+      <svg width={size} height={size} viewBox="61 60 317 317" aria-hidden="true" className="flex-none">
+        <path d="M101 60H338A40 40 0 0 1 378 100V337A40 40 0 0 1 338 377H101A40 40 0 0 1 61 337V100A40 40 0 0 1 101 60Z" style={{ fill: 'var(--logo-bg)' }} />
+        <path d="M301.1 151.1A115 115 0 1 0 270.5 324.6L250.0 289.1A74 74 0 1 1 269.7 177.4Z" fill="#FFFFFF" />
+        <path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" style={{ fill: 'var(--logo-acc)' }} />
+        <path d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF" />
       </svg>
-      {texto && <span className="font-display font-semibold leading-none tracking-[-.022em] text-deep" style={{ fontSize: Math.round(size * 0.82) }}>Criterium</span>}
+      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className="text-deep">Criter</span><span className="text-acento">ium</span></span>}
     </span>
   );
 }
