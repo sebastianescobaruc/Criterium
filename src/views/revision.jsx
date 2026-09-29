@@ -6,8 +6,8 @@ import { Ic, Pill, EstadoPill, Btn, Field, Seg, Vacio, Chequeo, Aviso, PageHead,
 import { Adherencia, Galeria, TarjetaRevision } from './casos.jsx';
 
 function Intro() {
-  const { go, setModoRevisor, casos, abrirCaso, perfil } = useApp();
-  const mios = casos.filter((c) => c.autor.id === 'yo' && c.estado !== 'borrador');
+  const { go, setModoRevisor, casos, abrirCaso, perfil, myUid } = useApp();
+  const mios = casos.filter((c) => (c.autorUid === myUid || c.autor?.id === myUid) && c.estado !== 'borrador');
   const puede = perfil && /Especialista|Docente/.test(perfil.rol || '');
   return (
     <div className="flex flex-col gap-7">
@@ -51,10 +51,10 @@ function Intro() {
 }
 
 function Cola() {
-  const { casos, setRevisando, setModoRevisor, perfil } = useApp();
+  const { casos, setRevisando, setModoRevisor, perfil, myUid } = useApp();
   const [tab, setTab] = useState('pendientes');
   const pend = casos.filter((c) => c.estado === 'enviado').sort((a, b) => a.actualizado.localeCompare(b.actualizado));
-  const hechas = casos.filter((c) => (c.revisiones || []).some((r) => r.revisor.id === 'yo'));
+  const hechas = casos.filter((c) => (c.revisiones || []).some((r) => r.revisor.id === myUid));
   const lista = tab === 'pendientes' ? pend : hechas;
   const verificado = perfil && /Especialista|Docente/.test(perfil.rol || '');
   return (
@@ -75,18 +75,18 @@ function Cola() {
             return (
               <article key={c.id} className="grid items-center gap-3 rounded-r border border-line bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-5">
                 <div className="flex min-w-0 gap-3">
-                  <Avatar nombre={c.autor.id === 'yo' ? (perfil && perfil.nombre) || 'Tú' : c.autor.nombre} />
+                  <Avatar nombre={(c.autorUid === myUid || c.autor?.id === myUid) ? (perfil && perfil.nombre) || 'Tú' : c.autor?.nombre || c.autorNombre || 'Autor'} />
                   <div className="min-w-0">
                     <div className="mb-1 flex flex-wrap items-center gap-1.5">
                       <Pill>{c.dientes}</Pill>
                       {tab === 'hechas' && <EstadoPill estado={c.estado} />}
                       {ch.fallas.length > 0 && <Pill tono="bad">{ch.fallas.length} bloquea{ch.fallas.length > 1 ? 'n' : ''}</Pill>}
                       {ch.revisar.length > 0 && <Pill tono="warn">{ch.revisar.length} a revisar</Pill>}
-                      {c.autor.id === 'yo' && <Pill tono="acento">Tu caso</Pill>}
+                      {(c.autorUid === myUid || c.autor?.id === myUid) && <Pill tono="acento">Tu caso</Pill>}
                       {c.ejemplo && <Pill>Ejemplo</Pill>}
                     </div>
                     <h3 className="m-0 text-[15.5px] font-bold leading-snug text-deep">{c.titulo}</h3>
-                    <p className="m-0 mt-0.5 text-[12.5px] text-ink3">{c.autor.id === 'yo' ? 'Tú' : c.autor.nombre}{c.autor.rol ? ' · ' + c.autor.rol : ''} · {d ? d.titulo : 'sin protocolo'} · enviado {hace(c.actualizado)}</p>
+                    <p className="m-0 mt-0.5 text-[12.5px] text-ink3">{(c.autorUid === myUid || c.autor?.id === myUid) ? 'Tú' : (c.autor?.nombre || c.autorNombre || 'Autor')}{c.autor?.rol ? ' · ' + c.autor.rol : ''} · {d ? d.titulo : 'sin protocolo'} · enviado {hace(c.actualizado)}</p>
                   </div>
                 </div>
                 <Btn v={tab === 'pendientes' ? 'primary' : 'outline'} icon={tab === 'pendientes' ? 'stamp' : undefined} onClick={() => setRevisando(c.id)} className="justify-self-start">{tab === 'pendientes' ? 'Revisar' : 'Ver'}</Btn>
@@ -228,17 +228,18 @@ function FormRevision({ c, ch, onFirmar }) {
 }
 
 function PantallaRevision() {
-  const { casos, revisando, setRevisando, firmarRevision, perfil, postulacion } = useApp();
+  const { casos, revisando, setRevisando, firmarRevision, perfil, postulacion, myUid } = useApp();
   const c = casos.find((x) => x.id === revisando);
   if (!c) return <Vacio titulo="Este caso ya no está en la cola" accion={<Btn onClick={() => setRevisando(null)}>Volver a la cola</Btn>} />;
   const ch = chequeoCaso(c);
   const d = c.protocoloId && DATOS[c.protocoloId];
   const pendiente = c.estado === 'enviado';
+  const propio = c.autorUid === myUid || c.autor?.id === myUid;
   const firmar = (datos) => {
     const verificado = !!(perfil && /Especialista|Docente/.test(perfil.rol || ''));
     firmarRevision(c.id, {
       id: uid(), fecha: new Date().toISOString(), ...datos,
-      revisor: { id: 'yo', nombre: (perfil && perfil.nombre) || 'Revisor de prueba', area: (perfil && perfil.area) || (postulacion && postulacion.area) || '', verificado: false, demo: !verificado }
+      revisor: { id: myUid, nombre: (perfil && perfil.nombre) || 'Revisor de prueba', area: (perfil && perfil.area) || (postulacion && postulacion.area) || '', verificado: false, demo: !verificado }
     });
   };
   return (
@@ -249,9 +250,9 @@ function PantallaRevision() {
           <header className="flex flex-col gap-3 border-b border-line pb-5">
             <div className="flex flex-wrap items-center gap-1.5"><EstadoPill estado={c.estado} />{c.ejemplo && <Pill>Ejemplo</Pill>}<Pill>{c.dientes}</Pill><Pill>{c.especialidad}</Pill></div>
             <h1 className="m-0 text-[26px] font-extrabold leading-[1.12] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[30px]">{c.titulo}</h1>
-            <p className="m-0 text-[13px] text-ink3">{c.autor.id === 'yo' ? 'Tu caso' : c.autor.nombre + (c.autor.rol ? ' · ' + c.autor.rol : '')} · Paciente {[c.paciente.iniciales, c.paciente.edad && c.paciente.edad + ' años', c.paciente.sexo].filter(Boolean).join(', ')} · enviado {hace(c.actualizado)}</p>
+            <p className="m-0 text-[13px] text-ink3">{(c.autorUid === myUid || c.autor?.id === myUid) ? 'Tu caso' : (c.autor?.nombre || c.autorNombre || 'Autor') + (c.autor?.rol ? ' · ' + c.autor.rol : '')} · Paciente {[c.paciente.iniciales, c.paciente.edad && c.paciente.edad + ' años', c.paciente.sexo].filter(Boolean).join(', ')} · enviado {hace(c.actualizado)}</p>
           </header>
-          {c.autor.id === 'yo' && <Aviso tono="warn" className="mt-4">Conflicto de interés: es tu propio caso. En Criterium real lo revisaría otra persona. Aquí se permite para que pruebes el flujo.</Aviso>}
+          {propio && <Aviso tono="warn" className="mt-4">Conflicto de interés: es tu propio caso. No puedes revisarlo; lo revisa otra persona.</Aviso>}
         </div>
         <section className="grid gap-4 md:grid-cols-2">
           <div className="rounded-r border border-line bg-card p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico}</p></div>
@@ -298,7 +299,8 @@ function PantallaRevision() {
       </div>
       <aside className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-[76px] xl:max-h-[calc(100vh-90px)] xl:overflow-auto xl:pb-6">
         <Chequeo ch={ch} compacto />
-        {pendiente ? <FormRevision key={c.id} c={c} ch={ch} onFirmar={firmar} /> : <Aviso tono="acento">Este caso ya no está pendiente: {c.estado === 'borrador' ? 'el autor lo retiró.' : 'ya tiene veredicto.'}</Aviso>}
+        {pendiente && propio ? <Aviso tono="warn">No puedes firmar la revisión de tu propio caso.</Aviso>
+          : pendiente ? <FormRevision key={c.id} c={c} ch={ch} onFirmar={firmar} /> : <Aviso tono="acento">Este caso ya no está pendiente: {c.estado === 'borrador' ? 'el autor lo retiró.' : 'ya tiene veredicto.'}</Aviso>}
       </aside>
     </div>
   );

@@ -271,6 +271,43 @@ export function anestesia(st) {
   };
 }
 
+/* ───────── dosis máxima pediátrica (AAPD 2023, tabla pág. 408) ───────── */
+// mg/kg de la tabla AAPD. mg por tubo calculados para tubos de 1,8 ml (la tabla AAPD usa 1,7 ml).
+export const ANEST_NINO = {
+  lido: { t: 'Lidocaína 2 % con epinefrina', mgkg: 4.4, mgTubo: 36 },
+  arti: { t: 'Articaína 4 % con epinefrina', mgkg: 7, mgTubo: 72, edadMin: 4 },
+  mepi3: { t: 'Mepivacaína 3 % sin vasoconstrictor', mgkg: 4.4, mgTubo: 54, sinVaso: true },
+  mepi2: { t: 'Mepivacaína 2 % con levonordefrina', mgkg: 4.4, mgTubo: 36 }
+};
+
+export function anestesiaNino(st) {
+  const peso = num(st.nPeso), edad = num(st.nEdad), usados = num(st.nUsados) || 0;
+  const a = ANEST_NINO[st.nAnest] || ANEST_NINO.lido;
+  if (peso === null || edad === null) return { listo: false, aviso: 'Escribe el peso en kilos y la edad en años.' };
+  if (peso < 2 || peso > 150) return { listo: false, aviso: 'Un peso de ' + peso + ' kg está fuera de rango. Revisa el dato.' };
+  if (edad < 0 || edad >= 18) return { listo: false, aviso: 'Esta calculadora es para menores de 18 años. Para un adulto usa la pestaña Adulto.' };
+  if (a.edadMin && edad < a.edadMin) return { listo: false, bloqueo: true, aviso: 'La articaína no se recomienda en menores de 4 años (fabricante, citado por la AAPD). Elige otro anestésico.' };
+  const f1 = (n) => (Math.floor(n * 10) / 10).toString().replace('.', ',');
+  const porPeso = peso * a.mgkg;
+  const lactante = edad < 0.5;
+  const maxMg = Math.floor(lactante ? porPeso * 0.7 : porPeso);
+  const usadoMg = usados * a.mgTubo;
+  const quedanMg = Math.max(0, maxMg - usadoMg);
+  const porque = [
+    peso + ' kg × ' + String(a.mgkg).replace('.', ',') + ' mg/kg = ' + f1(porPeso) + ' mg.',
+    lactante ? 'Menor de 6 meses: se descuenta un 30 % → ' + maxMg + ' mg.' : 'Se redondea hacia abajo: ' + maxMg + ' mg.',
+    'Cada tubo de 1,8 ml lleva ' + a.mgTubo + ' mg. ' + maxMg + ' mg ÷ ' + a.mgTubo + ' mg = ' + f1(maxMg / a.mgTubo) + ' tubos como máximo.',
+    usados ? usados + ' tubo(s) usados = ' + usadoMg + ' mg. Te quedan ' + f1(quedanMg / a.mgTubo) + ' tubos de margen.' : 'Todavía no registras tubos usados.'
+  ];
+  const avisos = [];
+  if (st.nSeda === 'si') avisos.push('Con sedación u otros depresores del sistema nervioso central la AAPD pide bajar la dosis máxima. No da un porcentaje: la calculadora no lo descuenta.');
+  if (a.sinVaso) avisos.push('Sin vasoconstrictor la AAPD pide usar dosis más bajas que el máximo de la tabla.');
+  return {
+    listo: true, anest: a.t, maxMg: maxMg + ' mg', maxTubos: f1(maxMg / a.mgTubo), usadoMg: usadoMg + ' mg',
+    quedanTubos: f1(quedanMg / a.mgTubo), pasado: usadoMg > maxMg, porque, avisos
+  };
+}
+
 /* ───────── fotos: comprimir sin recortar ───────── */
 export function comprimirImagen(file, max = 1600) {
   return new Promise((res, rej) => {

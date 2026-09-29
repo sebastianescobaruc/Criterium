@@ -9,6 +9,10 @@ import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.js
 import { Revision } from './views/revision.jsx';
 import { Asistente, Herramientas } from './views/trabajo.jsx';
 import { Feed, Postular, Contacto, PerfilModal } from './views/comunidad.jsx';
+import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
+import { useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS } from './db.js';
+import AuthGate from './views/auth.jsx';
+import Migracion from './views/migracion.jsx';
 
 const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto'];
 const RUTAS = { inicio: 'Inicio', biblioteca: 'Biblioteca', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
@@ -17,16 +21,6 @@ const RUTAS = { inicio: 'Inicio', biblioteca: 'Biblioteca', proto: 'Biblioteca �
 const NAV_DIARIO = [['inicio', 'home', 'Inicio'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión'], ['herramientas', 'tool', 'Herramientas'], ['asistente', 'bot', 'Asistente']];
 const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['feed', 'chat', 'Feed'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
-
-function conTiempo(p, ms = 1800) { return Promise.race([p, new Promise((r) => setTimeout(() => r(undefined), ms))]); }
-
-function usePersistente(clave, inicial, alFallar) {
-  const [v, setV] = useState(inicial);
-  const [listo, setListo] = useState(false);
-  useEffect(() => { conTiempo(leer(clave)).then((x) => { if (x !== undefined && x !== null) setV(x); setListo(true); }); }, []);
-  useEffect(() => { if (listo) escribir(clave, v).then((ok) => { if (!ok) alFallar(); }); }, [v, listo]);
-  return [v, setV, listo];
-}
 
 function lsGet(k, d) { try { const x = localStorage.getItem(k); return x ? JSON.parse(x) : d; } catch (e) { return d; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -37,11 +31,58 @@ function temaEfectivo() {
   try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { return 'light'; }
 }
 
-function App() {
-  const [avisar, toasts] = useToasts();
-  const falloAviso = useRef(false);
-  const alFallar = useCallback(() => { if (!falloAviso.current) { falloAviso.current = true; avisar('Este navegador no deja guardar: los cambios se pierden al cerrar.', 'warn'); } }, []);
+/* ═══════ Wrapper con Auth ═══════ */
+function AppWrapper() {
+  const { usuario, perfil: perfilAuth, setPerfil: setPerfilAuth, cargando } = useUsuario();
 
+  return (
+    <AuthGate usuario={usuario} cargando={cargando}>
+      <AppConUsuario usuario={usuario} perfilAuth={perfilAuth} setPerfilAuth={setPerfilAuth} />
+    </AuthGate>
+  );
+}
+
+/* ═══════ App principal (solo si hay sesión) ═══════ */
+function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
+  const myUid = usuario?.uid;
+  const [avisar, toasts] = useToasts();
+
+  /* ── Migración ── */
+  const [migrado, setMigrado] = useState(false);
+  const [mostrarMigracion, setMostrarMigracion] = useState(true);
+
+  /* ── Datos de Firestore ── */
+  const [casosPropios, casosPropiosListo] = useMisCasos(myUid);
+  const [colaRevision, colaRevisionListo] = useColaRevision();
+  const [feedFS, setFeedFS, feedListo] = useFeedFS();
+
+  // Combinar: casos propios + cola de revisión (sin duplicados)
+  const todos = useMemo(() => {
+    const ids = new Set(casosPropios.map((c) => c.id));
+    return [...casosPropios, ...colaRevision.filter((c) => !ids.has(c.id))];
+  }, [casosPropios, colaRevision]);
+
+  // Postulación y mensajes (se cargan una vez)
+  const [postulacion, setPostulacion] = useState(null);
+  const [mensajes, setMensajes] = useState([]);
+  const [postCargado, setPostCargado] = useState(false);
+
+  useEffect(() => {
+    if (!myUid) return;
+    leerPostulacionFS(myUid).then((p) => { setPostulacion(p); setPostCargado(true); });
+  }, [myUid]);
+
+  const listo = casosPropiosListo && feedListo && postCargado;
+
+  /* ── Perfil (viene de auth) ── */
+  const perfil = perfilAuth;
+  const setPerfil = useCallback(async (p) => {
+    if (!myUid) return;
+    setPerfilAuth(p);
+    await actualizarPerfil(myUid, p);
+  }, [myUid]);
+
+  /* ── Navegación ── */
   const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor'].includes(h) ? h : 'inicio'; } catch (e) { return 'inicio'; } })();
   const [view, setView] = useState(hashIni);
   const [protoId, setProtoId] = useState('cementado-pmma');
@@ -66,13 +107,7 @@ function App() {
   const [modoRevisor, setModoRevisorRaw] = useState(() => lsGet('criterium-revisor', false));
   const setModoRevisor = (v) => { setModoRevisorRaw(v); lsSet('criterium-revisor', v); setRevisando(null); };
 
-  const [casos, setCasos, l1] = usePersistente('casos.v1', casosIniciales, alFallar);
-  const [feed, setFeed, l2] = usePersistente('feed.v1', feedInicial, alFallar);
-  const [perfil, setPerfil, l3] = usePersistente('perfil.v1', null, alFallar);
-  const [postulacion, setPostulacion, l4] = usePersistente('postulacion.v1', null, alFallar);
-  const [mensajes, setMensajes, l5] = usePersistente('mensajes.v1', [], alFallar);
-  const listo = l1 && l2 && l3 && l4 && l5;
-
+  /* ── Tema ── */
   useEffect(() => {
     const t = lsGet('criterium-tema', null);
     if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
@@ -81,6 +116,7 @@ function App() {
   }, []);
   const toggleTema = () => { const t = temaEfectivo() === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); lsSet('criterium-tema', t); setTema(t); };
 
+  /* ── Acciones ── */
   const go = (v, extra = {}) => {
     setView(v); setMenu(false); setBuscarMovil(false);
     if (v === 'revision' && !('revisando' in extra)) setRevisando(null);
@@ -92,48 +128,150 @@ function App() {
   const abrirProto = (id) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; setProtoId(id); go('proto'); };
   const abrirCaso = (id) => { setDesde(view === 'revision' ? 'revision' : 'casos'); setCasoId(id); go('caso'); };
   const nuevoCaso = (preset) => { setEditando(casoVacio(preset)); go('editor'); };
-  const editarCaso = (id) => { const c = casos.find((x) => x.id === id); if (c) { setEditando(c); go('editor'); } };
+  const editarCaso = (id) => { const c = todos.find((x) => x.id === id); if (c) { setEditando(c); go('editor'); } };
   const ahora = () => new Date().toISOString();
-  const guardarCaso = (c) => setCasos((l) => {
-    const existe = l.some((x) => x.id === c.id);
-    const n = { ...c, actualizado: ahora(), historial: existe ? c.historial : [...(c.historial || []), { fecha: ahora(), txt: 'Caso creado' }] };
-    return existe ? l.map((x) => x.id === c.id ? n : x) : [n, ...l];
-  });
-  const actualizarCaso = (id, fn) => setCasos((l) => l.map((x) => x.id === id ? { ...fn(x), actualizado: ahora() } : x));
-  const enviarCaso = (id, override) => {
-    const c = override || casos.find((x) => x.id === id); if (!c) return;
+
+  const guardarCaso = useCallback(async (c) => {
+    try {
+      const nuevoId = await guardarCasoFS({ ...c, autor: { id: myUid, nombre: perfil?.nombre || 'Tú', rol: perfil?.rol || '' } }, myUid);
+      if (!c.id || c.id.length <= 5) {
+        // Caso nuevo: redirigir
+        setCasoId(nuevoId);
+      }
+      avisar('Caso guardado');
+    } catch (e) {
+      avisar('No se pudo guardar el caso: ' + (e.message || ''), 'warn');
+    }
+  }, [myUid, perfil]);
+
+  const actualizarCaso = useCallback(async (id, fn) => {
+    const c = todos.find((x) => x.id === id);
+    if (!c) return;
+    const actualizado = fn(c);
+    const { id: _, ...sinId } = actualizado;
+    try {
+      await actualizarCasoFS(id, sinId);
+    } catch (e) {
+      avisar('No se pudo actualizar el caso.', 'warn');
+    }
+  }, [todos]);
+
+  const enviarCaso = useCallback(async (id, override) => {
+    const c = override || todos.find((x) => x.id === id); if (!c) return;
     if (!chequeoCaso(c).puedeEnviar) { avisar('El caso todavía no pasa el chequeo para enviarlo.', 'warn'); return; }
     const re = c.estado === 'cambios';
-    setCasos((l) => l.map((x) => x.id === id ? { ...x, estado: 'enviado', actualizado: ahora(), historial: [...(x.historial || []), { fecha: ahora(), txt: re ? 'Reenviado a revisión' : 'Enviado a revisión' }] } : x));
-    avisar(re ? 'Caso reenviado a revisión' : 'Caso enviado a revisión');
-  };
-  const retirarCaso = (id) => { actualizarCaso(id, (x) => ({ ...x, estado: x.revisiones && x.revisiones.length ? 'cambios' : 'borrador', historial: [...x.historial, { fecha: ahora(), txt: 'Retirado de revisión por el autor' }] })); avisar('Caso retirado de revisión'); };
-  const eliminarCaso = (id) => { setCasos((l) => l.filter((x) => x.id !== id)); go('casos'); avisar('Caso eliminado'); };
-  const duplicarCaso = (id) => {
-    const c = casos.find((x) => x.id === id); if (!c) return;
-    const n = { ...JSON.parse(JSON.stringify(c)), id: uid(), ejemplo: false, estado: 'borrador', titulo: c.titulo + ' (copia)', revisiones: [], sesiones: [], historial: [], creado: ahora(), autor: { id: 'yo', nombre: 'Tú', rol: '' } };
+    try {
+      await actualizarCasoFS(id, {
+        estado: 'enviado',
+        historial: [...(c.historial || []), { fecha: ahora(), txt: re ? 'Reenviado a revisión' : 'Enviado a revisión' }]
+      });
+      avisar(re ? 'Caso reenviado a revisión' : 'Caso enviado a revisión');
+    } catch (e) {
+      avisar('No se pudo enviar el caso.', 'warn');
+    }
+  }, [todos]);
+
+  const retirarCaso = useCallback(async (id) => {
+    const c = todos.find((x) => x.id === id); if (!c) return;
+    try {
+      await actualizarCasoFS(id, {
+        estado: c.revisiones && c.revisiones.length ? 'cambios' : 'borrador',
+        historial: [...(c.historial || []), { fecha: ahora(), txt: 'Retirado de revisión por el autor' }]
+      });
+      avisar('Caso retirado de revisión');
+    } catch (e) {
+      avisar('No se pudo retirar el caso.', 'warn');
+    }
+  }, [todos]);
+
+  const eliminarCaso = useCallback(async (id) => {
+    const c = todos.find((x) => x.id === id);
+    try {
+      await eliminarCasoFS(id, c?.fotos || []);
+      go('casos');
+      avisar('Caso eliminado');
+    } catch (e) {
+      avisar('No se pudo eliminar el caso.', 'warn');
+    }
+  }, [todos]);
+
+  const duplicarCaso = useCallback(async (id) => {
+    const c = todos.find((x) => x.id === id); if (!c) return;
+    const n = { ...JSON.parse(JSON.stringify(c)), id: uid(), ejemplo: false, estado: 'borrador', titulo: c.titulo + ' (copia)', revisiones: [], sesiones: [], historial: [], creado: ahora(), autor: { id: myUid, nombre: perfil?.nombre || 'Tú', rol: perfil?.rol || '' } };
     n.fotos = n.fotos.map((f) => ({ ...f, postEnvio: false }));
     setEditando(n); go('editor');
-  };
-  const firmarRevision = (id, rev) => {
-    setCasos((l) => l.map((x) => x.id === id ? { ...x, estado: rev.veredicto, actualizado: ahora(), revisiones: [...(x.revisiones || []), rev], historial: [...(x.historial || []), { fecha: ahora(), txt: ESTADOS[rev.veredicto].txt + ' por ' + rev.revisor.nombre }] } : x));
-    setRevisando(null);
-    avisar(rev.veredicto === 'aprobado' ? 'Caso aprobado y firmado' : rev.veredicto === 'cambios' ? 'Cambios pedidos al autor' : 'Caso denegado', rev.veredicto === 'denegado' ? 'bad' : rev.veredicto === 'cambios' ? 'warn' : 'ok');
-  };
-  const quitarEjemplos = () => { setCasos((l) => l.filter((x) => !x.ejemplo)); avisar('Ejemplos quitados'); };
+  }, [todos, myUid, perfil]);
+
+  const firmarRevision = useCallback(async (id, rev) => {
+    const c = todos.find((x) => x.id === id); if (!c) return;
+    try {
+      await actualizarCasoFS(id, {
+        estado: rev.veredicto,
+        revisiones: [...(c.revisiones || []), rev],
+        historial: [...(c.historial || []), { fecha: ahora(), txt: ESTADOS[rev.veredicto].txt + ' por ' + rev.revisor.nombre }]
+      });
+      setRevisando(null);
+      avisar(rev.veredicto === 'aprobado' ? 'Caso aprobado y firmado' : rev.veredicto === 'cambios' ? 'Cambios pedidos al autor' : 'Caso denegado', rev.veredicto === 'denegado' ? 'bad' : rev.veredicto === 'cambios' ? 'warn' : 'ok');
+    } catch (e) {
+      avisar('No se pudo firmar la revisión.', 'warn');
+    }
+  }, [todos]);
+
+  const quitarEjemplos = useCallback(async () => {
+    const ejemplos = todos.filter((x) => x.ejemplo);
+    for (const c of ejemplos) {
+      try { await eliminarCasoFS(c.id, c.fotos || []); } catch (e) {}
+    }
+    avisar('Ejemplos quitados');
+  }, [todos]);
+
   const conPerfil = (cb) => { if (perfil) cb(perfil); else { perfilCallback.current = cb; setPerfilOpen(true); } };
 
-  const mios = casos.filter((c) => c.autor.id === 'yo');
-  const badge = { casos: mios.filter((c) => c.estado === 'cambios').length, revision: modoRevisor ? casos.filter((c) => c.estado === 'enviado').length : 0 };
+  /* ── Feed (sync con Firestore) ── */
+  const feed = feedFS;
+  const setFeed = useCallback(async (fnOrVal) => {
+    const nuevoFeed = typeof fnOrVal === 'function' ? fnOrVal(feedFS) : fnOrVal;
+    setFeedFS(nuevoFeed);
+    // Sincronizar cambios individuales con Firestore
+    for (const post of nuevoFeed) {
+      try { await publicarPostFS(post); } catch (e) {}
+    }
+  }, [feedFS]);
 
+  /* ── Postulación (sync) ── */
+  const guardarPostulacion = useCallback(async (data) => {
+    setPostulacion(data);
+    if (myUid) await guardarPostulacionFS(myUid, data);
+  }, [myUid]);
+
+  /* ── Mensajes (sync) ── */
+  const guardarMensaje = useCallback(async (msg) => {
+    setMensajes((l) => [...l, msg]);
+    if (myUid) await enviarMensajeFS(myUid, msg);
+  }, [myUid]);
+
+  /* ── Cerrar sesión ── */
+  const logout = async () => {
+    try { await cerrarSesion(); } catch (e) { avisar('No se pudo cerrar la sesión.', 'warn'); }
+  };
+
+  /* ── Conteo y badges ── */
+  const mios = todos.filter((c) => c.autorUid === myUid);
+  const badge = { casos: mios.filter((c) => c.estado === 'cambios').length, revision: modoRevisor ? colaRevision.length : 0 };
+
+  /* ── Contexto ── */
+  // Para compatibilidad con el código existente, 'casos' incluye todos (propios + cola de revisión)
+  const setCasos = () => {}; // No-op: los datos vienen de Firestore ahora
   const ctx = {
     view, go, protoId, abrirProto, casoId, abrirCaso, desde, editando, nuevoCaso, editarCaso, guardarCaso, actualizarCaso, enviarCaso, retirarCaso, eliminarCaso, duplicarCaso,
     revisando, setRevisando, firmarRevision, modoRevisor, setModoRevisor, quitarEjemplos,
     q, setQ, esp, setEsp, filtroCasos, setFiltroCasos, feedProto, setFeedProto, asisTab, setAsisTab, herrTab, setHerrTab,
-    casos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion, mensajes, setMensajes,
-    checks, setChecks, avisar, verFoto: setFoto
+    casos: todos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion: guardarPostulacion, mensajes, setMensajes: guardarMensaje,
+    checks, setChecks, avisar, verFoto: setFoto,
+    usuario, myUid, logout
   };
 
+  /* ── Render ── */
   const navBtn = (v, icon, t) => (
     <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
       className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-acentosoft font-semibold text-acentodeep' : 'text-ink2 hover:bg-soft hover:text-ink')}>
@@ -163,7 +301,17 @@ function App() {
     <button type="button" onClick={() => setPerfilOpen(true)} className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
       <Avatar nombre={perfil.nombre} size={28} />{!compacto && <span className="max-w-[140px] truncate">{perfil.nombre.split(' ')[0]}</span>}
     </button>
-  ) : <button type="button" onClick={() => setPerfilOpen(true)} className="whitespace-nowrap rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc hover:bg-acentodeep">Crear cuenta</button>;
+  ) : <button type="button" onClick={() => setPerfilOpen(true)} className="whitespace-nowrap rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc hover:bg-acentodeep">Mi perfil</button>;
+
+  /* Migración al primer login */
+  if (mostrarMigracion && !migrado) {
+    return (
+      <>
+        <Migracion uid={myUid} onTerminar={() => { setMigrado(true); setMostrarMigracion(false); }} />
+        {toasts}
+      </>
+    );
+  }
 
   const vista = !listo ? (
     <div className="flex flex-col gap-4 pt-8"><div className="h-8 w-64 animate-pulse rounded-rs bg-soft" /><div className="h-4 w-96 max-w-full animate-pulse rounded-rs bg-soft" /><div className="h-48 animate-pulse rounded-r bg-soft" /></div>
@@ -187,6 +335,9 @@ function App() {
           </div>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
             {temaBtn()}
+            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-2 text-[13px] text-ink2 hover:bg-soft">
+              <Ic n="back" s={15} />Cerrar sesión
+            </button>
             <p className="m-0 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
           </div>
         </aside>
@@ -236,7 +387,11 @@ function App() {
           <div className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col gap-3 overflow-auto rounded-t-[22px] bg-card px-4 pb-6 pt-4" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
             <div className="flex items-center justify-between">{marca()}<button type="button" onClick={() => setMenu(false)} className="rounded-full p-2 text-ink3 hover:bg-soft" aria-label="Cerrar menú"><Ic n="x" /></button></div>
             {navegacion()}
-            <div className="flex flex-wrap gap-2 pt-2">{temaBtn()}<button type="button" onClick={() => { setMenu(false); nuevoCaso(); }} className="flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc"><Ic n="plus" s={15} />Nuevo caso</button></div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {temaBtn()}
+              <button type="button" onClick={() => { setMenu(false); nuevoCaso(); }} className="flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc"><Ic n="plus" s={15} />Nuevo caso</button>
+              <button type="button" onClick={() => { setMenu(false); logout(); }} className="flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-[13px] text-ink2 hover:bg-soft"><Ic n="back" s={15} />Cerrar sesión</button>
+            </div>
           </div>
         </div>
       )}
@@ -248,4 +403,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppWrapper;

@@ -145,11 +145,12 @@ export function Avatar({ nombre, verificado, size = 36 }) {
 }
 
 /* Foto clínica: siempre completa dentro de su marco, nunca recortada. */
+const fotoSrc = (foto) => foto.url || foto.data || '';
 export function Foto({ foto, onOpen, alto = 'aspect-[4/3]', children }) {
   return (
     <figure className="m-0 flex min-w-0 flex-col gap-1.5">
       <button type="button" onClick={onOpen} className={cx('group relative w-full overflow-hidden rounded-rs border border-line bg-soft', alto)} aria-label={'Ver foto ' + (foto.tipo || '')}>
-        <img src={foto.data} alt={(foto.tipo || 'Foto') + (foto.nota ? ': ' + foto.nota : '')} className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform group-hover:scale-[1.015]" />
+        <img src={fotoSrc(foto)} alt={(foto.tipo || 'Foto') + (foto.nota ? ': ' + foto.nota : '')} className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform group-hover:scale-[1.015]" />
       </button>
       <figcaption className="flex items-center justify-between gap-2 text-[11.5px] text-ink3">
         <span className="truncate"><b className="font-semibold text-ink2">{foto.tipo}</b>{foto.nota ? ' · ' + foto.nota : ''}</span>
@@ -173,7 +174,7 @@ export function Lightbox({ foto, onClose }) {
         <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-white/10" aria-label="Cerrar"><Ic n="x" s={20} /></button>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <img src={foto.data} alt={foto.tipo} className="max-h-full max-w-full object-contain" />
+        <img src={fotoSrc(foto)} alt={foto.tipo} className="max-h-full max-w-full object-contain" />
       </div>
     </div>
   );

@@ -64,7 +64,7 @@ function TarjetaCaso({ c }) {
   return (
     <button type="button" onClick={() => abrirCaso(c.id)} className="flex min-w-0 flex-col overflow-hidden rounded-r border border-line bg-card text-left shadow-sh transition-shadow hover:shadow-shlg">
       <div className={cx('relative w-full border-b border-line bg-soft', foto ? 'aspect-[16/10]' : 'h-16 sm:aspect-[16/10] sm:h-auto')}>
-        {foto ? <img src={foto.data} alt={foto.tipo} className="absolute inset-0 h-full w-full object-contain p-2" />
+        {foto ? <img src={foto.url || foto.data} alt={foto.tipo} className="absolute inset-0 h-full w-full object-contain p-2" />
           : <div className="absolute inset-0 grid place-items-center text-ink3"><span className="flex items-center gap-2 text-[12px] sm:flex-col sm:gap-1.5"><Ic n="image" s={20} />Sin fotos</span></div>}
         {(c.fotos || []).length > 1 && <span className="absolute bottom-2 right-2 rounded-full bg-card px-2 py-0.5 text-[11px] font-semibold tabular-nums text-ink2 shadow-sh">{c.fotos.length} fotos</span>}
         {c.ejemplo && <span className="absolute left-2 top-2 rounded-full bg-card px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[.04em] text-ink3 shadow-sh">Ejemplo</span>}
@@ -83,10 +83,10 @@ function TarjetaCaso({ c }) {
 }
 
 export function CasosLista() {
-  const { casos, nuevoCaso, filtroCasos, setFiltroCasos, quitarEjemplos, perfil } = useApp();
+  const { casos, nuevoCaso, filtroCasos, setFiltroCasos, quitarEjemplos, perfil, myUid } = useApp();
   const [q, setQ] = useState('');
   const [confirmar, setConfirmar] = useState(false);
-  const mios = casos.filter((c) => c.autor.id === 'yo');
+  const mios = casos.filter((c) => c.autorUid === myUid || c.autor?.id === myUid);
   const cuenta = (e) => mios.filter((c) => c.estado === e).length;
   const nq = norm(q);
   const lista = mios.filter((c) => (filtroCasos === 'todos' || c.estado === filtroCasos) && (!nq || norm(c.titulo + ' ' + c.dientes + ' ' + c.diagnostico + ' ' + c.paciente.iniciales).includes(nq)))
@@ -427,11 +427,11 @@ function Sesiones({ c, onAdd, onDel, editable }) {
 }
 
 export function CasoDetalle() {
-  const { casos, casoId, go, editarCaso, enviarCaso, retirarCaso, eliminarCaso, duplicarCaso, actualizarCaso, avisar, desde } = useApp();
+  const { casos, casoId, go, editarCaso, enviarCaso, retirarCaso, eliminarCaso, duplicarCaso, actualizarCaso, avisar, desde, myUid } = useApp();
   const c = casos.find((x) => x.id === casoId);
   const [confirmar, setConfirmar] = useState(false);
   if (!c) return <Vacio titulo="Este caso ya no existe" accion={<Btn onClick={() => go('casos')}>Volver a Mis casos</Btn>}>Puede que lo hayas eliminado.</Vacio>;
-  const mio = c.autor.id === 'yo';
+  const mio = c.autorUid === myUid || c.autor?.id === myUid;
   const ch = chequeoCaso(c);
   const editable = mio && (c.estado === 'borrador' || c.estado === 'cambios');
   const ultima = c.revisiones && c.revisiones.length ? c.revisiones[c.revisiones.length - 1] : null;

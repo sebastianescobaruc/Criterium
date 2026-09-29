@@ -12,7 +12,7 @@ Criterium es una app web para dentistas y estudiantes de Odontología. Tiene tre
 
 Además: calculadoras clínicas (periodoncia 2018, step-back de endodoncia, dosis máxima de lidocaína), un feed de preguntas, postulación a revisor y contacto.
 
-Estado: **prototipo funcional sin backend**. Todo se guarda en el navegador de quien lo usa. Los protocolos son borradores sin revisión de especialista.
+Estado: **prototipo con backend Firebase**. Autenticación con email/contraseña, datos en Firestore, fotos en Firebase Storage. Al registrarse, los datos locales se migran automáticamente.
 
 ## Cómo correrlo
 
@@ -23,21 +23,26 @@ npm run build    # genera dist/
 npm run preview  # sirve dist/
 ```
 
-Stack: React 18 + Vite 5 + Tailwind CSS 3. Sin TypeScript, sin router, sin librería de estado.
+Stack: React 18 + Vite 5 + Tailwind CSS 3 + Firebase (Auth, Firestore, Storage). Sin TypeScript, sin router, sin librería de estado.
 
 ## Estructura
 
 ```
 src/
   main.jsx            monta <App />
-  App.jsx             layout (barra lateral, barra superior, navegación móvil), estado global y acciones
+  App.jsx             AuthGate + layout + estado global + acciones (usa Firestore)
   ctx.js              contexto de React (useApp)
+  firebase.js         inicialización de Firebase (Auth, Firestore, Storage)
+  auth.js             registro, login, logout, useUsuario, errorAuth
+  db.js               hooks y operaciones de Firestore/Storage (casos, feed, fotos, migración)
   ui.jsx              componentes base: Btn, Pill, Field, Seg, Modal, Foto, Lightbox, Chequeo, toasts, íconos
-  logic.js            lógica pura: chequeo de casos, validador, calculadoras, almacenamiento, exportar
+  logic.js            lógica pura: chequeo de casos, validador, calculadoras, almacenamiento legacy, exportar
   data.js             CONTENIDO CLÍNICO: PROTOS (catálogo) y DATOS (protocolos completos con fuentes)
   seeds.js            casos y publicaciones de ejemplo (marcados ejemplo: true)
   index.css           tokens de color (tema claro/oscuro) + Tailwind
   views/
+    auth.jsx          AuthGate, login, registro, recuperar contraseña
+    migracion.jsx     migración de datos locales (IndexedDB → Firestore)
     protocolos.jsx    Inicio, Biblioteca, Protocolo (modo box)
     casos.jsx         Mis casos: lista, detalle, editor, galería, sesiones
     revision.jsx      Revisión: intro, cola, pantalla de revisión con formulario
@@ -45,6 +50,9 @@ src/
     comunidad.jsx     Feed, Postular a revisor, Contacto, modal de perfil
 public/
   protocolo-cementado-pmma-v0.4.pdf   PDF de box del protocolo de cementado
+firestore.rules      reglas de seguridad de Firestore
+storage.rules        reglas de seguridad de Storage
+.env.example         plantilla de credenciales Firebase
 ```
 
 La navegación es por estado (`view` en App.jsx), no por URL. `go(view, extra)` cambia de vista.
@@ -104,10 +112,15 @@ Están en `logic.js`. Si cambias alguna, cambia también el texto que la explica
 
 ## Almacenamiento
 
-- IndexedDB, base `criterium`, almacén `kv`. Claves: `casos.v1`, `feed.v1`, `perfil.v1`, `postulacion.v1`, `mensajes.v1`. Si IndexedDB falla, la app sigue en memoria y avisa una vez.
+- **Firebase Firestore** es la fuente de verdad para todos los datos compartidos. Los datos se sincronizan en tiempo real con `onSnapshot`.
+- **Firebase Storage** almacena las fotos clínicas en `casos/{casoId}/fotos/{fotoId}.jpg`.
+- **Firebase Auth** maneja la autenticación con email/contraseña. El UID de Firebase identifica al usuario en todo el sistema.
+- **IndexedDB legacy**: `logic.js` conserva las funciones `leer()` y `escribir()` para la migración de datos locales al registrarse.
+- **Firestore offline**: habilitado con `enableIndexedDbPersistence`. Los datos se sincronizan cuando hay conexión.
 - localStorage (solo comodidades): `criterium-tema`, `criterium-checks` (modo box), `criterium-revisor`.
-- Si cambias la forma de los datos, sube la versión de la clave (`casos.v2`) y migra.
-- Las fotos se comprimen en el navegador a 1600 px de lado mayor, JPEG 0,84, sin recortar.
+- Las fotos se comprimen en el navegador a 1600 px de lado mayor, JPEG 0,84, sin recortar, y luego se suben a Storage.
+- **Variables de entorno**: las credenciales de Firebase van en `.env` (nunca en el código). Ver `.env.example`.
+- **Migración**: al registrarse o iniciar sesión por primera vez, la app detecta datos en IndexedDB y ofrece subirlos a Firestore.
 
 ## Integraciones de claude.ai
 
@@ -136,7 +149,7 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 
 ## Próximos pasos (en orden)
 
-1. **Backend y cuentas reales.** Hoy un revisor en otro equipo no ve los casos. Hace falta autenticación, base de datos compartida y almacenamiento de fotos, con permisos por rol (clínico, revisor verificado por área, administrador).
+1. ~~**Backend y cuentas reales.**~~ ✅ Hecho: Firebase Auth + Firestore + Storage integrados.
 2. **Privacidad.** Los datos de salud son datos sensibles. Antes de usar casos reales: consentimiento registrado, cifrado, control de acceso y revisión legal según la ley chilena de protección de datos.
 3. **Bloquear la autorrevisión** y asignar revisores por área del caso.
 4. **Asistente vía servidor** (ver "Integraciones").

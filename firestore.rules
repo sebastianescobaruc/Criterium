@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function conSesion() { return request.auth != null; }
+    function soy(uid) { return conSesion() && request.auth.uid == uid; }
+    function cambia() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // Revisor verificado: existe /revisores/{uid}. Solo se agregan a mano desde la consola.
+    function esRevisor() {
+      return conSesion() && exists(/databases/$(database)/documents/revisores/$(request.auth.uid));
+    }
+
+    // Perfil de usuario: solo el dueño lee y escribe.
+    match /usuarios/{uid} {
+      allow read, write: if soy(uid);
+    }
+
+    // Lista de revisores verificados. Nadie la escribe desde la app.
+    match /revisores/{uid} {
+      allow read: if conSesion();
+      allow write: if false;
+    }
+
+    // Casos clínicos
+    match /casos/{casoId} {
+      function esAutor() { return soy(resource.data.autorUid); }
+
+      // Leer: el autor siempre; otros con sesión, solo casos que no son borrador.
+      allow read: if conSesion()
+        && (esAutor() || resource.data.estado != 'borrador');
+
+      // Crear: a nombre propio, como borrador o enviado, sin revisiones.
+      allow create: if conSesion()
+        && request.resource.data.autorUid == request.auth.uid
+        && request.resource.data.estado in ['borrador', 'enviado']
+        && request.resource.data.get('revisiones', []).size() == 0;
+
+      // Actualizar, camino 1: el autor edita su caso.
+      // No puede tocar las revisiones, cambiar de dueño ni ponerse un veredicto.
+      allow update: if esAutor()
+        && request.resource.data.autorUid == resource.data.autorUid
+        && request.resource.data.get('revisiones', []) == resource.data.get('revisiones', [])
+        && (!('estado' in cambia())
+            || request.resource.data.estado in ['borrador', 'enviado', 'cambios']);
+
+      // Actualizar, camino 2: un revisor verificado firma una revisión.
+      // No puede ser el autor (conflicto de interés), el caso tiene que estar en revisión,
+      // agrega exactamente una revisión firmada con su uid y el veredicto coincide con el estado.
+      allow update: if esRevisor()
+        && !esAutor()
+        && resource.data.estado == 'enviado'
+        && cambia().hasOnly(['revisiones', 'historial', 'estado', 'actualizado'])
+        && revisionValida(
+             request.resource.data.revisiones,
+             resource.data.get('revisiones', []).size(),
+             request.resource.data.estado);
+
+      // Eliminar: solo el autor.
+      allow delete: if esAutor();
+
+      function revisionValida(revs, antes, estado) {
+        return revs.size() == antes + 1
+          && revisionFirmada(revs[antes], estado);
+      }
+      function revisionFirmada(r, estado) {
+        return r.revisor.id == request.auth.uid
+          && r.veredicto == estado
+          && r.veredicto in ['aprobado', 'cambios', 'denegado']
+          && puntaje(r.puntajes.pertinencia)
+          && puntaje(r.puntajes.claridad)
+          && puntaje(r.puntajes.evidencia)
+          && r.justificacion is string && r.justificacion.size() >= 40
+          // No se aprueba con evidencia bajo 3; pedir cambios o denegar exige un motivo.
+          && (r.veredicto != 'aprobado' || r.puntajes.evidencia >= 3)
+          && (r.veredicto == 'aprobado' || r.motivos.size() >= 1);
+      }
+      function puntaje(p) { return p is int && p >= 1 && p <= 5; }
+    }
+
+    // Feed de preguntas
+    match /feed/{postId} {
+      allow read: if conSesion();
+
+      // Crear: nadie se pone la marca de verificado a sí mismo.
+      allow create: if conSesion()
+        && request.resource.data.autor.get('verificado', false) == false;
+
+      // Actualizar: cualquiera con sesión puede dar "me pasó lo mismo" o agregar respuestas,
+      // sin editar el texto ni borrar respuestas de otros.
+      allow update: if conSesion()
+        && cambia().hasOnly(['likes', 'liked', 'respuestas'])
+        && request.resource.data.respuestas.size() >= resource.data.respuestas.size()
+        && request.resource.data.respuestas[0:resource.data.respuestas.size()] == resource.data.respuestas;
+
+      allow delete: if false;
+    }
+
+    // Postulaciones a revisor
+    match /postulaciones/{uid} {
+      allow read, write: if soy(uid);
+    }
+
+    // Mensajes de contacto: se envían a nombre propio.
+    match /mensajes/{msgId} {
+      allow create: if conSesion() && request.resource.data.uid == request.auth.uid;
+      allow read: if conSesion() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

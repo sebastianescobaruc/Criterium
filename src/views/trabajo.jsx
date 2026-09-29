@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DATOS } from '../data.js';
-import { validar, perio, endo, anestesia, bibliotecaTexto, textoProtocolo, protosAbiertos, cap, errIA, descargar } from '../logic.js';
+import { validar, perio, endo, anestesia, anestesiaNino, ANEST_NINO, bibliotecaTexto, textoProtocolo, protosAbiertos, cap, errIA, descargar } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, inputCls, cx } from '../ui.jsx';
 
@@ -229,10 +229,11 @@ export function Herramientas() {
   const [st, setSt] = useState({
     pCal: '5', pRbl: '40', pEdad: '45', pPerdidos: '0', pPs: '6', pExt: '30', pVert: 'no', pFurca: 'no', pSt4: 'no', pTabaco: '0', pHba: '',
     eTipo: 'necro', eLrd: '22', eLad: '', eLi: '15', eLm: '30', eAmplio: 'no',
-    aPeso: '60', aUsados: '0'
+    aPeso: '60', aUsados: '0',
+    aModo: 'adulto', nPeso: '20', nEdad: '6', nAnest: 'lido', nUsados: '0', nSeda: 'no'
   });
   const f = (k) => (v) => setSt((s) => ({ ...s, [k]: v }));
-  const rp = perio(st), re = endo(st), ra = anestesia(st);
+  const rp = perio(st), re = endo(st), ra = anestesia(st), rn = anestesiaNino(st);
   return (
     <div className="mx-auto flex max-w-[980px] flex-col gap-5">
       <PageHead eyebrow="Criterium · herramientas" titulo="Calculadoras clínicas">
@@ -327,6 +328,43 @@ export function Herramientas() {
       )}
 
       {tab === 'anest' && (
+        <Seg size="sm" valor={st.aModo} onChange={f('aModo')} opciones={[{ v: 'adulto', t: 'Adulto' }, { v: 'nino', t: 'Niño · AAPD' }]} />
+      )}
+
+      {tab === 'anest' && st.aModo === 'nino' && (
+        <div className="flex flex-col gap-5">
+          <p className="m-0 max-w-[72ch] text-[13.5px] leading-relaxed text-ink2">Dosis máxima para menores de 18 años según la tabla de la Academia Americana de Odontología Pediátrica (AAPD). Es más baja que la del adulto: en lidocaína, 4,4 mg por kilo en vez de 7. Tubos de 1,8 ml.</p>
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <SiNo id="nAnest" label="Anestésico" value={st.nAnest} onChange={f('nAnest')} opciones={Object.entries(ANEST_NINO).map(([k, a]) => [k, a.t])} />
+            <Num id="nPeso" label="Peso del niño (kg)" step="0.5" min="2" value={st.nPeso} onChange={f('nPeso')} placeholder="20" />
+            <Num id="nEdad" label="Edad (años)" step="0.1" value={st.nEdad} onChange={f('nEdad')} placeholder="6" hint="Si tiene meses, usa decimales: 5 meses = 0,4." />
+            <Num id="nUsados" label="Tubos ya usados en la sesión" step="0.5" value={st.nUsados} onChange={f('nUsados')} placeholder="0" />
+            <SiNo id="nSeda" label="¿Con sedación u otro depresor del SNC?" value={st.nSeda} onChange={f('nSeda')} />
+          </div>
+          {!rn.listo ? (rn.bloqueo ? <Aviso tono="bad">{rn.aviso}</Aviso> : <p className="m-0 text-[13.5px] text-ink3">{rn.aviso}</p>) : (
+            <div className="flex flex-col gap-4">
+              {rn.pasado && <Aviso tono="bad">Los tubos registrados superan la dosis máxima para este peso. Detente y avisa al docente.</Aviso>}
+              {rn.avisos.map((t, i) => <Aviso key={i} tono="warn">{t}</Aviso>)}
+              <div className="flex flex-wrap gap-2.5"><Caja n={rn.maxMg} t="dosis máxima" /><Caja n={rn.maxTubos} t="tubos como máximo" /><Caja n={rn.usadoMg} t="usado hasta ahora" /><Caja n={rn.quedanTubos} t="tubos de margen" /></div>
+              <div className="rounded-r border border-line bg-card p-5">
+                <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió</h3>
+                <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{rn.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
+              </div>
+            </div>
+          )}
+          <Falta titulo="De dónde sale esto y qué falta" items={[
+            'Fuente: AAPD, Use of Local Anesthesia for Pediatric Dental Patients (revisión 2023). The Reference Manual of Pediatric Dentistry 2025, tabla de la pág. 408 y recomendaciones de la pág. 411.',
+            'Lidocaína: la AAPD usa 4,4 mg/kg, más conservador que los 7 mg/kg del fabricante. Articaína: 7 mg/kg, y no se recomienda bajo 4 años.',
+            'En menores de 6 meses la AAPD pide bajar un 30 % la dosis de las amidas. La calculadora lo descuenta sola.',
+            'La tabla de la AAPD no fija un techo total en mg, solo mg por kilo. En un adolescente grande revisa también la dosis de adulto.',
+            'La tabla usa tubos de 1,7 ml. Aquí se calcula con 1,8 ml, el tubo habitual en Chile.',
+            'El anestésico tópico también se absorbe y la AAPD pide sumarlo al total. La calculadora no lo incluye.',
+            'Prilocaína y bupivacaína no están cargadas. La bupivacaína no se recomienda bajo 12 años.'
+          ]} />
+        </div>
+      )}
+
+      {tab === 'anest' && st.aModo !== 'nino' && (
         <div className="flex flex-col gap-5">
           <p className="m-0 max-w-[72ch] text-[13.5px] leading-relaxed text-ink2">Lidocaína al 2 % con epinefrina 1:100.000 en tubos de 1,8 ml. El techo es 7 mg por kilo, sin pasar nunca de 500 mg. Es el mismo dato que usa el protocolo de exodoncia del 1.8.</p>
           <div className="grid gap-3.5 sm:grid-cols-2">

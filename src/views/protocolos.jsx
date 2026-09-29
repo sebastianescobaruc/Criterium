@@ -45,8 +45,8 @@ function TarjetaProto({ p }) {
 }
 
 function TuDia() {
-  const { casos, abrirCaso, go, nuevoCaso, modoRevisor } = useApp();
-  const mios = casos.filter((c) => c.autor.id === 'yo');
+  const { casos, abrirCaso, go, nuevoCaso, modoRevisor, myUid } = useApp();
+  const mios = casos.filter((c) => c.autorUid === myUid || c.autor?.id === myUid);
   const controles = [];
   mios.forEach((c) => (c.sesiones || []).forEach((s) => { if (s.proximo) controles.push({ c, s, d: diasHasta(s.proximo) }); }));
   const prox = controles.filter((x) => x.d >= -14).sort((a, b) => a.d - b.d).slice(0, 4);
@@ -294,14 +294,14 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
 }
 
 export function Protocolo() {
-  const { protoId, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso } = useApp();
+  const { protoId, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid } = useApp();
   const d = DATOS[protoId] || DATOS['cementado-pmma'];
   const id = DATOS[protoId] ? protoId : 'cementado-pmma';
   const hechos = checks[id] || [];
   const toggle = (i) => setChecks((c) => { const l = c[id] || []; return { ...c, [id]: l.includes(i) ? l.filter((x) => x !== i) : [...l, i].sort((a, b) => a - b) }; });
   const reiniciar = () => setChecks((c) => ({ ...c, [id]: [] }));
   const [bajando, setBajando] = useState(false);
-  const casosDeEste = casos.filter((c) => c.protocoloId === id && c.autor.id === 'yo');
+  const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
   const bajarPdf = async () => {
     setBajando(true);
     try {

@@ -8,21 +8,29 @@ const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
 
 /* ═════════ PERFIL ═════════ */
 export function PerfilModal({ open, onClose }) {
-  const { perfil, setPerfil, avisar, perfilCallback } = useApp();
+  const { perfil, setPerfil, avisar, perfilCallback, usuario, logout } = useApp();
   const [f, setF] = useState(() => perfil || { nombre: '', rol: ROLES[0], institucion: '', area: '' });
   const [intento, setIntento] = useState(false);
+  const [guardando, setGuardando] = useState(false);
   const errNombre = f.nombre.trim().length < 3 ? 'Escribe tu nombre y apellido.' : '';
-  const guardar = (e) => {
+  const guardar = async (e) => {
     e && e.preventDefault(); setIntento(true);
     if (errNombre) return;
+    setGuardando(true);
     const p = { ...f, nombre: f.nombre.trim(), institucion: f.institucion.trim() };
-    setPerfil(p); avisar(perfil ? 'Perfil actualizado' : 'Cuenta creada en este navegador');
-    onClose(); perfilCallback.current && perfilCallback.current(p); perfilCallback.current = null;
+    try {
+      await setPerfil(p);
+      avisar('Perfil actualizado');
+      onClose(); perfilCallback.current && perfilCallback.current(p); perfilCallback.current = null;
+    } catch (err) {
+      avisar('No se pudo guardar el perfil.', 'warn');
+    }
+    setGuardando(false);
   };
   return (
-    <Modal open={open} onClose={() => { perfilCallback.current = null; onClose(); }} title={perfil ? 'Tu perfil' : 'Crear cuenta'}>
+    <Modal open={open} onClose={() => { perfilCallback.current = null; onClose(); }} title="Tu perfil">
       <form onSubmit={guardar} className="flex flex-col gap-4 p-5">
-        <p className="m-0 text-[13.5px] leading-relaxed text-ink2">Los aportes van firmados: un comentario sobre un paso clínico tiene que tener un responsable detrás. Por ahora tu perfil se guarda solo en este navegador.</p>
+        {usuario?.email && <p className="m-0 text-[13px] text-ink3">Sesión con <b className="text-ink2">{usuario.email}</b></p>}
         <Field label="Nombre y apellido" id="perfil-nombre" error={intento ? errNombre : ''}>
           <input id="perfil-nombre" value={f.nombre} onChange={(e) => setF({ ...f, nombre: e.target.value })} placeholder="Nombre y apellido" className={cx(inputCls, intento && errNombre && inputErr)} />
         </Field>
@@ -34,9 +42,14 @@ export function PerfilModal({ open, onClose }) {
           <select id="perfil-area" value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} className={inputCls}><option value="">Sin área</option>{AREAS.map((a) => <option key={a}>{a}</option>)}</select>
         </Field>
         <div className="flex flex-wrap gap-2 pt-1">
-          <Btn v="primary" type="submit" onClick={guardar}>{perfil ? 'Guardar cambios' : 'Crear cuenta'}</Btn>
+          <Btn v="primary" type="submit" onClick={guardar} disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar cambios'}</Btn>
           <Btn onClick={onClose}>Cancelar</Btn>
         </div>
+        {logout && (
+          <button type="button" onClick={() => { onClose(); logout(); }} className="mt-1 text-left text-[13px] font-semibold text-bad hover:underline">
+            Cerrar sesión
+          </button>
+        )}
       </form>
     </Modal>
   );
