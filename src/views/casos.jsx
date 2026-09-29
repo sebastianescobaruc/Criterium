@@ -25,6 +25,7 @@ export function casoVacio(preset = {}) {
 
 /* ─────────────── tarjeta de revisión (veredicto) ─────────────── */
 export function TarjetaRevision({ r }) {
+  const { verPerfil } = useApp();
   const e = ESTADOS[r.veredicto];
   const borde = { ok: 'border-ok', warn: 'border-warn', bad: 'border-bad' }[e.tono] || 'border-line';
   return (
@@ -32,7 +33,7 @@ export function TarjetaRevision({ r }) {
       <div className="flex flex-wrap items-center gap-3">
         <Avatar nombre={r.revisor.nombre} verificado={r.revisor.verificado} />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5 text-[14px] font-semibold text-ink">{r.revisor.nombre}{r.revisor.verificado && <span className="text-ok" title="Verificado">✓</span>}{r.revisor.demo && <Pill>revisor de prueba</Pill>}</div>
+          <div className="flex flex-wrap items-center gap-1.5 text-[14px] font-semibold text-ink">{r.revisor.id ? <button type="button" onClick={() => verPerfil(r.revisor.id)} className="text-left hover:underline">{r.revisor.nombre}</button> : r.revisor.nombre}{r.revisor.verificado && <span className="text-ok" title="Verificado">✓</span>}{r.revisor.demo && <Pill>revisor de prueba</Pill>}</div>
           <div className="text-[12px] text-ink3">Revisor · {r.revisor.area || 'área sin indicar'} · {fecha(r.fecha)}</div>
         </div>
         <EstadoPill estado={r.veredicto} />

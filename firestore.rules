@@ -82,18 +82,57 @@ service cloud.firestore {
     match /feed/{postId} {
       allow read: if conSesion();
 
-      // Crear: nadie se pone la marca de verificado a sí mismo.
+      // Crear: nadie se pone la marca de verificado a sí mismo, y si trae autorUid tiene que ser el propio.
       allow create: if conSesion()
-        && request.resource.data.autor.get('verificado', false) == false;
+        && request.resource.data.autor.get('verificado', false) == false
+        && request.resource.data.get('autorUid', request.auth.uid) == request.auth.uid;
 
       // Actualizar: cualquiera con sesión puede dar "me pasó lo mismo" o agregar respuestas,
       // sin editar el texto ni borrar respuestas de otros.
+      // En likedBy cada persona solo agrega o quita su propio uid.
       allow update: if conSesion()
-        && cambia().hasOnly(['likes', 'liked', 'respuestas'])
+        && cambia().hasOnly(['likes', 'liked', 'likedBy', 'respuestas'])
+        && likeValido()
         && request.resource.data.respuestas.size() >= resource.data.respuestas.size()
-        && request.resource.data.respuestas[0:resource.data.respuestas.size()] == resource.data.respuestas;
+        && request.resource.data.respuestas[0:resource.data.respuestas.size()] == resource.data.respuestas
+        && respuestasNuevasValidas();
 
       allow delete: if false;
+
+      function likeValido() {
+        let antes = resource.data.get('likedBy', []).toSet();
+        let despues = request.resource.data.get('likedBy', []).toSet();
+        return despues.difference(antes).hasOnly([request.auth.uid])
+          && antes.difference(despues).hasOnly([request.auth.uid]);
+      }
+      // La respuesta agregada no se marca como verificada y, si trae uid, es el propio.
+      function respuestasNuevasValidas() {
+        let n = resource.data.respuestas.size();
+        return request.resource.data.respuestas.size() == n
+          || (request.resource.data.respuestas.size() == n + 1
+            && request.resource.data.respuestas[n].autor.get('verificado', false) == false
+            && request.resource.data.respuestas[n].autor.get('uid', request.auth.uid) == request.auth.uid);
+      }
+    }
+
+    // Perfil público: lo ve cualquiera con sesión; solo el dueño lo escribe. Nunca guarda el correo.
+    match /perfiles/{uid} {
+      allow read: if conSesion();
+      allow write: if soy(uid)
+        && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'actualizado'])
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() <= 80
+        && request.resource.data.get('descripcion', '').size() <= 300;
+    }
+
+    // Seguimientos: el documento se llama {de}_{a}. Cada uno maneja solo a quién sigue.
+    match /seguimientos/{segId} {
+      allow read: if conSesion();
+      allow create: if soy(request.resource.data.de)
+        && segId == request.resource.data.de + '_' + request.resource.data.a
+        && request.resource.data.de != request.resource.data.a
+        && request.resource.data.keys().hasOnly(['de', 'a', 'fecha']);
+      allow delete: if soy(resource.data.de);
+      allow update: if false;
     }
 
     // Postulaciones a revisor

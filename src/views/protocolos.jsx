@@ -295,7 +295,7 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
 }
 
 export function Protocolo() {
-  const { protoId, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid } = useApp();
+  const { protoId, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid, verPerfil } = useApp();
   const d = DATOS[protoId] || DATOS['cementado-pmma'];
   const id = DATOS[protoId] ? protoId : 'cementado-pmma';
   const hechos = checks[id] || [];
@@ -365,7 +365,7 @@ export function Protocolo() {
               <div className="flex flex-none -space-x-2">{aprobadores.slice(0, 3).map((r) => <span key={r.id || r.nombre} className="rounded-full ring-2 ring-bg"><Avatar nombre={r.nombre} verificado={r.verificado} size={26} /></span>)}</div>
               <p className="m-0 text-[12.5px] leading-snug text-ink3">
                 <b className="font-semibold text-ink2">Mención honrosa:</b>{' '}
-                {aprobadores.map((r, i) => <span key={r.id || r.nombre}>{i > 0 && (i === aprobadores.length - 1 ? ' y ' : ', ')}<span className="font-semibold text-ink2">{r.nombre}</span></span>)}
+                {aprobadores.map((r, i) => <span key={r.id || r.nombre}>{i > 0 && (i === aprobadores.length - 1 ? ' y ' : ', ')}{r.id ? <button type="button" onClick={() => verPerfil(r.id)} className="font-semibold text-ink2 hover:underline">{r.nombre}</button> : <span className="font-semibold text-ink2">{r.nombre}</span>}</span>)}
                 {', por aprobar '}{(() => { const n = aprobadores.reduce((t, r) => t + r.casos, 0); return n === 1 ? 'un caso' : n + ' casos'; })()} con este protocolo.
               </p>
             </div>

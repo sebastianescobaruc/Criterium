@@ -86,6 +86,18 @@ La vista inicial es el **feed** (`view = 'feed'`, rotulado "Inicio"), con estilo
   veredicto: 'aprobado' | 'cambios' | 'denegado', motivos: [string], justificacion }
 ```
 
+**Publicación del feed** (`feed/{id}`)
+```js
+{ autorUid, autor: { uid, nombre, rol, verificado }, protocoloId, fecha, txt,
+  likes, likedBy: [uid],               // cada persona agrega o quita solo su uid
+  respuestas: [{ id, autor: { uid, nombre, rol, verificado }, fecha, txt }] }  // se agregan con arrayUnion
+```
+Las publicaciones antiguas no tienen `autorUid`: su nombre no enlaza a un perfil.
+
+**Perfil público** (`perfiles/{uid}`): `{ nombre, rol, institucion, area, descripcion (≤ 300), actualizado }`. Nunca el correo (ese queda en `usuarios/{uid}`, privado). Se sincroniza al iniciar sesión y al guardar "Tu perfil". Vista `perfil` con `verPerfil(uid)`.
+
+**Seguimiento** (`seguimientos/{de}_{a}`): `{ de, a, fecha }`. Cada uno crea o borra solo los suyos.
+
 **Protocolo** (en `data.js`): `DATOS[id] = { esp, titulo, bandera, tags, alcance, bandeja, evidencia, nota, pdf?, pasos: [Paso] }`.
 Cada `Paso` tiene `corto`, `hacer`, `listo`, `porque[]` y opcionales `cond`, `marca`, `disputa`, `sinEv`, `sub[]` (con `parrafos`, `arbol`, `fuentes`) y `aportes[]`.
 

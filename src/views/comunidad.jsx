@@ -3,7 +3,8 @@ import { AREAS, protoPorId, protosAbiertos, hace, fecha, uid } from '../logic.js
 import { useApp } from '../ctx.js';
 import { PROTOS } from '../data.js';
 import { TuDia } from './protocolos.jsx';
-import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, inputCls, inputErr, cx } from '../ui.jsx';
+import { toggleLikeFS, responderPostFS, publicarPostFS, usePerfilPublico, usePostsDe, useSeguimientos } from '../db.js';
+import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, Vacio, inputCls, inputErr, cx } from '../ui.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
 const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
@@ -11,7 +12,7 @@ const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
 /* ═════════ PERFIL ═════════ */
 export function PerfilModal({ open, onClose }) {
   const { perfil, setPerfil, avisar, perfilCallback, usuario, logout } = useApp();
-  const [f, setF] = useState(() => perfil || { nombre: '', rol: ROLES[0], institucion: '', area: '' });
+  const [f, setF] = useState(() => ({ nombre: '', rol: ROLES[0], institucion: '', area: '', descripcion: '', ...(perfil || {}) }));
   const [intento, setIntento] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const errNombre = f.nombre.trim().length < 3 ? 'Escribe tu nombre y apellido.' : '';
@@ -19,7 +20,7 @@ export function PerfilModal({ open, onClose }) {
     e && e.preventDefault(); setIntento(true);
     if (errNombre) return;
     setGuardando(true);
-    const p = { ...f, nombre: f.nombre.trim(), institucion: f.institucion.trim() };
+    const p = { ...f, nombre: f.nombre.trim(), institucion: (f.institucion || '').trim(), descripcion: (f.descripcion || '').trim().slice(0, 300) };
     try {
       await setPerfil(p);
       avisar('Perfil actualizado');
@@ -42,6 +43,9 @@ export function PerfilModal({ open, onClose }) {
         <Field label="Facultad o lugar de trabajo" id="perfil-inst"><input id="perfil-inst" value={f.institucion} onChange={(e) => setF({ ...f, institucion: e.target.value })} placeholder="Facultad o lugar de trabajo" className={inputCls} /></Field>
         <Field label="Área (opcional)" id="perfil-area">
           <select id="perfil-area" value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} className={inputCls}><option value="">Sin área</option>{AREAS.map((a) => <option key={a}>{a}</option>)}</select>
+        </Field>
+        <Field label="Descripción (opcional)" id="perfil-desc" hint={(f.descripcion || '').length + ' de 300 · Se ve en tu perfil público. No pongas datos de pacientes.'}>
+          <textarea id="perfil-desc" rows={3} maxLength={300} value={f.descripcion || ''} onChange={(e) => setF({ ...f, descripcion: e.target.value })} placeholder="Qué estudias o en qué trabajas, qué te interesa de la clínica…" className={cx(inputCls, 'resize-y')} />
         </Field>
         <div className="flex flex-wrap gap-2 pt-1">
           <Btn v="primary" type="submit" onClick={guardar} disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar cambios'}</Btn>
@@ -88,34 +92,48 @@ function Historias() {
 }
 
 function Post({ p }) {
-  const { setFeed, conPerfil, perfil, abrirProto } = useApp();
+  const { conPerfil, perfil, abrirProto, myUid, verPerfil, siguiendo, toggleSeguir, avisar } = useApp();
   const [resp, setResp] = useState(false);
   const [txt, setTxt] = useState('');
   const [err, setErr] = useState('');
   const proto = p.protocoloId && protoPorId(p.protocoloId);
-  const like = () => setFeed((l) => l.map((x) => x.id === p.id ? { ...x, liked: !x.liked, likes: x.likes + (x.liked ? -1 : 1) } : x));
+  const autorUid = p.autorUid || (p.autor && p.autor.uid) || '';
+  const likedBy = p.likedBy || [];
+  const meGusta = likedBy.includes(myUid);
+  const likes = Math.max(p.likes || 0, likedBy.length);
+  const like = async () => {
+    try { await toggleLikeFS(p.id, myUid, meGusta); } catch (e) { avisar('No se pudo guardar tu me gusta.', 'warn'); }
+  };
   const responder = (e) => {
     e.preventDefault();
     if (txt.trim().length < 5) { setErr('Escribe una respuesta un poco más larga.'); return; }
-    conPerfil((pf) => {
-      setFeed((l) => l.map((x) => x.id === p.id ? { ...x, respuestas: [...x.respuestas, { id: uid(), autor: { nombre: pf.nombre, rol: pf.rol, verificado: false }, fecha: new Date().toISOString(), txt: txt.trim() }] } : x));
-      setTxt(''); setResp(false); setErr('');
+    conPerfil(async (pf) => {
+      try {
+        await responderPostFS(p.id, { id: uid(), autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, verificado: false }, fecha: new Date().toISOString(), txt: txt.trim() });
+        setTxt(''); setResp(false); setErr('');
+      } catch (er) { setErr('No se pudo publicar la respuesta. Revisa tu conexión.'); }
     });
   };
+  const nombreBtn = (uidX, contenido, cls = '') => uidX
+    ? <button type="button" onClick={() => verPerfil(uidX)} className={cx('text-left hover:underline', cls)}>{contenido}</button>
+    : <span className={cls}>{contenido}</span>;
   const sinResp = !p.respuestas.length && !p.autor.verificado;
   return (
     <article className="-mx-4 border-y border-line bg-card sm:mx-0 sm:rounded-r sm:border-x">
       <header className="flex items-center gap-3 px-4 pb-2 pt-3.5">
         <span className="rounded-full p-[2px]" style={{ background: p.autor.verificado ? 'var(--ring)' : 'transparent' }}>
-          <span className="block rounded-full bg-card p-[2px]"><Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} /></span>
+          <span className="block rounded-full bg-card p-[2px]">{autorUid ? <button type="button" onClick={() => verPerfil(autorUid)} aria-label={'Ver el perfil de ' + p.autor.nombre} className="block rounded-full"><Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} /></button> : <Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} />}</span>
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[14px] font-semibold leading-tight">
-            <span className="truncate">{p.autor.nombre}</span>
+            {nombreBtn(autorUid, p.autor.nombre, 'truncate')}
             {p.autor.verificado && <span className="grid h-4 w-4 flex-none place-items-center rounded-full bg-acento text-onc" title="Revisor verificado"><Ic n="check" s={10} sw={3} /></span>}
           </div>
           <p className="m-0 truncate text-[12.5px] text-ink3">{p.autor.rol} · {hace(p.fecha)}</p>
         </div>
+        {autorUid && autorUid !== myUid && !siguiendo.includes(autorUid) && (
+          <button type="button" onClick={() => toggleSeguir(autorUid)} className="flex-none text-[13px] font-semibold text-acento hover:text-acentodeep">Seguir</button>
+        )}
       </header>
       {(proto || sinResp || p.ejemplo) && (
         <div className="flex flex-wrap items-center gap-1.5 px-4 pb-1">
@@ -129,20 +147,20 @@ function Post({ p }) {
       )}
       <p className="m-0 whitespace-pre-line px-4 pb-1 pt-1.5 text-[15.5px] leading-[1.55] text-ink">{p.txt}</p>
       <div className="flex items-center gap-1 px-2.5 pt-1">
-        <button type="button" onClick={like} aria-pressed={!!p.liked} aria-label="Me pasó lo mismo" className={cx('rounded-full p-2 transition-transform active:scale-90', p.liked ? 'text-bad' : 'text-ink hover:text-ink2')}>
-          <Ic n="heart" s={23} className={p.liked ? 'fill-current' : ''} />
+        <button type="button" onClick={like} aria-pressed={meGusta} aria-label="Me pasó lo mismo" className={cx('rounded-full p-2 transition-transform active:scale-90', meGusta ? 'text-bad' : 'text-ink hover:text-ink2')}>
+          <Ic n="heart" s={23} className={meGusta ? 'fill-current' : ''} />
         </button>
         <button type="button" onClick={() => setResp(!resp)} aria-label="Responder" className="rounded-full p-2 text-ink hover:text-ink2"><Ic n="chat" s={22} /></button>
         {proto && <button type="button" onClick={() => abrirProto(proto.id)} aria-label="Abrir el protocolo" className="ml-auto rounded-full p-2 text-ink hover:text-ink2"><Ic n="book" s={22} /></button>}
       </div>
       <div className="px-4 pb-3.5">
-        {p.likes > 0 && <p className="m-0 text-[13.5px] font-semibold">{p.likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + p.likes + ' personas les pasó lo mismo'}</p>}
+        {likes > 0 && <p className="m-0 text-[13.5px] font-semibold">{likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + likes + ' personas les pasó lo mismo'}</p>}
         {p.respuestas.length > 0 && (
           <div className="mt-2.5 flex flex-col gap-2.5">
             {p.respuestas.map((r) => (
               <div key={r.id} className={cx(r.autor.verificado && 'rounded-rs border-l-[3px] border-ok bg-oksoft py-2.5 pl-3 pr-3')}>
                 <div className="flex flex-wrap items-center gap-1.5 text-[13px]">
-                  <b className="font-semibold">{r.autor.nombre}</b>
+                  {nombreBtn(r.autor.uid, r.autor.nombre, 'font-semibold')}
                   {r.autor.verificado && <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-ok text-onc"><Ic n="check" s={9} sw={3} /></span>}
                   <span className={cx('text-[12px]', r.autor.verificado ? 'font-medium text-ok' : 'text-ink3')}>{r.autor.rol}</span>
                   <span className="text-[12px] text-ink3">· {hace(r.fecha)}</span>
@@ -170,21 +188,24 @@ function Post({ p }) {
 }
 
 export function Feed() {
-  const { feed, setFeed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar, perfil } = useApp();
+  const { feed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar, perfil, myUid, siguiendo, verPerfil } = useApp();
   const [txt, setTxt] = useState('');
   const [proto, setProto] = useState(feedProto || '');
   const [filtro, setFiltro] = useState('Todo');
   const [err, setErr] = useState('');
   const publicar = () => {
     if (txt.trim().length < 10) { setErr('Cuenta un poco más: qué pasó, en qué paso y qué dudas tienes.'); return; }
-    conPerfil((pf) => {
-      setFeed((l) => [{ id: uid(), autor: { nombre: pf.nombre, rol: pf.rol, verificado: false }, protocoloId: proto, fecha: new Date().toISOString(), txt: txt.trim(), likes: 0, liked: false, respuestas: [] }, ...l]);
-      setTxt(''); setErr(''); setFiltro('Todo'); avisar('Publicado');
+    conPerfil(async (pf) => {
+      try {
+        await publicarPostFS({ autorUid: myUid, autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, verificado: false }, protocoloId: proto, fecha: new Date().toISOString(), txt: txt.trim(), likes: 0, likedBy: [], respuestas: [] });
+        setTxt(''); setErr(''); setFiltro('Todo'); avisar('Publicado');
+      } catch (e) { setErr('No se pudo publicar. Revisa tu conexión.'); }
     });
   };
   const sinResp = (p) => !p.respuestas.length && !p.autor.verificado;
   const deRev = (p) => p.autor.verificado || p.respuestas.some((r) => r.autor.verificado);
-  const lista = feed.filter((p) => (filtro === 'Todo' || (filtro === 'Sin responder' ? sinResp(p) : deRev(p))) && (!feedProto || p.protocoloId === feedProto))
+  const deSeguidos = (p) => siguiendo.includes(p.autorUid || (p.autor && p.autor.uid));
+  const lista = feed.filter((p) => (filtro === 'Todo' || (filtro === 'Siguiendo' ? deSeguidos(p) : filtro === 'Sin responder' ? sinResp(p) : deRev(p))) && (!feedProto || p.protocoloId === feedProto))
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
   const abiertas = feed.filter(sinResp).length;
   const fp = feedProto && protoPorId(feedProto);
@@ -210,18 +231,18 @@ export function Feed() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Seg size="sm" valor={filtro} onChange={setFiltro} opciones={['Todo', 'Sin responder', 'De revisores']} />
+          <Seg size="sm" valor={filtro} onChange={setFiltro} opciones={['Todo', 'Siguiendo', 'Sin responder', 'De revisores']} />
           {fp && <button type="button" onClick={() => setFeedProto('')} className="inline-flex items-center gap-1.5 rounded-full bg-acentosoft px-3 py-1 text-[12px] font-semibold text-acentodeep">Sobre: {fp.t}<Ic n="x" s={13} /></button>}
         </div>
         {abiertas > 0 && filtro !== 'De revisores' && <p className="m-0 text-[13px] leading-normal text-ink3"><b className="text-ink2">{abiertas === 1 ? 'Una pregunta sigue' : abiertas + ' preguntas siguen'} sin respuesta.</b> Cada plaza de revisor que se llena es un área menos con preguntas huérfanas.</p>}
-        {lista.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">No hay publicaciones con este filtro.</p> : lista.map((p) => <Post key={p.id} p={p} />)}
+        {lista.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">{filtro === 'Siguiendo' ? (siguiendo.length ? 'Las personas que sigues todavía no publican.' : 'Todavía no sigues a nadie. Toca el nombre de alguien para ver su perfil y seguirlo.') : 'No hay publicaciones con este filtro.'}</p> : lista.map((p) => <Post key={p.id} p={p} />)}
       </div>
       <aside className="hidden flex-col gap-4 xl:sticky xl:top-[76px] xl:flex">
         {perfil && (
-          <div className="flex items-center gap-3 px-1">
+          <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-3 rounded-r px-1 text-left hover:bg-soft">
             <Avatar nombre={perfil.nombre} size={44} />
             <div className="min-w-0"><p className="m-0 truncate text-[14px] font-semibold">{perfil.nombre}</p><p className="m-0 truncate text-[12.5px] text-ink3">{perfil.rol}</p></div>
-          </div>
+          </button>
         )}
         <TuDia />
         <div className="flex flex-col gap-2 px-1">
@@ -230,6 +251,46 @@ export function Feed() {
         </div>
         <p className="m-0 px-1 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
       </aside>
+    </div>
+  );
+}
+
+/* ═════════ PERFIL PÚBLICO ═════════ */
+export function PerfilPublico() {
+  const { perfilUid, myUid, siguiendo, toggleSeguir, editarPerfil, go } = useApp();
+  const pf = usePerfilPublico(perfilUid);
+  const posts = usePostsDe(perfilUid);
+  const { siguiendo: suyos, seguidores } = useSeguimientos(perfilUid);
+  const yo = perfilUid === myUid;
+  const loSigo = siguiendo.includes(perfilUid);
+  const volver = <button type="button" onClick={() => go('feed')} className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Inicio</button>;
+  if (pf === undefined) return <div className="mx-auto max-w-[600px]">{volver}<div className="h-40 animate-pulse rounded-r bg-soft" /></div>;
+  if (pf === null) return <div className="mx-auto max-w-[600px]">{volver}<Vacio icon="userCheck" titulo="Este perfil no está disponible">La persona todavía no entra con la versión nueva de Criterium.</Vacio></div>;
+  const stat = (n, t) => <div className="flex flex-col items-center"><b className="text-[17px] font-semibold tabular-nums text-ink">{n}</b><span className="text-[12px] text-ink3">{t}</span></div>;
+  return (
+    <div className="mx-auto flex max-w-[600px] flex-col gap-5">
+      <div>{volver}</div>
+      <section className="-mx-4 border-y border-line bg-card px-4 py-5 sm:mx-0 sm:rounded-r sm:border-x sm:px-6">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <Avatar nombre={pf.nombre} size={76} />
+          <div className="grid flex-1 grid-cols-3 gap-2">
+            {stat(posts.length, posts.length === 1 ? 'publicación' : 'publicaciones')}
+            {stat(seguidores.length, seguidores.length === 1 ? 'seguidor' : 'seguidores')}
+            {stat(suyos.length, 'siguiendo')}
+          </div>
+        </div>
+        <h1 className="m-0 mt-4 text-[24px]">{pf.nombre}</h1>
+        <p className="m-0 mt-0.5 text-[13.5px] text-ink3">{[pf.rol, pf.area, pf.institucion].filter(Boolean).join(' · ')}</p>
+        {pf.descripcion ? <p className="m-0 mt-3 whitespace-pre-line font-serif text-[15.5px] leading-relaxed text-ink">{pf.descripcion}</p>
+          : <p className="m-0 mt-3 text-[13.5px] text-ink3">{yo ? 'Todavía no tienes descripción. Cuéntale a los demás qué estudias o en qué trabajas.' : 'Sin descripción.'}</p>}
+        <div className="mt-4 flex gap-2">
+          {yo ? <Btn icon="edit" className="flex-1" onClick={editarPerfil}>Editar perfil</Btn>
+            : <Btn v={loSigo ? 'outline' : 'primary'} className="flex-1" onClick={() => toggleSeguir(perfilUid)}>{loSigo ? 'Siguiendo' : 'Seguir'}</Btn>}
+        </div>
+      </section>
+      <h2 className="m-0 text-[13px] font-semibold text-ink3">Publicaciones</h2>
+      {posts.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">{yo ? 'Todavía no publicas nada. Escribe tu primera pregunta desde el inicio.' : 'Todavía no publica nada.'}</p>
+        : posts.map((p) => <Post key={p.id} p={p} />)}
     </div>
   );
 }

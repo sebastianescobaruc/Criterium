@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc,
-  query, where, orderBy, onSnapshot, serverTimestamp, writeBatch
+  query, where, orderBy, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL, deleteObject
@@ -297,4 +297,69 @@ export async function limpiarDatosLocales() {
     escribir('postulacion.v1', null),
     escribir('mensajes.v1', [])
   ]);
+}
+
+
+/* ═══════ Red social: likes, respuestas, perfiles públicos y seguimientos ═══════ */
+
+/** Me gusta por persona: guarda quién lo dio en likedBy y ajusta el conteo. */
+export async function toggleLikeFS(postId, uid, yaLeGusta) {
+  await updateDoc(doc(db, 'feed', postId), yaLeGusta
+    ? { likedBy: arrayRemove(uid), likes: increment(-1) }
+    : { likedBy: arrayUnion(uid), likes: increment(1) });
+}
+
+/** Agrega una respuesta sin reescribir el resto de la publicación. */
+export async function responderPostFS(postId, respuesta) {
+  await updateDoc(doc(db, 'feed', postId), { respuestas: arrayUnion(respuesta) });
+}
+
+/** Perfil público: solo datos profesionales, nunca el correo. */
+export const PERFIL_PUBLICO = ['nombre', 'rol', 'institucion', 'area', 'descripcion'];
+export async function guardarPerfilPublicoFS(uid, p) {
+  const datos = {};
+  PERFIL_PUBLICO.forEach((k) => { datos[k] = (p && typeof p[k] === 'string') ? p[k] : ''; });
+  await setDoc(doc(db, 'perfiles', uid), { ...datos, actualizado: new Date().toISOString() }, { merge: true });
+}
+
+export function usePerfilPublico(uid) {
+  const [perfil, setPerfil] = useState(undefined); // undefined = cargando, null = no existe
+  useEffect(() => {
+    if (!uid) { setPerfil(null); return; }
+    setPerfil(undefined);
+    return onSnapshot(doc(db, 'perfiles', uid), (snap) => setPerfil(snap.exists() ? { ...snap.data(), uid } : null), () => setPerfil(null));
+  }, [uid]);
+  return perfil;
+}
+
+/** Publicaciones de una persona (ordenadas en el navegador para no exigir un índice compuesto). */
+export function usePostsDe(uid) {
+  const [posts, setPosts] = useState([]);
+  useEffect(() => {
+    if (!uid) { setPosts([]); return; }
+    return onSnapshot(query(collection(db, 'feed'), where('autorUid', '==', uid)),
+      (snap) => setPosts(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))),
+      () => setPosts([]));
+  }, [uid]);
+  return posts;
+}
+
+/** A quién sigue (siguiendo) y quién lo sigue (seguidores), como listas de uid. */
+export function useSeguimientos(uid) {
+  const [siguiendo, setSiguiendo] = useState([]);
+  const [seguidores, setSeguidores] = useState([]);
+  useEffect(() => {
+    if (!uid) { setSiguiendo([]); setSeguidores([]); return; }
+    const a = onSnapshot(query(collection(db, 'seguimientos'), where('de', '==', uid)), (s) => setSiguiendo(s.docs.map((d) => d.data().a)), () => {});
+    const b = onSnapshot(query(collection(db, 'seguimientos'), where('a', '==', uid)), (s) => setSeguidores(s.docs.map((d) => d.data().de)), () => {});
+    return () => { a(); b(); };
+  }, [uid]);
+  return { siguiendo, seguidores };
+}
+
+export async function seguirFS(de, a) {
+  await setDoc(doc(db, 'seguimientos', de + '_' + a), { de, a, fecha: new Date().toISOString() });
+}
+export async function dejarDeSeguirFS(de, a) {
+  await deleteDoc(doc(db, 'seguimientos', de + '_' + a));
 }

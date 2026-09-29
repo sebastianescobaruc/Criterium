@@ -8,15 +8,15 @@ import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
 import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.jsx';
 import { Revision } from './views/revision.jsx';
 import { Asistente, Herramientas } from './views/trabajo.jsx';
-import { Feed, Postular, Contacto, PerfilModal } from './views/comunidad.jsx';
+import { Feed, Postular, Contacto, PerfilModal, PerfilPublico } from './views/comunidad.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
-import { useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS } from './db.js';
+import { useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS } from './db.js';
 import AuthGate from './views/auth.jsx';
 import Migracion from './views/migracion.jsx';
 
-const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto'];
+const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto', 'perfil'];
 const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
-  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos' };
+  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil' };
 
 const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión'], ['herramientas', 'tool', 'Herramientas'], ['asistente', 'bot', 'Asistente']];
 const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
@@ -80,13 +80,23 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     if (!myUid) return;
     setPerfilAuth(p);
     await actualizarPerfil(myUid, p);
+    await guardarPerfilPublicoFS(myUid, p);
   }, [myUid]);
 
+  /* ── Perfil público: se crea o actualiza al iniciar sesión (solo datos profesionales) ── */
+  useEffect(() => {
+    if (myUid && perfil && perfil.nombre) guardarPerfilPublicoFS(myUid, perfil).catch(() => {});
+  }, [myUid, perfil && perfil.nombre]);
+
+  /* ── Seguimientos del usuario ── */
+  const { siguiendo } = useSeguimientos(myUid);
+
   /* ── Navegación ── */
-  const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
+  const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor', 'perfil'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
   const [view, setView] = useState(hashIni);
   const [protoId, setProtoId] = useState('cementado-pmma');
   const [casoId, setCasoId] = useState(null);
+  const [perfilUid, setPerfilUid] = useState(null);
   const [desde, setDesde] = useState('casos');
   const [editando, setEditando] = useState(null);
   const [revisando, setRevisando] = useState(null);
@@ -122,11 +132,17 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     if (v === 'revision' && !('revisando' in extra)) setRevisando(null);
     if ('filtroCasos' in extra) setFiltroCasos(extra.filtroCasos);
     if ('feedProto' in extra) setFeedProto(extra.feedProto); else if (v === 'feed') setFeedProto('');
-    try { history.replaceState(null, '', ['proto', 'caso', 'editor'].includes(v) ? '#' + (v === 'proto' ? 'biblioteca' : 'casos') : '#' + v); } catch (e) {}
+    try { history.replaceState(null, '', ['proto', 'caso', 'editor', 'perfil'].includes(v) ? '#' + (v === 'proto' ? 'biblioteca' : v === 'perfil' ? 'feed' : 'casos') : '#' + v); } catch (e) {}
     try { window.scrollTo(0, 0); } catch (e) {}
   };
   const abrirProto = (id) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; setProtoId(id); go('proto'); };
   const abrirCaso = (id) => { setDesde(view === 'revision' ? 'revision' : 'casos'); setCasoId(id); go('caso'); };
+  const verPerfil = (uid) => { if (!uid) return; setPerfilUid(uid); go('perfil'); };
+  const toggleSeguir = async (uid) => {
+    if (!myUid || !uid || uid === myUid) return;
+    try { siguiendo.includes(uid) ? await dejarDeSeguirFS(myUid, uid) : await seguirFS(myUid, uid); }
+    catch (e) { avisar('No se pudo actualizar. Revisa tu conexión.', 'warn'); }
+  };
   const nuevoCaso = (preset) => { setEditando(casoVacio(preset)); go('editor'); };
   const editarCaso = (id) => { const c = todos.find((x) => x.id === id); if (c) { setEditando(c); go('editor'); } };
   const ahora = () => new Date().toISOString();
@@ -268,7 +284,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     q, setQ, esp, setEsp, filtroCasos, setFiltroCasos, feedProto, setFeedProto, asisTab, setAsisTab, herrTab, setHerrTab,
     casos: todos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion: guardarPostulacion, mensajes, setMensajes: guardarMensaje,
     checks, setChecks, avisar, verFoto: setFoto,
-    usuario, myUid, logout
+    usuario, myUid, logout, perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setPerfilOpen(true)
   };
 
   /* ── Render ── */
@@ -298,7 +314,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     </button>
   );
   const perfilBtn = (compacto) => perfil ? (
-    <button type="button" onClick={() => setPerfilOpen(true)} className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
+    <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
       <Avatar nombre={perfil.nombre} size={28} />{!compacto && <span className="max-w-[140px] truncate">{perfil.nombre.split(' ')[0]}</span>}
     </button>
   ) : <button type="button" onClick={() => setPerfilOpen(true)} className="whitespace-nowrap rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc hover:bg-acentodeep">Mi perfil</button>;
@@ -318,7 +334,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   ) : ({
     inicio: <Inicio />, biblioteca: <Biblioteca />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
     editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, asistente: <Asistente />, herramientas: <Herramientas />,
-    feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />
+    feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />
   })[view];
 
   return (
