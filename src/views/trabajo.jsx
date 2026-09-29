@@ -3,6 +3,7 @@ import { DATOS } from '../data.js';
 import { validar, perio, endo, anestesia, anestesiaNino, ANEST_NINO, bibliotecaTexto, textoProtocolo, protosAbiertos, cap, errIA, descargar } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, inputCls, cx } from '../ui.jsx';
+import { Periodontograma } from './periodontograma.jsx';
 
 /* ═════════ ASISTENTE ═════════ */
 export function Asistente() {
@@ -233,6 +234,12 @@ export function Herramientas() {
     aModo: 'adulto', nPeso: '20', nEdad: '6', nAnest: 'lido', nUsados: '0', nSeda: 'no'
   });
   const f = (k) => (v) => setSt((s) => ({ ...s, [k]: v }));
+  const [chart, setChart] = useState({});
+  const [desdePerio, setDesdePerio] = useState(null);
+  const usarPeriodontograma = (r) => {
+    setSt((s) => ({ ...s, pCal: String(r.nicMax), pPs: r.psMax === null ? s.pPs : String(r.psMax), pFurca: r.furcaAvanzada ? 'si' : 'no', pSt4: r.movilidad2 ? 'si' : s.pSt4 }));
+    setDesdePerio(r); setTab('perio');
+  };
   const rp = perio(st), re = endo(st), ra = anestesia(st), rn = anestesiaNino(st);
   return (
     <div className="mx-auto flex max-w-[980px] flex-col gap-5">
@@ -240,11 +247,14 @@ export function Herramientas() {
         Metes los datos del paciente y sale el resultado con el razonamiento a la vista, no solo el número. Mismo criterio que los protocolos: si un umbral está en discusión, se dice.
       </PageHead>
       <Aviso>BORRADOR · UMBRALES SIN VERIFICAR CONTRA LA FUENTE · NO USAR EN UN PACIENTE</Aviso>
-      <Seg valor={tab} onChange={setTab} opciones={[{ v: 'perio', t: 'Periodoncia · estadio y grado' }, { v: 'endo', t: 'Endodoncia · step-back' }, { v: 'anest', t: 'Anestesia · dosis máxima' }]} />
+      <Seg valor={tab} onChange={setTab} opciones={[{ v: 'perio', t: 'Periodoncia · estadio y grado' }, { v: 'periodonto', t: 'Periodontograma' }, { v: 'endo', t: 'Endodoncia · step-back' }, { v: 'anest', t: 'Anestesia · dosis máxima' }]} />
       <p className="m-0 text-[12px] text-ink3">Vienen con un paciente de ejemplo cargado. Cambia los datos por los tuyos.</p>
+
+      {tab === 'periodonto' && <Periodontograma chart={chart} setChart={setChart} onUsar={usarPeriodontograma} />}
 
       {tab === 'perio' && (
         <div className="flex flex-col gap-5">
+          {desdePerio && <Aviso tono="acento">Datos traídos del periodontograma: NIC interdental máximo {desdePerio.nicMax} mm ({desdePerio.nicMaxDiente}), sondaje máximo {desdePerio.psMax} mm, furca II o III: {desdePerio.furcaAvanzada ? 'sí' : 'no'}{desdePerio.movilidad2 ? ', movilidad 2 o más' : ''}. La pérdida ósea, la edad, los dientes perdidos y la extensión los completas tú.</Aviso>}
           <p className="m-0 max-w-[72ch] text-[13.5px] leading-relaxed text-ink2">Clasificación de periodontitis de 2018: estadio por severidad y complejidad, extensión, y grado por velocidad de progresión. El estadio lo manda el criterio más grave, no el promedio.</p>
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             <Num id="pCal" label="CAL interdental máxima (mm)" step="0.5" value={st.pCal} onChange={f('pCal')} placeholder="5" />

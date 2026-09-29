@@ -213,6 +213,56 @@ export function perio(st) {
   return { listo: true, dx: 'Periodontitis estadio ' + romano + ', ' + extension + ', grado ' + grado, estadio: romano, grado, porque, porqueG };
 }
 
+/* ───────── periodontograma ───────── */
+// Orden en pantalla: arcada superior 1.8 → 2.8, inferior 4.8 → 3.8.
+const cuadrante = (q, desc) => { const l = [1, 2, 3, 4, 5, 6, 7, 8].map((d) => q + '.' + d); return desc ? l.reverse() : l; };
+export const ARCADAS_PERIO = {
+  sup: [...cuadrante(1, true), ...cuadrante(2)],
+  inf: [...cuadrante(4, true), ...cuadrante(3)]
+};
+// Sitios: v = vestibular, l = lingual o palatino; d = distal, c = centro, m = mesial.
+export const SITIOS_PERIO = ['vd', 'vc', 'vm', 'ld', 'lc', 'lm'];
+export const tieneFurca = (d) => /^[1-4]\.[678]$/.test(d) || d === '1.4' || d === '2.4';
+
+// NIC = sondaje − margen. Margen positivo si está hacia coronal del LAC, negativo si hay recesión.
+// Sin margen anotado se toma 0 (margen a nivel del LAC).
+export function nicSitio(x) {
+  const ps = num(x && x.ps);
+  if (ps === null) return null;
+  const mg = num(x.mg);
+  return ps - (mg === null ? 0 : mg);
+}
+
+export function resumenPeriodontograma(chart) {
+  const todos = [...ARCADAS_PERIO.sup, ...ARCADAS_PERIO.inf];
+  const presentes = todos.filter((d) => !(chart[d] && chart[d].aus));
+  let sondados = 0, sangran = 0, placa = 0, ps4 = 0, ps6 = 0, psMax = null, nicMax = null, nicMaxDiente = '';
+  let furcaAvanzada = false, movilidad2 = false;
+  presentes.forEach((d) => {
+    const t = chart[d] || {};
+    if (tieneFurca(d) && (t.furca === 'II' || t.furca === 'III')) furcaAvanzada = true;
+    if (num(t.mov) >= 2) movilidad2 = true;
+    SITIOS_PERIO.forEach((k) => {
+      const x = (t.s || {})[k] || {};
+      const ps = num(x.ps);
+      if (ps === null) return;
+      sondados++;
+      if (x.sg) sangran++;
+      if (x.pl) placa++;
+      if (ps >= 4) ps4++;
+      if (ps >= 6) ps6++;
+      if (psMax === null || ps > psMax) psMax = ps;
+      const nic = nicSitio(x);
+      if (k[1] !== 'c' && (nicMax === null || nic > nicMax)) { nicMax = nic; nicMaxDiente = d; }
+    });
+  });
+  const pct = (n) => (sondados ? Math.round((n / sondados) * 100) : 0);
+  return {
+    presentes: presentes.length, ausentes: todos.length - presentes.length, sondados,
+    sangrado: pct(sangran), placa: pct(placa), ps4, ps6, psMax, nicMax, nicMaxDiente, furcaAvanzada, movilidad2
+  };
+}
+
 /* ───────── calculadora de endodoncia (step-back) ───────── */
 export function endo(st) {
   const lrd = num(st.eLrd); let lad = num(st.eLad);
