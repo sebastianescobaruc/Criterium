@@ -3,7 +3,7 @@ import { PROTOS } from './data.js';
 import { ESTADOS, chequeoCaso, leer, escribir, uid } from './logic.js';
 import { casosIniciales, feedInicial } from './seeds.js';
 import { Ctx } from './ctx.js';
-import { Ic, Avatar, Lightbox, useToasts, cx } from './ui.jsx';
+import { Ic, Avatar, Lightbox, Logo, useToasts, cx } from './ui.jsx';
 import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
 import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.jsx';
 import { Revision } from './views/revision.jsx';
@@ -15,11 +15,11 @@ import AuthGate from './views/auth.jsx';
 import Migracion from './views/migracion.jsx';
 
 const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto'];
-const RUTAS = { inicio: 'Inicio', biblioteca: 'Biblioteca', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
-  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Feed', postular: 'Postular a revisor', contacto: 'Contáctanos' };
+const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
+  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos' };
 
-const NAV_DIARIO = [['inicio', 'home', 'Inicio'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión'], ['herramientas', 'tool', 'Herramientas'], ['asistente', 'bot', 'Asistente']];
-const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['feed', 'chat', 'Feed'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
+const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión'], ['herramientas', 'tool', 'Herramientas'], ['asistente', 'bot', 'Asistente']];
+const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
 
 function lsGet(k, d) { try { const x = localStorage.getItem(k); return x ? JSON.parse(x) : d; } catch (e) { return d; } }
@@ -83,7 +83,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   }, [myUid]);
 
   /* ── Navegación ── */
-  const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor'].includes(h) ? h : 'inicio'; } catch (e) { return 'inicio'; } })();
+  const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
   const [view, setView] = useState(hashIni);
   const [protoId, setProtoId] = useState('cementado-pmma');
   const [casoId, setCasoId] = useState(null);
@@ -274,7 +274,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   /* ── Render ── */
   const navBtn = (v, icon, t) => (
     <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
-      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-acentosoft font-semibold text-acentodeep' : 'text-ink2 hover:bg-soft hover:text-ink')}>
+      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-soft font-semibold text-ink' : 'text-ink2 hover:bg-soft hover:text-ink')}>
       <Ic n={icon} /><span className="flex-1">{t}</span>
       {badge[v] > 0 && <span className={cx('rounded-full px-1.5 text-[11px] font-bold tabular-nums', v === 'casos' ? 'bg-warn text-onc' : 'bg-acento text-onc')}>{badge[v]}</span>}
     </button>
@@ -288,8 +288,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     </nav>
   );
   const marca = () => (
-    <button type="button" onClick={() => go('inicio')} className="text-left">
-      <div className="text-[23px] font-extrabold leading-none tracking-[-.03em] text-deep">Criter<span className="text-acento">ium</span></div>
+    <button type="button" onClick={() => go('feed')} className="text-left" aria-label="Criterium, ir al inicio">
+      <Logo size={26} />
     </button>
   );
   const temaBtn = () => (
@@ -347,9 +347,9 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
             <div className="mx-auto flex max-w-[1320px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
               <div className="lg:hidden">{marca()}</div>
               <div className="hidden whitespace-nowrap text-[12.5px] text-ink3 lg:block">{RUTAS[view]}</div>
-              <form onSubmit={(e) => { e.preventDefault(); if (view !== 'inicio') go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-line bg-card px-4 focus-within:border-acento md:flex">
+              <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-line bg-card px-4 focus-within:border-acento md:flex">
                 <Ic n="search" s={15} className="text-ink3" />
-                <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (!['inicio', 'biblioteca'].includes(view) && e.target.value) go('biblioteca'); }} aria-label="Buscar un protocolo" placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
+                <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (view !== 'biblioteca' && e.target.value) go('biblioteca'); }} aria-label="Buscar un protocolo" placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
               </form>
               <div className="ml-auto flex items-center gap-2">
                 <button type="button" onClick={() => setBuscarMovil(!buscarMovil)} className="rounded-full p-2 text-ink2 hover:bg-soft md:hidden" aria-label="Buscar"><Ic n="search" /></button>
@@ -371,19 +371,19 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5">
-          {[['inicio', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisión']].map(([v, i, t]) => (
+          {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisión']].map(([v, i, t]) => (
             <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
-              className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-acentodeep' : 'text-ink3')}>
-              <Ic n={i} s={20} />{t}
+              className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-ink' : 'text-ink3')}>
+              <Ic n={i} s={21} sw={activo(view, v) ? 2.2 : 1.7} />{t}
               {badge[v] > 0 && <span className={cx('absolute left-1/2 top-1.5 ml-2 min-w-[16px] rounded-full px-1 text-[10px] font-bold leading-4 text-onc', v === 'casos' ? 'bg-warn' : 'bg-acento')}>{badge[v]}</span>}
             </button>
           ))}
-          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['asistente', 'herramientas', 'feed', 'postular', 'contacto'].includes(view) ? 'text-acentodeep' : 'text-ink3')}><Ic n="menu" s={20} />Más</button>
+          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['asistente', 'herramientas', 'inicio', 'postular', 'contacto'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
         </div>
       </nav>
 
       {menu && (
-        <div className="fixed inset-0 z-50 bg-[rgba(4,20,26,.55)] lg:hidden" onMouseDown={(e) => { if (e.target === e.currentTarget) setMenu(false); }}>
+        <div className="fixed inset-0 z-50 bg-[rgba(18,17,12,.5)] lg:hidden" onMouseDown={(e) => { if (e.target === e.currentTarget) setMenu(false); }}>
           <div className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col gap-3 overflow-auto rounded-t-[22px] bg-card px-4 pb-6 pt-4" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
             <div className="flex items-center justify-between">{marca()}<button type="button" onClick={() => setMenu(false)} className="rounded-full p-2 text-ink3 hover:bg-soft" aria-label="Cerrar menú"><Ic n="x" /></button></div>
             {navegacion()}

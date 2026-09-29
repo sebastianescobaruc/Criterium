@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { AREAS, protoPorId, protosAbiertos, hace, fecha, uid } from '../logic.js';
 import { useApp } from '../ctx.js';
+import { PROTOS } from '../data.js';
+import { TuDia } from './protocolos.jsx';
 import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, inputCls, inputErr, cx } from '../ui.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
@@ -55,7 +57,36 @@ export function PerfilModal({ open, onClose }) {
   );
 }
 
-/* ═════════ FEED ═════════ */
+/* ═════════ FEED (inicio) ═════════ */
+function Historias() {
+  const { abrirProto, nuevoCaso } = useApp();
+  const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0));
+  const circulo = (contenido, activo) => (
+    <span className="block rounded-full p-[2.5px]" style={{ background: activo ? 'var(--ring)' : 'var(--line)' }}>
+      <span className="block rounded-full bg-card p-[3px]">
+        <span className="grid h-[58px] w-[58px] place-items-center rounded-full bg-soft">{contenido}</span>
+      </span>
+    </span>
+  );
+  return (
+    <section aria-label="Protocolos" className="-mx-4 sm:mx-0">
+      <div className="scroll-x flex items-start gap-3.5 overflow-x-auto px-4 pb-1 sm:px-0">
+        <button type="button" onClick={() => nuevoCaso()} className="flex w-[74px] flex-none flex-col items-center gap-1.5">
+          {circulo(<Ic n="plus" s={22} className="text-acento" sw={2} />, false)}
+          <span className="w-full text-center text-[11px] leading-tight text-ink2">Nuevo caso</span>
+        </button>
+        {lista.map((p) => (
+          <button key={p.id} type="button" onClick={() => abrirProto(p.id)} disabled={!p.abre} title={p.t + (p.abre ? '' : ' · planificado')}
+            className={cx('flex w-[74px] flex-none flex-col items-center gap-1.5', !p.abre && 'cursor-default opacity-55')}>
+            {circulo(<span className="font-display text-[26px] italic leading-none text-deep">{p.t.charAt(0)}</span>, p.abre)}
+            <span className="line-clamp-2 w-full text-center text-[11px] leading-tight text-ink2">{p.t}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Post({ p }) {
   const { setFeed, conPerfil, perfil, abrirProto } = useApp();
   const [resp, setResp] = useState(false);
@@ -73,25 +104,62 @@ function Post({ p }) {
   };
   const sinResp = !p.respuestas.length && !p.autor.verificado;
   return (
-    <article className="grid grid-cols-[38px_minmax(0,1fr)] gap-3 rounded-r border border-line bg-card p-4 sm:p-5">
-      <Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={38} />
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-1.5"><span className="text-[14px] font-semibold">{p.autor.nombre}</span>{p.autor.verificado && <span className="text-[13px] text-ok" title="Verificado">✓</span>}{sinResp && <Pill tono="warn">sin responder</Pill>}{p.ejemplo && <Pill>ejemplo</Pill>}</div>
-        <p className="m-0 mt-0.5 text-[12.5px] text-ink3">{p.autor.rol}{proto && <> · en <button type="button" onClick={() => abrirProto(proto.id)} className="font-bold text-acentodeep hover:underline">{proto.t}</button></>} · {hace(p.fecha)}</p>
-        <p className="m-0 mt-2 whitespace-pre-line text-[14.5px] leading-normal text-ink">{p.txt}</p>
-        {p.respuestas.map((r) => (
-          <div key={r.id} className="mt-3 rounded-rs bg-oksoft px-3.5 py-3">
-            <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">{r.autor.nombre}{r.autor.verificado && <span className="text-ok">✓</span>}<span className="text-[11.5px] font-medium text-ok">{r.autor.rol}</span><span className="text-[11.5px] font-normal text-ink3">· {hace(r.fecha)}</span></div>
-            <p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink2">{r.txt}</p>
+    <article className="-mx-4 border-y border-line bg-card sm:mx-0 sm:rounded-r sm:border-x">
+      <header className="flex items-center gap-3 px-4 pb-2 pt-3.5">
+        <span className="rounded-full p-[2px]" style={{ background: p.autor.verificado ? 'var(--ring)' : 'transparent' }}>
+          <span className="block rounded-full bg-card p-[2px]"><Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} /></span>
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-[14px] font-semibold leading-tight">
+            <span className="truncate">{p.autor.nombre}</span>
+            {p.autor.verificado && <span className="grid h-4 w-4 flex-none place-items-center rounded-full bg-acento text-onc" title="Revisor verificado"><Ic n="check" s={10} sw={3} /></span>}
           </div>
-        ))}
-        <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[12.5px] text-ink3">
-          <button type="button" onClick={like} aria-pressed={p.liked} className={cx('inline-flex items-center gap-1.5 hover:text-ink', p.liked && 'font-semibold text-acentodeep')}><Ic n="heart" s={14} className={p.liked ? 'fill-current' : ''} />{p.likes} les pasó lo mismo</button>
-          <button type="button" onClick={() => setResp(!resp)} className="inline-flex items-center gap-1.5 hover:text-ink"><Ic n="chat" s={14} />{p.respuestas.length ? p.respuestas.length + (p.respuestas.length > 1 ? ' respuestas' : ' respuesta') + ' · responder' : 'Responder'}</button>
+          <p className="m-0 truncate text-[12.5px] text-ink3">{p.autor.rol} · {hace(p.fecha)}</p>
         </div>
+      </header>
+      {(proto || sinResp || p.ejemplo) && (
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pb-1">
+          {proto && (
+            <button type="button" onClick={() => abrirProto(proto.id)} className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full bg-acentosoft px-2.5 py-1 text-[12px] font-semibold text-acentodeep hover:brightness-95">
+              <Ic n="book" s={13} /><span className="truncate">{proto.t}</span>
+            </button>
+          )}
+          {sinResp && <Pill tono="warn">sin responder</Pill>}{p.ejemplo && <Pill>ejemplo</Pill>}
+        </div>
+      )}
+      <p className="m-0 whitespace-pre-line px-4 pb-1 pt-1.5 text-[15.5px] leading-[1.55] text-ink">{p.txt}</p>
+      <div className="flex items-center gap-1 px-2.5 pt-1">
+        <button type="button" onClick={like} aria-pressed={!!p.liked} aria-label="Me pasó lo mismo" className={cx('rounded-full p-2 transition-transform active:scale-90', p.liked ? 'text-bad' : 'text-ink hover:text-ink2')}>
+          <Ic n="heart" s={23} className={p.liked ? 'fill-current' : ''} />
+        </button>
+        <button type="button" onClick={() => setResp(!resp)} aria-label="Responder" className="rounded-full p-2 text-ink hover:text-ink2"><Ic n="chat" s={22} /></button>
+        {proto && <button type="button" onClick={() => abrirProto(proto.id)} aria-label="Abrir el protocolo" className="ml-auto rounded-full p-2 text-ink hover:text-ink2"><Ic n="book" s={22} /></button>}
+      </div>
+      <div className="px-4 pb-3.5">
+        <p className="m-0 text-[13.5px] font-semibold">{p.likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + p.likes + ' personas les pasó lo mismo'}</p>
+        {p.respuestas.length > 0 && (
+          <div className="mt-2.5 flex flex-col gap-2.5">
+            {p.respuestas.map((r) => (
+              <div key={r.id} className={cx(r.autor.verificado && 'rounded-rs border-l-[3px] border-ok bg-oksoft py-2.5 pl-3 pr-3')}>
+                <div className="flex flex-wrap items-center gap-1.5 text-[13px]">
+                  <b className="font-semibold">{r.autor.nombre}</b>
+                  {r.autor.verificado && <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-ok text-onc"><Ic n="check" s={9} sw={3} /></span>}
+                  <span className={cx('text-[12px]', r.autor.verificado ? 'font-medium text-ok' : 'text-ink3')}>{r.autor.rol}</span>
+                  <span className="text-[12px] text-ink3">· {hace(r.fecha)}</span>
+                </div>
+                <p className="m-0 mt-0.5 font-serif text-[15px] leading-relaxed text-ink2">{r.txt}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {!resp && (
+          <button type="button" onClick={() => setResp(true)} className="mt-2 text-[13px] text-ink3 hover:text-ink2">
+            {p.respuestas.length ? 'Responder…' : 'Sé el primero en responder…'}
+          </button>
+        )}
         {resp && (
           <form onSubmit={responder} className="mt-3 flex flex-col gap-2">
-            <textarea value={txt} onChange={(e) => { setTxt(e.target.value); setErr(''); }} rows={2} placeholder={perfil ? 'Tu respuesta. Si te apoyas en evidencia, cítala.' : 'Para responder necesitas un perfil.'} aria-label="Tu respuesta" className={cx(inputCls, 'resize-y !text-[14px]', err && inputErr)} />
+            <textarea value={txt} autoFocus onChange={(e) => { setTxt(e.target.value); setErr(''); }} rows={2} placeholder={perfil ? 'Tu respuesta. Si te apoyas en evidencia, cítala.' : 'Para responder necesitas un perfil.'} aria-label="Tu respuesta" className={cx(inputCls, 'resize-y !text-[14px]', err && inputErr)} />
             {err && <span className="text-[12px] text-bad">{err}</span>}
             <div className="flex gap-2"><Btn sm v="primary" type="submit" onClick={responder}>Responder</Btn><Btn sm onClick={() => setResp(false)}>Cancelar</Btn></div>
           </form>
@@ -102,7 +170,7 @@ function Post({ p }) {
 }
 
 export function Feed() {
-  const { feed, setFeed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar } = useApp();
+  const { feed, setFeed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar, perfil } = useApp();
   const [txt, setTxt] = useState('');
   const [proto, setProto] = useState(feedProto || '');
   const [filtro, setFiltro] = useState('Todo');
@@ -111,7 +179,7 @@ export function Feed() {
     if (txt.trim().length < 10) { setErr('Cuenta un poco más: qué pasó, en qué paso y qué dudas tienes.'); return; }
     conPerfil((pf) => {
       setFeed((l) => [{ id: uid(), autor: { nombre: pf.nombre, rol: pf.rol, verificado: false }, protocoloId: proto, fecha: new Date().toISOString(), txt: txt.trim(), likes: 0, liked: false, respuestas: [] }, ...l]);
-      setTxt(''); setErr(''); setFiltro('Todo'); avisar('Publicado en el feed');
+      setTxt(''); setErr(''); setFiltro('Todo'); avisar('Publicado');
     });
   };
   const sinResp = (p) => !p.respuestas.length && !p.autor.verificado;
@@ -121,35 +189,43 @@ export function Feed() {
   const abiertas = feed.filter(sinResp).length;
   const fp = feedProto && protoPorId(feedProto);
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_290px]">
-      <div className="flex min-w-0 flex-col gap-4">
-        <header className="max-w-[66ch]">
-          <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Feed</h1>
-          <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">Donde el estudiante pregunta y el especialista responde. Lo que aquí se resuelve termina entrando a los protocolos.</p>
-        </header>
-        <div className="rounded-r border border-line bg-card p-4 shadow-sh">
-          <textarea id="feed-txt" value={txt} onChange={(e) => { setTxt(e.target.value); setErr(''); }} rows={3} placeholder="¿Qué te pasó en el box?" aria-label="Escribe tu pregunta o aporte" className="w-full resize-y bg-transparent text-[14.5px] leading-normal text-ink outline-none placeholder:text-ink3" />
-          {err && <p className="m-0 mb-2 text-[12px] text-bad">{err}</p>}
-          <div className="flex flex-wrap items-center gap-2.5 border-t border-line2 pt-3">
-            <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className={cx(inputCls, '!w-auto max-w-full !rounded-full !py-2 !text-[13px]')}>
+    <div className="mx-auto grid max-w-[980px] grid-cols-[minmax(0,1fr)] items-start gap-10 xl:grid-cols-[minmax(0,600px)_300px] xl:justify-between">
+      <div className="mx-auto flex w-full min-w-0 max-w-[600px] flex-col gap-4">
+        <h1 className="sr-only">Inicio</h1>
+        <Historias />
+        <div className="-mx-4 border-y border-line bg-card px-4 py-3.5 sm:mx-0 sm:rounded-r sm:border-x">
+          <div className="flex gap-3">
+            <Avatar nombre={(perfil && perfil.nombre) || '?'} size={36} />
+            <textarea id="feed-txt" value={txt} onChange={(e) => { setTxt(e.target.value); setErr(''); }} rows={2} placeholder="¿Qué te pasó en el box?" aria-label="Escribe tu pregunta o aporte" className="min-w-0 flex-1 resize-y bg-transparent pt-1.5 text-[15px] leading-normal text-ink outline-none placeholder:text-ink3" />
+          </div>
+          {err && <p className="m-0 mb-1 ml-12 text-[12px] text-bad">{err}</p>}
+          <div className="mt-2 flex flex-wrap items-center gap-2.5 pl-12">
+            <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className={cx(inputCls, '!w-auto min-w-0 max-w-full flex-1 !rounded-full !py-1.5 !text-[13px] sm:flex-none')}>
               <option value="">Sin protocolo asociado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
             </select>
-            <Btn v="primary" className="ml-auto" onClick={publicar}>Publicar</Btn>
+            <Btn v="primary" sm className="ml-auto" onClick={publicar}>Publicar</Btn>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Seg size="sm" valor={filtro} onChange={setFiltro} opciones={['Todo', 'Sin responder', 'De revisores']} />
           {fp && <button type="button" onClick={() => setFeedProto('')} className="inline-flex items-center gap-1.5 rounded-full bg-acentosoft px-3 py-1 text-[12px] font-semibold text-acentodeep">Sobre: {fp.t}<Ic n="x" s={13} /></button>}
         </div>
-        {abiertas > 0 && filtro !== 'De revisores' && <div className="rounded-rs bg-acentosoft px-4 py-3 text-[13.5px] leading-normal text-acentodeep"><b>{abiertas === 1 ? 'Una pregunta sigue' : abiertas + ' preguntas siguen'} sin respuesta.</b> Cada plaza de revisor que se llena es un área menos con preguntas huérfanas.</div>}
+        {abiertas > 0 && filtro !== 'De revisores' && <p className="m-0 text-[13px] leading-normal text-ink3"><b className="text-ink2">{abiertas === 1 ? 'Una pregunta sigue' : abiertas + ' preguntas siguen'} sin respuesta.</b> Cada plaza de revisor que se llena es un área menos con preguntas huérfanas.</p>}
         {lista.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">No hay publicaciones con este filtro.</p> : lista.map((p) => <Post key={p.id} p={p} />)}
       </div>
-      <aside className="flex flex-col gap-3 lg:sticky lg:top-[76px]">
-        <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Áreas sin revisor</h2>
-        <div className="rounded-r border border-line bg-card px-4 py-1">
-          {AREAS.map((a) => <div key={a} className="flex items-center justify-between gap-2 border-b border-line2 py-2.5 text-[13px] last:border-0"><span>{a}</span><span className="text-[11px] font-semibold text-acentodeep">{postulacion && postulacion.area === a ? 'Postulaste' : 'Libre'}</span></div>)}
+      <aside className="hidden flex-col gap-4 xl:sticky xl:top-[76px] xl:flex">
+        {perfil && (
+          <div className="flex items-center gap-3 px-1">
+            <Avatar nombre={perfil.nombre} size={44} />
+            <div className="min-w-0"><p className="m-0 truncate text-[14px] font-semibold">{perfil.nombre}</p><p className="m-0 truncate text-[12.5px] text-ink3">{perfil.rol}</p></div>
+          </div>
+        )}
+        <TuDia />
+        <div className="flex flex-col gap-2 px-1">
+          <div className="flex items-baseline justify-between"><h2 className="m-0 text-[13px] font-semibold text-ink3">Áreas sin revisor</h2><button type="button" onClick={() => go('postular')} className="text-[12.5px] font-semibold text-acentodeep hover:underline">Postular</button></div>
+          {AREAS.map((a) => <div key={a} className="flex items-center justify-between gap-2 text-[13px]"><span className="text-ink2">{a}</span><span className="text-[11.5px] font-semibold text-ink3">{postulacion && postulacion.area === a ? 'Postulaste' : 'Libre'}</span></div>)}
         </div>
-        <Btn v="primary" onClick={() => go('postular')}>Postular a revisor</Btn>
+        <p className="m-0 px-1 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
       </aside>
     </div>
   );

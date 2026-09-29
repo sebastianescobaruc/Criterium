@@ -50,12 +50,14 @@ src/
     comunidad.jsx     Feed, Postular a revisor, Contacto, modal de perfil
 public/
   protocolo-cementado-pmma-v0.4.pdf   PDF de box del protocolo de cementado
+  favicon.svg                         ícono del logo
 firestore.rules      reglas de seguridad de Firestore
 storage.rules        reglas de seguridad de Storage
 .env.example         plantilla de credenciales Firebase
 ```
 
 La navegación es por estado (`view` en App.jsx), no por URL. `go(view, extra)` cambia de vista.
+La vista inicial es el **feed** (`view = 'feed'`, rotulado "Inicio"), con estilo de red social: franja de protocolos tipo historias, publicaciones y, en escritorio, la columna "Tu día". La antigua portada (`view = 'inicio'`) quedó como "Sobre Criterium".
 
 ## Modelo de datos
 
@@ -135,7 +137,9 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 - Colores solo desde los tokens de `index.css` (`--bg`, `--card`, `--ink`, `--acento`, `--ok`, `--warn`, `--bad`…), mapeados en `tailwind.config.js`. Nada de colores sueltos, salvo la banda oscura del inicio y el lightbox.
 - Tres estados de tema: claro, oscuro y "sistema" (sin `data-theme`). Todo color nuevo se define en los tres bloques.
 - Texto sobre fondos de color sólido: `text-onc` (no `text-white`), para que funcione en tema oscuro.
-- Tipografías: Plus Jakarta Sans (interfaz) y Source Serif 4 (explicaciones). **No usar tipografía monoespaciada.**
+- Estilo editorial cálido: papel hueso (`--bg`), tinta casi negra (`--ink`), acento verde botella (`--acento`) y un toque dorado (`--oro`, solo en el logo y el anillo de las historias, `--ring`).
+- Tipografías: Instrument Sans (interfaz), Instrument Serif (títulos `h1` y logo, clase `font-display`, un solo peso) y Newsreader (explicaciones, clase `font-serif`). **No usar tipografía monoespaciada.**
+- Logo: componente `Logo` en `ui.jsx` (C abierta con un punto). El favicon está en `public/favicon.svg`.
 - **Fotos clínicas siempre completas dentro de su marco** (`object-contain`), nunca recortadas.
 - Todo en español de Chile, simple y directo, que lo entienda un estudiante de primer año. Frases cortas. Los tecnicismos se dejan y se explican en el mismo texto.
 - Debe funcionar a 390 px de ancho sin scroll horizontal. En móvil la navegación va en la barra inferior.

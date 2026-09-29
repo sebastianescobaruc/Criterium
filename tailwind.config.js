@@ -9,15 +9,16 @@ export default {
         line: 'var(--line)', line2: 'var(--line-2)', deep: 'var(--deep)',
         acento: 'var(--acento)', acentosoft: 'var(--acento-soft)', acentodeep: 'var(--acento-deep)',
         ok: 'var(--ok)', oksoft: 'var(--ok-soft)', warn: 'var(--warn)', warnsoft: 'var(--warn-soft)',
-        bad: 'var(--bad)', badsoft: 'var(--bad-soft)', onc: 'var(--onc)', band: 'var(--band)',
+        bad: 'var(--bad)', badsoft: 'var(--bad-soft)', onc: 'var(--onc)', band: 'var(--band)', oro: 'var(--oro)',
         toast: 'var(--toast)', toastink: 'var(--toast-ink)'
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        serif: ['"Source Serif 4"', 'Georgia', 'Cambria', 'serif'],
-        mono: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif']
+        sans: ['"Instrument Sans"', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        serif: ['Newsreader', 'Georgia', 'Cambria', 'serif'],
+        display: ['"Instrument Serif"', 'Georgia', 'serif'],
+        mono: ['"Instrument Sans"', 'system-ui', 'sans-serif']
       },
-      borderRadius: { r: '16px', rs: '11px' },
+      borderRadius: { r: '14px', rs: '10px' },
       boxShadow: { sh: 'var(--sh)', shlg: 'var(--sh-lg)' }
     }
   },

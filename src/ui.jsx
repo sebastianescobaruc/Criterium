@@ -36,6 +36,20 @@ const PATHS = {
   sparkle: <><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" /><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></>
 };
 
+/* Logo: una C abierta con un punto (el criterio) dentro. */
+export function Logo({ size = 26, texto = true, className = '' }) {
+  return (
+    <span className={cx('inline-flex items-center gap-2', className)}>
+      <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="flex-none">
+        <circle cx="16" cy="16" r="16" className="fill-acento" />
+        <path d="M21.6 10.6a7.6 7.6 0 1 0 0 10.8" fill="none" strokeWidth="2.8" strokeLinecap="round" className="stroke-onc" />
+        <circle cx="21.9" cy="16" r="2.1" className="fill-oro" />
+      </svg>
+      {texto && <span className="font-display leading-none tracking-[-.01em] text-deep" style={{ fontSize: Math.round(size * 1.08) }}>Criterium</span>}
+    </span>
+  );
+}
+
 export function Ic({ n, s = 17, className = '', sw = 1.7 }) {
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" className={cx('flex-none', className)} aria-hidden="true">
@@ -121,7 +135,7 @@ export function Modal({ open, onClose, title, children, wide, bare }) {
   }, [open]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(4,20,26,.55)] p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(18,17,12,.5)] p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-label={title}
         className={cx('max-h-[92vh] w-full overflow-auto border border-line bg-card shadow-shlg', bare ? 'rounded-t-[20px] sm:rounded-r' : 'rounded-t-[20px] sm:rounded-r', wide ? 'sm:max-w-4xl' : 'sm:max-w-lg')}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
@@ -168,7 +182,7 @@ export function Lightbox({ foto, onClose }) {
   }, [foto]);
   if (!foto) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-[rgba(3,14,18,.92)]" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[60] flex flex-col bg-[rgba(12,11,8,.94)]" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="flex items-center justify-between gap-3 px-4 py-3 text-white" style={{ paddingTop: 'calc(12px + env(safe-area-inset-top, 0px))' }}>
         <span className="text-[13px]"><b>{foto.tipo}</b>{foto.nota ? ' · ' + foto.nota : ''}</span>
         <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-white/10" aria-label="Cerrar"><Ic n="x" s={20} /></button>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { registrar, iniciarSesion, recuperarPassword, errorAuth } from '../auth.js';
 import { AREAS } from '../logic.js';
-import { Btn, Field, Ic, inputCls, inputErr, cx } from '../ui.jsx';
+import { Btn, Field, Ic, Logo, inputCls, inputErr, cx } from '../ui.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
 const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
@@ -32,9 +32,7 @@ function Cargando() {
 function Marca() {
   return (
     <div className="mb-2 text-center">
-      <div className="text-[32px] font-extrabold leading-none tracking-[-.03em] text-deep">
-        Criter<span className="text-acento">ium</span>
-      </div>
+      <Logo size={34} className="justify-center" />
       <p className="mt-2 text-[13.5px] leading-relaxed text-ink2">
         Procedimientos clínicos basados en la evidencia
       </p>
