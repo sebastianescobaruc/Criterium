@@ -2,54 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Paleta editorial cálida: papel hueso, tinta casi negra, acento verde botella. */
+/* Paleta inspirada en Apple: gris claro #F5F5F7, tinta #1D1D1F, azul #0071E3 (oscuro: negro, #1C1C1E, #0A84FF). */
 :root{
-  --bg:#F6F4EF;--card:#FFFEFB;--soft:#EEEBE3;
-  --ink:#17160F;--ink-2:#4A473D;--ink-3:#716D5F;
-  --line:#E2DDD1;--line-2:#ECE8DF;
-  --deep:#17160F;--acento:#1F4D3A;--acento-soft:#E2ECE5;--acento-deep:#163A2B;
-  --ok:#3A7443;--ok-soft:#E5F0E3;--warn:#8A5A1E;--warn-soft:#F6EEDF;--bad:#A33A2A;--bad-soft:#F9E8E3;
-  --onc:#FFFEFB;--oro:#B08A4E;--band:#17160F;--toast:#17160F;--toast-ink:#F6F4EF;
-  --ring:conic-gradient(from 210deg,#1F4D3A,#6E9E7F,#C9A96E,#1F4D3A);
-  --sh:0 1px 2px rgba(23,22,15,.04),0 12px 32px -24px rgba(23,22,15,.28);
-  --sh-lg:0 2px 4px rgba(23,22,15,.05),0 26px 54px -30px rgba(23,22,15,.4);
+  --bg:#F5F5F7;--card:#FFFFFF;--soft:#EDEDF0;
+  --ink:#1D1D1F;--ink-2:#424245;--ink-3:#6E6E73;
+  --line:#D2D2D7;--line-2:#E8E8ED;
+  --deep:#1D1D1F;--acento:#0071E3;--acento-soft:#E8F1FC;--acento-deep:#0058B0;
+  --ok:#248A3D;--ok-soft:#E7F5EA;--warn:#B25000;--warn-soft:#FFF3E5;--bad:#D70015;--bad-soft:#FDECEE;
+  --onc:#FFFFFF;--logo-1:#2E9BFF;--logo-2:#0060DF;--band:#1D1D1F;--toast:#1D1D1F;--toast-ink:#F5F5F7;
+  --ring:conic-gradient(from 210deg,#0071E3,#5E5CE6,#64D2FF,#0071E3);
+  --sh:0 1px 2px rgba(0,0,0,.04),0 8px 28px -18px rgba(0,0,0,.18);
+  --sh-lg:0 2px 6px rgba(0,0,0,.05),0 24px 60px -28px rgba(0,0,0,.28);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#121210;--card:#1A1A17;--soft:#24241F;
-    --ink:#EDEAE2;--ink-2:#BAB6A9;--ink-3:#8F8B7E;
-    --line:#2F2E28;--line-2:#25251F;
-    --deep:#F4F1E9;--acento:#8CC7A6;--acento-soft:#1C2E25;--acento-deep:#A9D8BD;
-    --ok:#95CB93;--ok-soft:#1A2A1B;--warn:#DAA967;--warn-soft:#2D2417;--bad:#EF9785;--bad-soft:#341A15;
-    --onc:#10150F;--oro:#D2B47C;--band:#1E1E1A;--toast:#EDEAE2;--toast-ink:#121210;
-    --ring:conic-gradient(from 210deg,#8CC7A6,#4F7D62,#C9A96E,#8CC7A6);
+    --bg:#000000;--card:#1C1C1E;--soft:#2C2C2E;
+    --ink:#F5F5F7;--ink-2:#D1D1D6;--ink-3:#98989D;
+    --line:#38383A;--line-2:#2C2C2E;
+    --deep:#F5F5F7;--acento:#0A84FF;--acento-soft:#0F2A45;--acento-deep:#64B0FF;
+    --ok:#30C35A;--ok-soft:#0F2A17;--warn:#FF9F0A;--warn-soft:#2E2008;--bad:#FF453A;--bad-soft:#3A1212;
+    --onc:#FFFFFF;--logo-1:#409CFF;--logo-2:#0A6CFF;--band:#1C1C1E;--toast:#F5F5F7;--toast-ink:#000000;
+    --ring:conic-gradient(from 210deg,#0A84FF,#5E5CE6,#64D2FF,#0A84FF);
     --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
     --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#121210;--card:#1A1A17;--soft:#24241F;
-  --ink:#EDEAE2;--ink-2:#BAB6A9;--ink-3:#8F8B7E;
-  --line:#2F2E28;--line-2:#25251F;
-  --deep:#F4F1E9;--acento:#8CC7A6;--acento-soft:#1C2E25;--acento-deep:#A9D8BD;
-  --ok:#95CB93;--ok-soft:#1A2A1B;--warn:#DAA967;--warn-soft:#2D2417;--bad:#EF9785;--bad-soft:#341A15;
-  --onc:#10150F;--oro:#D2B47C;--band:#1E1E1A;--toast:#EDEAE2;--toast-ink:#121210;
-  --ring:conic-gradient(from 210deg,#8CC7A6,#4F7D62,#C9A96E,#8CC7A6);
+  --bg:#000000;--card:#1C1C1E;--soft:#2C2C2E;
+  --ink:#F5F5F7;--ink-2:#D1D1D6;--ink-3:#98989D;
+  --line:#38383A;--line-2:#2C2C2E;
+  --deep:#F5F5F7;--acento:#0A84FF;--acento-soft:#0F2A45;--acento-deep:#64B0FF;
+  --ok:#30C35A;--ok-soft:#0F2A17;--warn:#FF9F0A;--warn-soft:#2E2008;--bad:#FF453A;--bad-soft:#3A1212;
+  --onc:#FFFFFF;--logo-1:#409CFF;--logo-2:#0A6CFF;--band:#1C1C1E;--toast:#F5F5F7;--toast-ink:#000000;
+  --ring:conic-gradient(from 210deg,#0A84FF,#5E5CE6,#64D2FF,#0A84FF);
   --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
   --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
 }
 html,body{background:var(--bg)}
-body{margin:0;color:var(--ink);font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",sans-serif;letter-spacing:-.006em;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 input,select,textarea,button{font-family:inherit}
 input[type="checkbox"]{accent-color:var(--acento)}
+/* Selectores propios: sin el estilo nativo del sistema (gris, con flechas). Chevron dibujado con el color del tema. */
+select{-webkit-appearance:none;-moz-appearance:none;appearance:none;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  padding-right:2.4rem!important;text-overflow:ellipsis}
+select::-ms-expand{display:none}
 summary{cursor:pointer;list-style:none}
 summary::-webkit-details-marker{display:none}
 :focus-visible{outline:2px solid var(--acento);outline-offset:2px}
 h1,h2,h3{text-wrap:balance}
-/* Títulos de página en serif de display. Instrument Serif tiene un solo peso: sin negrita sintética. */
-h1{font-family:"Instrument Serif",Georgia,serif;font-weight:400!important;letter-spacing:-.012em!important;line-height:1.05;font-synthesis:none}
+/* Títulos al estilo Apple: SF Pro Display semibold, tracking apretado. */
+h1{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-weight:600!important;letter-spacing:-.025em!important;line-height:1.08}
 .scroll-x{scrollbar-width:none}
 .scroll-x::-webkit-scrollbar{display:none}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}

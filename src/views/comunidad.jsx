@@ -78,7 +78,7 @@ function Historias() {
         {lista.map((p) => (
           <button key={p.id} type="button" onClick={() => abrirProto(p.id)} disabled={!p.abre} title={p.t + (p.abre ? '' : ' · planificado')}
             className={cx('flex w-[74px] flex-none flex-col items-center gap-1.5', !p.abre && 'cursor-default opacity-55')}>
-            {circulo(<span className="font-display text-[26px] italic leading-none text-deep">{p.t.charAt(0)}</span>, p.abre)}
+            {circulo(<span className="text-[22px] font-semibold leading-none tracking-[-.02em] text-deep">{p.t.charAt(0)}</span>, p.abre)}
             <span className="line-clamp-2 w-full text-center text-[11px] leading-tight text-ink2">{p.t}</span>
           </button>
         ))}
@@ -136,7 +136,7 @@ function Post({ p }) {
         {proto && <button type="button" onClick={() => abrirProto(proto.id)} aria-label="Abrir el protocolo" className="ml-auto rounded-full p-2 text-ink hover:text-ink2"><Ic n="book" s={22} /></button>}
       </div>
       <div className="px-4 pb-3.5">
-        <p className="m-0 text-[13.5px] font-semibold">{p.likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + p.likes + ' personas les pasó lo mismo'}</p>
+        {p.likes > 0 && <p className="m-0 text-[13.5px] font-semibold">{p.likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + p.likes + ' personas les pasó lo mismo'}</p>}
         {p.respuestas.length > 0 && (
           <div className="mt-2.5 flex flex-col gap-2.5">
             {p.respuestas.map((r) => (
@@ -200,9 +200,12 @@ export function Feed() {
           </div>
           {err && <p className="m-0 mb-1 ml-12 text-[12px] text-bad">{err}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-2.5 pl-12">
-            <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className={cx(inputCls, '!w-auto min-w-0 max-w-full flex-1 !rounded-full !py-1.5 !text-[13px] sm:flex-none')}>
-              <option value="">Sin protocolo asociado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
-            </select>
+            <label className={cx('relative inline-flex min-w-0 max-w-full flex-1 items-center rounded-full transition-colors sm:max-w-[320px] sm:flex-none', proto ? 'bg-acentosoft text-acentodeep' : 'bg-soft text-ink2 hover:text-ink')}>
+              <Ic n="book" s={14} className="pointer-events-none absolute left-3" />
+              <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className="w-full min-w-0 truncate rounded-full border-0 bg-transparent py-1.5 pl-8 text-[13px] font-semibold text-current outline-none focus-visible:ring-2 focus-visible:ring-acento">
+                <option value="">Agregar protocolo</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
+              </select>
+            </label>
             <Btn v="primary" sm className="ml-auto" onClick={publicar}>Publicar</Btn>
           </div>
         </div>

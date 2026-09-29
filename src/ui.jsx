@@ -36,16 +36,21 @@ const PATHS = {
   sparkle: <><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" /><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></>
 };
 
-/* Logo: una C abierta con un punto (el criterio) dentro. */
+/* Logo: ícono de app (esquinas continuas, degradado azul) con una muela en blanco. */
 export function Logo({ size = 26, texto = true, className = '' }) {
   return (
     <span className={cx('inline-flex items-center gap-2', className)}>
       <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="flex-none">
-        <circle cx="16" cy="16" r="16" className="fill-acento" />
-        <path d="M21.6 10.6a7.6 7.6 0 1 0 0 10.8" fill="none" strokeWidth="2.8" strokeLinecap="round" className="stroke-onc" />
-        <circle cx="21.9" cy="16" r="2.1" className="fill-oro" />
+        <defs>
+          <linearGradient id="criterium-logo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style={{ stopColor: 'var(--logo-1)' }} />
+            <stop offset="1" style={{ stopColor: 'var(--logo-2)' }} />
+          </linearGradient>
+        </defs>
+        <path d="M16 0c9.9 0 16 2.1 16 16s-6.1 16-16 16S0 29.9 0 16 6.1 0 16 0z" fill="url(#criterium-logo)" />
+        <path d="M16 9.4c-1.3-.9-2.4-1.3-3.7-1.3-2.4 0-4 1.8-4 4.3 0 2.2.9 3.7 1.5 5.9.5 2 .8 5.3 2.2 5.3 1.5 0 1.7-3.3 2.6-4.6.5-.7 2.3-.7 2.8 0 .9 1.3 1.1 4.6 2.6 4.6 1.4 0 1.7-3.3 2.2-5.3.6-2.2 1.5-3.7 1.5-5.9 0-2.5-1.6-4.3-4-4.3-1.3 0-2.4.4-3.7 1.3z" fill="#FFFFFF" />
       </svg>
-      {texto && <span className="font-display leading-none tracking-[-.01em] text-deep" style={{ fontSize: Math.round(size * 1.08) }}>Criterium</span>}
+      {texto && <span className="font-display font-semibold leading-none tracking-[-.022em] text-deep" style={{ fontSize: Math.round(size * 0.82) }}>Criterium</span>}
     </span>
   );
 }
