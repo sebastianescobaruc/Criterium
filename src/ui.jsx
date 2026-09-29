@@ -75,24 +75,24 @@ export function EstadoPill({ estado }) {
 }
 
 const VAR = {
-  primary: 'bg-acento text-onc hover:bg-acentodeep border border-transparent',
-  outline: 'bg-card text-ink2 border border-line hover:bg-soft',
+  primary: 'bg-acento text-onc hover:bg-acentodeep border border-transparent shadow-[inset_0_1px_0_rgba(255,255,255,.14),0_6px_16px_-8px_var(--acento)]',
+  outline: 'bg-card text-ink2 border border-cardline shadow-sh hover:bg-soft',
   soft: 'bg-acentosoft text-acentodeep border border-transparent hover:brightness-95',
   ghost: 'bg-transparent text-acentodeep border border-transparent hover:bg-soft',
   danger: 'bg-bad text-onc border border-transparent hover:brightness-95',
-  dangerOutline: 'bg-card text-bad border border-line hover:bg-badsoft'
+  dangerOutline: 'bg-card text-bad border border-cardline shadow-sh hover:bg-badsoft'
 };
 export function Btn({ v = 'outline', sm, className = '', icon, children, ...p }) {
   return (
     <button type="button" {...p}
-      className={cx('inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-45',
+      className={cx('inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[background-color,box-shadow,transform] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45',
         sm ? 'px-3.5 py-1.5 text-[12.5px]' : 'px-[18px] py-2.5 text-[13.5px]', VAR[v], className)}>
       {icon && <Ic n={icon} s={sm ? 14 : 16} />}{children}
     </button>
   );
 }
 
-export const inputCls = 'w-full rounded-rs border border-line bg-bg px-3.5 py-2.5 text-[14.5px] text-ink placeholder:text-ink3 outline-none transition focus:border-acento focus:ring-2 focus:ring-acentosoft';
+export const inputCls = 'w-full rounded-rs border border-cardline bg-input px-3.5 py-2.5 text-[14.5px] text-ink placeholder:text-ink3 outline-none transition focus:border-acento focus:bg-card focus:ring-4 focus:ring-acentosoft';
 export const inputErr = 'border-bad focus:border-bad';
 
 export function Field({ label, hint, error, id, className = '', children }) {
@@ -116,7 +116,7 @@ export function Seg({ opciones, valor, onChange, size = 'md', className = '' }) 
           <button key={val} type="button" aria-pressed={on} onClick={() => onChange(val)}
             className={cx('flex-none whitespace-nowrap rounded-full border font-semibold transition-colors', size === 'sm' ? 'px-3 py-1 text-[12px]' : 'px-3.5 py-1.5 text-[12.5px]',
               on ? (o.tono === 'bad' ? 'border-bad bg-bad text-onc' : o.tono === 'warn' ? 'border-warn bg-warn text-onc' : o.tono === 'ok' ? 'border-ok bg-ok text-onc' : 'border-acento bg-acento text-onc')
-                : 'border-line bg-card text-ink2 hover:border-acento')}>
+                : 'border-cardline bg-card text-ink2 shadow-sh hover:border-acento')}>
             {txt}{o.n !== undefined && <span className={cx('ml-1.5 tabular-nums', on ? 'opacity-80' : 'text-ink3')}>{o.n}</span>}
           </button>
         );
@@ -138,10 +138,10 @@ export function Modal({ open, onClose, title, children, wide, bare }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(18,17,12,.5)] p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-label={title}
-        className={cx('max-h-[92vh] w-full overflow-auto border border-line bg-card shadow-shlg', bare ? 'rounded-t-[20px] sm:rounded-r' : 'rounded-t-[20px] sm:rounded-r', wide ? 'sm:max-w-4xl' : 'sm:max-w-lg')}
+        className={cx('max-h-[92vh] w-full overflow-auto border border-cardline bg-card shadow-shlg rounded-t-[24px] sm:rounded-[24px]', wide ? 'sm:max-w-4xl' : 'sm:max-w-lg')}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {!bare && (
-          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-card px-5 py-4">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line2 bg-[color-mix(in_srgb,var(--card)_88%,transparent)] px-6 py-4 backdrop-blur-xl">
             <h2 className="text-[16px] font-bold text-deep">{title}</h2>
             <button type="button" onClick={onClose} className="rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-ink" aria-label="Cerrar"><Ic n="x" /></button>
           </div>
@@ -154,8 +154,8 @@ export function Modal({ open, onClose, title, children, wide, bare }) {
 
 export function Avatar({ nombre, verificado, size = 36 }) {
   return (
-    <div className={cx('grid flex-none place-items-center rounded-full font-bold', verificado ? 'bg-ok text-onc' : 'bg-acentosoft text-acentodeep')}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.33) }}>{iniciales(nombre)}</div>
+    <div className={cx('grid flex-none place-items-center rounded-full font-bold ring-1 ring-inset ring-cardline', verificado ? 'bg-ok text-onc' : 'text-acentodeep')}
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.33), background: verificado ? undefined : 'linear-gradient(145deg,var(--acento-soft),var(--soft))' }}>{iniciales(nombre)}</div>
   );
 }
 
@@ -164,8 +164,8 @@ const fotoSrc = (foto) => foto.url || foto.data || '';
 export function Foto({ foto, onOpen, alto = 'aspect-[4/3]', children }) {
   return (
     <figure className="m-0 flex min-w-0 flex-col gap-1.5">
-      <button type="button" onClick={onOpen} className={cx('group relative w-full overflow-hidden rounded-rs border border-line bg-soft', alto)} aria-label={'Ver foto ' + (foto.tipo || '')}>
-        <img src={fotoSrc(foto)} alt={(foto.tipo || 'Foto') + (foto.nota ? ': ' + foto.nota : '')} className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform group-hover:scale-[1.015]" />
+      <button type="button" onClick={onOpen} className={cx('group relative w-full overflow-hidden rounded-rs border border-cardline shadow-sh', alto)} style={{ background: 'radial-gradient(circle at 50% 40%,var(--card),var(--soft))' }} aria-label={'Ver foto ' + (foto.tipo || '')}>
+        <img src={fotoSrc(foto)} alt={(foto.tipo || 'Foto') + (foto.nota ? ': ' + foto.nota : '')} className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]" />
       </button>
       <figcaption className="flex items-center justify-between gap-2 text-[11.5px] text-ink3">
         <span className="truncate"><b className="font-semibold text-ink2">{foto.tipo}</b>{foto.nota ? ' · ' + foto.nota : ''}</span>
@@ -197,8 +197,8 @@ export function Lightbox({ foto, onClose }) {
 
 export function Vacio({ icon = 'folder', titulo, children, accion }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-r border border-dashed border-line bg-card px-6 py-10 text-center">
-      <div className="grid h-11 w-11 place-items-center rounded-full bg-soft text-ink3"><Ic n={icon} s={20} /></div>
+    <div className="flex flex-col items-center gap-3 rounded-r border-2 border-dashed border-line bg-[color-mix(in_srgb,var(--card)_70%,transparent)] px-6 py-12 text-center">
+      <div className="grid h-14 w-14 place-items-center rounded-full bg-card text-acento shadow-sh ring-1 ring-cardline"><Ic n={icon} s={22} /></div>
       <h3 className="m-0 text-[15.5px] font-bold text-deep">{titulo}</h3>
       {children && <p className="m-0 max-w-[52ch] text-[13.5px] leading-relaxed text-ink2">{children}</p>}
       {accion}
@@ -214,7 +214,7 @@ const NIVEL = {
 export function Chequeo({ ch, titulo = 'Chequeo de evidencia', compacto }) {
   const items = ch.items;
   return (
-    <div className="rounded-r border border-line bg-card">
+    <div className="tarjeta">
       <div className="flex items-center justify-between gap-3 border-b border-line2 px-4 py-3">
         <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">{titulo}</h3>
         <div className="flex gap-1.5">
@@ -277,7 +277,7 @@ export function Aviso({ tono = 'warn', children, className = '' }) {
 
 export function PageHead({ eyebrow, titulo, children, acciones }) {
   return (
-    <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-4 border-b border-line2 pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-[68ch]">
         {eyebrow && <p className="m-0 mb-2 text-[12px] font-semibold text-acentodeep">{eyebrow}</p>}
         <h1 className="m-0 text-[28px] font-extrabold leading-[1.1] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{titulo}</h1>

@@ -11,7 +11,7 @@ const limpio = (v, negativo) => {
 
 function Stat({ n, t, tono }) {
   return (
-    <div className="flex-1 basis-[120px] rounded-r border border-line bg-card px-4 py-3">
+    <div className="flex-1 basis-[120px] tarjeta px-4 py-3">
       <b className={cx('block text-[22px] font-extrabold tabular-nums', tono === 'bad' ? 'text-bad' : tono === 'warn' ? 'text-warn' : 'text-acentodeep')}>{n}</b>
       <span className="text-[11.5px] text-ink3">{t}</span>
     </div>

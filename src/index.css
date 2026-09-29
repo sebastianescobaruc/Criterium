@@ -6,13 +6,14 @@
 :root{
   --bg:#F6F8F9;--card:#FFFFFF;--soft:#EDF2F4;
   --ink:#15303D;--ink-2:#3E5A67;--ink-3:#5A717C;
-  --line:#DCE5E9;--line-2:#EAF0F2;
+  --line:#DDE6EA;--line-2:#EDF2F4;
   --deep:#1B3949;--acento:#2F6A78;--acento-soft:#E3EEF1;--acento-deep:#1B3949;
   --ok:#2F7A55;--ok-soft:#E5F2EB;--warn:#9A5B12;--warn-soft:#FAF0E2;--bad:#B3261E;--bad-soft:#FBE9E7;
   --onc:#FFFFFF;--logo-bg:#1B3949;--logo-acc:#346F7D;--band:#1B3949;--toast:#1B3949;--toast-ink:#FFFFFF;
   --ring:conic-gradient(from 200deg,#1B3949,#346F7D,#7FB3BF,#1B3949);
-  --sh:0 1px 2px rgba(27,57,73,.05),0 10px 30px -20px rgba(27,57,73,.28);
-  --sh-lg:0 2px 6px rgba(27,57,73,.06),0 24px 56px -28px rgba(27,57,73,.38);
+  --sh:0 1px 2px rgba(27,57,73,.04),0 4px 14px -6px rgba(27,57,73,.07),0 18px 40px -24px rgba(27,57,73,.16);
+  --sh-lg:0 2px 6px rgba(27,57,73,.05),0 16px 36px -12px rgba(27,57,73,.14),0 40px 80px -40px rgba(27,57,73,.28);
+  --card-line:rgba(27,57,73,.07);--dot:rgba(27,57,73,.085);--glow:rgba(52,111,125,.10);--input:#F3F6F8;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -24,8 +25,9 @@
     --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
     --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
     --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
-    --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
-    --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
+    --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
+    --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
+    --card-line:rgba(255,255,255,.06);--dot:rgba(143,202,214,.07);--glow:rgba(95,169,185,.10);--input:#0F1C23;
   }
 }
 :root[data-theme="dark"]{
@@ -37,10 +39,23 @@
   --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
   --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
   --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
-  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -20px rgba(0,0,0,.8);
-  --sh-lg:0 2px 6px rgba(0,0,0,.45),0 24px 50px -28px rgba(0,0,0,.9);
+  --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
+  --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
+  --card-line:rgba(255,255,255,.06);--dot:rgba(143,202,214,.07);--glow:rgba(95,169,185,.10);--input:#0F1C23;
 }
 html,body{background:var(--bg)}
+
+/* Fondo de la app: trama de puntos muy tenue + un brillo suave del color de la marca arriba. */
+.fondo{background-color:var(--bg);
+  background-image:radial-gradient(1100px 520px at 78% -8%,var(--glow),transparent 62%),radial-gradient(var(--dot) 1px,transparent 1.3px);
+  background-size:100% 100%,22px 22px;background-attachment:fixed,fixed}
+
+@layer components{
+  /* Tarjeta base: blanca, sin borde duro, sombra difusa. */
+  .tarjeta{@apply rounded-r bg-card shadow-sh;border:1px solid var(--card-line)}
+  /* Encabezado de marca: degradado azul petróleo → verde azulado (oscuro en los dos temas, texto blanco). */
+  .banda-marca{background:linear-gradient(135deg,var(--logo-bg) 0%,var(--logo-acc) 130%);color:#fff}
+}
 body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",sans-serif;letter-spacing:-.006em;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
 input,select,textarea,button{font-family:inherit}
 input[type="checkbox"]{accent-color:var(--acento)}

@@ -10,15 +10,15 @@ export default {
         acento: 'var(--acento)', acentosoft: 'var(--acento-soft)', acentodeep: 'var(--acento-deep)',
         ok: 'var(--ok)', oksoft: 'var(--ok-soft)', warn: 'var(--warn)', warnsoft: 'var(--warn-soft)',
         bad: 'var(--bad)', badsoft: 'var(--bad-soft)', onc: 'var(--onc)', band: 'var(--band)',
-        toast: 'var(--toast)', toastink: 'var(--toast-ink)'
+        toast: 'var(--toast)', cardline: 'var(--card-line)', input: 'var(--input)', toastink: 'var(--toast-ink)'
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', 'Inter', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'sans-serif'],
-        serif: ['ui-serif', '"New York"', 'Georgia', 'Cambria', 'serif'],
+        serif: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', 'Inter', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'sans-serif'],
         display: ['"SF Pro Display"', '-apple-system', 'BlinkMacSystemFont', 'Inter', '"Segoe UI"', 'sans-serif'],
         mono: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif']
       },
-      borderRadius: { r: '18px', rs: '12px' },
+      borderRadius: { r: '20px', rs: '13px' },
       boxShadow: { sh: 'var(--sh)', shlg: 'var(--sh-lg)' }
     }
   },

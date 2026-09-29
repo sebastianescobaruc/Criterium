@@ -29,7 +29,7 @@ export function ChipsEsp({ className = '' }) {
 function TarjetaProto({ p }) {
   const { abrirProto } = useApp();
   return (
-    <article className="flex min-h-[176px] flex-col gap-2.5 rounded-r border border-line bg-card p-5 shadow-sh transition-shadow hover:shadow-shlg">
+    <article className="flex min-h-[176px] flex-col gap-2.5 tarjeta p-5 transition-shadow hover:shadow-shlg">
       <div className="flex flex-wrap gap-1.5">
         <Pill>{p.estadoTxt}</Pill>
         {p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}
@@ -56,7 +56,7 @@ export function TuDia() {
   const porRevisar = casos.filter((c) => c.estado === 'enviado').length;
   const cuando = (d) => d === 0 ? 'hoy' : d === 1 ? 'mañana' : d > 1 ? 'en ' + d + ' d' : 'vencido hace ' + (-d) + ' d';
   return (
-    <div className="flex flex-col gap-4 rounded-r border border-line bg-card p-5 shadow-sh sm:p-6">
+    <div className="flex flex-col gap-4 tarjeta p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tu día</h2>
         <Btn v="primary" sm icon="plus" onClick={() => nuevoCaso()}>Nuevo caso</Btn>
@@ -142,7 +142,7 @@ export function Inicio() {
             ['La regla del techo', 'Una revisión no otorga un grado superior al de los estudios que resume. Un metaanálisis de estudios in vitro tiene techo de grado C, y un grado C no basta para desplazar una práctica establecida.'],
             ['La disputa y el vacío se declaran', 'Cuando la evidencia reciente contradice lo que se enseña, el paso queda en disputa hasta que lo resuelva el panel. Cuando no hay respaldo, el paso dice “sin evidencia”.']
           ].map(([t, d]) => (
-            <div key={t} className="rounded-r border border-line bg-card p-5">
+            <div key={t} className="tarjeta p-5">
               <h3 className="m-0 mb-2 text-[16.5px] font-bold leading-tight text-deep">{t}</h3>
               <p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink2">{d}</p>
             </div>
@@ -185,7 +185,7 @@ export function Biblioteca() {
         <section key={g.esp} className="flex flex-col gap-2.5">
           <div className="flex items-baseline justify-between"><h2 className="m-0 text-[14px] font-bold text-ink">{g.esp}</h2><span className="text-[12.5px] text-ink3">{g.meta}</span></div>
           {g.items.map((p) => (
-            <article key={p.id} className="grid items-center gap-4 rounded-r border border-line bg-card px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]">
+            <article key={p.id} className="grid items-center gap-4 tarjeta px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0">
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5"><Pill>{p.estadoTxt}</Pill>{p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}{p.n && <span className="text-[11.5px] text-ink3">{p.n}</span>}</div>
                 <h3 className="m-0 mb-1 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
@@ -213,7 +213,7 @@ function Sub({ x }) {
           </div>
         ))}
         {(x.fuentes || []).map((f, i) => (
-          <div key={i} className="mt-2 rounded-rs border border-line bg-card px-3.5 py-3">
+          <div key={i} className="mt-2 rounded-rs border border-cardline bg-card shadow-sh px-3.5 py-3">
             <Pill tono="acento" className="mb-1.5">{f.grado}</Pill>
             <div className="text-[13px] leading-normal text-ink">{f.cita}</div>
             <div className="mt-1 text-[11.5px] leading-normal text-ink3">{f.loc}</div>
@@ -271,7 +271,7 @@ function Paso({ s, i, hecho, onToggle }) {
 function ModoBox({ d, hechos, toggle, reiniciar }) {
   const n = hechos.length, tot = d.pasos.length;
   return (
-    <div className="rounded-r border border-line bg-card p-4">
+    <div className="tarjeta p-4">
       <div className="mb-1 flex items-baseline justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-[.05em] text-ink3">Modo box</span>
         <b className="text-[13px] tabular-nums text-acentodeep">{n} de {tot}</b>
@@ -320,7 +320,7 @@ export function Protocolo() {
         {d.pdf && <Btn icon="download" onClick={bajarPdf} disabled={bajando}>{bajando ? 'Preparando…' : 'Descargar el PDF de box'}</Btn>}
       </div>
       {casosDeEste.length > 0 && (
-        <div className="rounded-r border border-line bg-card p-4">
+        <div className="tarjeta p-4">
           <h2 className="m-0 mb-2 text-[11px] font-bold uppercase tracking-[.05em] text-ink3">Tus casos con este protocolo</h2>
           {casosDeEste.map((c) => (
             <button key={c.id} type="button" onClick={() => abrirCaso(c.id)} className="flex w-full items-center justify-between gap-2 border-t border-line2 py-2 text-left text-[13px] text-ink2 first:border-0 hover:text-ink">
@@ -332,7 +332,7 @@ export function Protocolo() {
       <div className="hidden xl:block"><ModoBox d={d} hechos={hechos} toggle={toggle} reiniciar={reiniciar} /></div>
       <div>
         <h2 className="m-0 mb-2.5 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Estado de la evidencia</h2>
-        <div className="rounded-r border border-line bg-card px-4 py-1.5">
+        <div className="tarjeta px-4 py-1.5">
           {d.evidencia.map((e) => (
             <div key={e.n} className="grid grid-cols-[26px_minmax(0,1fr)] gap-2 border-b border-line2 py-2.5 last:border-0">
               <span className="text-[12px] font-bold tabular-nums text-ink3">{e.n}</span>
@@ -373,14 +373,14 @@ export function Protocolo() {
           <p className="m-0 font-serif text-[15px] leading-relaxed text-ink2"><b className="font-sans text-[13.5px] text-ink">Alcance:</b> {d.alcance}</p>
         </header>
 
-        <details className="mt-5 rounded-r border border-line bg-card xl:hidden">
+        <details className="mt-5 tarjeta xl:hidden">
           <summary className="flex items-center justify-between gap-3 px-5 py-4 text-[14.5px] font-bold text-deep">
             <span>Modo box · marca lo que ya hiciste</span><span className="text-[13px] tabular-nums text-acentodeep">{hechos.length} de {d.pasos.length}</span>
           </summary>
           <div className="px-3 pb-3"><ModoBox d={d} hechos={hechos} toggle={toggle} reiniciar={reiniciar} /></div>
         </details>
 
-        <details className="mt-3 rounded-r border border-line bg-card xl:mt-5">
+        <details className="mt-3 tarjeta xl:mt-5">
           <summary className="flex items-center justify-between gap-3 px-5 py-4 text-[14.5px] font-bold text-deep">
             <span>Antes de empezar · monta la bandeja</span><span className="text-[12px] font-semibold text-acentodeep">abrir / cerrar</span>
           </summary>

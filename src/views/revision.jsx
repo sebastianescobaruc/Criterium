@@ -20,10 +20,10 @@ function Intro() {
           ['Reglas que no se saltan', 'No se aprueba un caso con un paso crítico omitido, un desvío sin justificar o con evidencia puntuada bajo 3.'],
           ['Todo veredicto se justifica', 'Pedir cambios o denegar exige nombrar el motivo. El autor ve la justificación completa y puede corregir.']
         ].map(([t, d]) => (
-          <div key={t} className="rounded-r border border-line bg-card p-5"><h3 className="m-0 mb-1.5 text-[15.5px] font-bold text-deep">{t}</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink2">{d}</p></div>
+          <div key={t} className="tarjeta p-5"><h3 className="m-0 mb-1.5 text-[15.5px] font-bold text-deep">{t}</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink2">{d}</p></div>
         ))}
       </div>
-      <div className="flex flex-col gap-4 rounded-r border border-line bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 tarjeta p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="max-w-[60ch]">
           <h2 className="m-0 mb-1 text-[16px] font-bold text-deep">{puede ? 'Tu perfil puede revisar' : '¿Eres especialista o docente de clínica?'}</h2>
           <p className="m-0 text-[13.5px] leading-relaxed text-ink2">{puede ? 'Entra al modo revisor para ver la cola de casos pendientes.' : 'Postula a una de las ocho plazas. Mientras tanto puedes probar el flujo completo en modo de prueba, con casos de ejemplo.'}</p>
@@ -36,7 +36,7 @@ function Intro() {
       <section className="flex flex-col gap-3">
         <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tus casos enviados</h2>
         {mios.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">Todavía no envías casos a revisión.</p> : (
-          <div className="rounded-r border border-line bg-card">
+          <div className="tarjeta">
             {mios.map((c) => (
               <button key={c.id} type="button" onClick={() => abrirCaso(c.id)} className="flex w-full flex-wrap items-center justify-between gap-2 border-b border-line2 px-4 py-3 text-left last:border-0 hover:bg-soft">
                 <span className="min-w-0 text-[13.5px] text-ink"><b className="font-semibold">{c.dientes}</b> · {c.titulo}</span>
@@ -73,7 +73,7 @@ function Cola() {
           {lista.map((c) => {
             const ch = chequeoCaso(c); const d = c.protocoloId && DATOS[c.protocoloId];
             return (
-              <article key={c.id} className="grid items-center gap-3 rounded-r border border-line bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-5">
+              <article key={c.id} className="grid items-center gap-3 tarjeta p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-5">
                 <div className="flex min-w-0 gap-3">
                   <Avatar nombre={(c.autorUid === myUid || c.autor?.id === myUid) ? (perfil && perfil.nombre) || 'Tú' : c.autor?.nombre || c.autorNombre || 'Autor'} />
                   <div className="min-w-0">
@@ -173,7 +173,7 @@ function FormRevision({ c, ch, onFirmar }) {
   const sugTxt = { aprobado: 'aprobar', cambios: 'pedir cambios', denegado: 'denegar' };
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 rounded-r border border-line bg-card p-4">
+      <div className="flex flex-col gap-4 tarjeta p-4">
         <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tu revisión</h3>
         {CRITERIOS.map((k) => <Puntaje key={k.k} k={k} valor={p[k.k]} onChange={(n) => setP({ ...p, [k.k]: n })} error={intento && !p[k.k]} />)}
         {intento && errores.puntajes && <span className="text-[12px] font-medium text-bad">{errores.puntajes}</span>}
@@ -203,7 +203,7 @@ function FormRevision({ c, ch, onFirmar }) {
       </div>
 
       {iaOn && (
-        <div className="flex flex-col gap-3 rounded-r border border-line bg-card p-4">
+        <div className="flex flex-col gap-3 tarjeta p-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Segunda lectura</h3>
             <Btn sm v="soft" icon="sparkle" onClick={segunda} disabled={iaCargando}>{iaCargando ? 'Leyendo…' : ia ? 'Pedir otra' : 'Pedir al asistente'}</Btn>
@@ -255,8 +255,8 @@ function PantallaRevision() {
           {propio && <Aviso tono="warn" className="mt-4">Conflicto de interés: es tu propio caso. No puedes revisarlo; lo revisa otra persona.</Aviso>}
         </div>
         <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-r border border-line bg-card p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico}</p></div>
-          <div className="rounded-r border border-line bg-card p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Procedimiento</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento}</p></div>
+          <div className="tarjeta p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico}</p></div>
+          <div className="tarjeta p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Procedimiento</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento}</p></div>
         </section>
         <section className="flex flex-col gap-3">
           <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Adherencia al protocolo</h2>
@@ -264,7 +264,7 @@ function PantallaRevision() {
           {c.evidencia && <div className="rounded-r bg-soft p-4"><h3 className="m-0 mb-1.5 text-[12px] font-bold text-ink2">Evidencia declarada por el autor</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink">{c.evidencia}</p></div>}
         </section>
         {d && (
-          <details className="rounded-r border border-line bg-card">
+          <details className="tarjeta">
             <summary className="px-5 py-4 text-[14px] font-bold text-deep">Evidencia de los pasos con desvío</summary>
             <div className="flex flex-col gap-3 px-5 pb-5">
               {d.pasos.map((s, i) => {

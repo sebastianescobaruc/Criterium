@@ -63,7 +63,7 @@ function TarjetaCaso({ c }) {
   const prox = (c.sesiones || []).map((s) => s.proximo).filter(Boolean).sort().filter((p) => diasHasta(p) >= -14)[0];
   const ch = chequeoCaso(c);
   return (
-    <button type="button" onClick={() => abrirCaso(c.id)} className="flex min-w-0 flex-col overflow-hidden rounded-r border border-line bg-card text-left shadow-sh transition-shadow hover:shadow-shlg">
+    <button type="button" onClick={() => abrirCaso(c.id)} className="flex min-w-0 flex-col overflow-hidden tarjeta text-left transition-shadow hover:shadow-shlg">
       <div className={cx('relative w-full border-b border-line bg-soft', foto ? 'aspect-[16/10]' : 'h-16 sm:aspect-[16/10] sm:h-auto')}>
         {foto ? <img src={foto.url || foto.data} alt={foto.tipo} className="absolute inset-0 h-full w-full object-contain p-2" />
           : <div className="absolute inset-0 grid place-items-center text-ink3"><span className="flex items-center gap-2 text-[12px] sm:flex-col sm:gap-1.5"><Ic n="image" s={20} />Sin fotos</span></div>}
@@ -249,7 +249,7 @@ export function CasoEditor() {
             </select>
           </Field>
           {d && (
-            <div className="rounded-r border border-line bg-card">
+            <div className="tarjeta">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line2 px-4 py-3">
                 <h3 className="m-0 text-[13.5px] font-bold text-deep">¿Cómo seguiste cada paso?</h3>
                 <Btn sm v="ghost" icon="check" onClick={marcarTodo}>Marcar los pendientes como hechos</Btn>
@@ -299,7 +299,7 @@ export function CasoEditor() {
           {c.fotos.length > 0 && (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {c.fotos.map((f) => (
-                <div key={f.id} className="flex flex-col gap-2 rounded-rs border border-line bg-card p-2">
+                <div key={f.id} className="flex flex-col gap-2 rounded-rs border border-cardline bg-card shadow-sh p-2">
                   <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[8px] bg-soft"><img src={f.data} alt={f.tipo} className="absolute inset-0 h-full w-full object-contain" /></div>
                   <select value={f.tipo} onChange={(e) => setC((x) => ({ ...x, fotos: x.fotos.map((y) => y.id === f.id ? { ...y, tipo: e.target.value } : y) }))} aria-label="Tipo de foto" className={cx(inputCls, '!py-1.5 !text-[12.5px]')}>
                     {TIPOS_FOTO.map((t) => <option key={t}>{t}</option>)}
@@ -320,7 +320,7 @@ export function CasoEditor() {
 
       <aside className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-[76px]">
         <Chequeo ch={ch} titulo="Antes de enviar" compacto />
-        <div className="flex flex-col gap-2 rounded-r border border-line bg-card p-4">
+        <div className="flex flex-col gap-2 tarjeta p-4">
           <Btn v="primary" icon="send" onClick={enviar}>{c.estado === 'cambios' ? 'Guardar y reenviar a revisión' : 'Guardar y enviar a revisión'}</Btn>
           <Btn onClick={guardar}>Guardar borrador</Btn>
           {intentoEnvio && !ch.puedeEnviar && <p className="m-0 text-[12px] leading-snug text-bad">Corrige lo marcado como “Bloquea” para poder enviar.</p>}
@@ -338,7 +338,7 @@ export function Adherencia({ c }) {
   if (!d) return <p className="m-0 text-[13.5px] text-ink2">Este caso no se apoya en un protocolo de la biblioteca.</p>;
   const cuenta = {}; d.pasos.forEach((s, i) => { const e = ((c.pasos || {})[i] || {}).estado || 'pendiente'; cuenta[e] = (cuenta[e] || 0) + 1; });
   return (
-    <div className="rounded-r border border-line bg-card">
+    <div className="tarjeta">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line2 px-4 py-3">
         <button type="button" onClick={() => abrirProto(c.protocoloId)} className="min-w-0 text-left text-[13.5px] font-bold text-acentodeep hover:underline">{d.titulo}</button>
         <div className="flex flex-wrap gap-1.5">{Object.keys(cuenta).map((k) => <Pill key={k} tono={TONO_PASO[k]}>{cuenta[k]} {TXT_PASO[k].toLowerCase()}</Pill>)}</div>
@@ -395,7 +395,7 @@ function Sesiones({ c, onAdd, onDel, editable }) {
   return (
     <div className="flex flex-col gap-3">
       {editable && (
-        <form onSubmit={agregar} className="flex flex-col gap-2.5 rounded-r border border-line bg-card p-4">
+        <form onSubmit={agregar} className="flex flex-col gap-2.5 tarjeta p-4">
           <div className="grid grid-cols-2 gap-2.5">
             <Field label="Fecha" id="ses-fecha"><input id="ses-fecha" type="date" value={f.fecha} onChange={(e) => setF({ ...f, fecha: e.target.value })} className={cx(inputCls, '!py-2 !text-[13px]')} /></Field>
             <Field label="Próximo control" id="ses-prox"><input id="ses-prox" type="date" value={f.proximo} min={f.fecha} onChange={(e) => setF({ ...f, proximo: e.target.value })} className={cx(inputCls, '!py-2 !text-[13px]')} /></Field>
@@ -471,7 +471,7 @@ export function CasoDetalle() {
             <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">{c.revisiones.length > 1 ? 'Última revisión · ' + c.revisiones.length + ' en total' : 'Revisión'}</h2>
             <TarjetaRevision r={ultima} />
             {c.revisiones.length > 1 && (
-              <details className="rounded-r border border-line bg-card px-4 py-3">
+              <details className="tarjeta px-4 py-3">
                 <summary className="text-[12.5px] font-semibold text-acentodeep">Ver revisiones anteriores</summary>
                 <div className="flex flex-col gap-3 pt-3">{c.revisiones.slice(0, -1).reverse().map((r) => <TarjetaRevision key={r.id} r={r} />)}</div>
               </details>
@@ -480,11 +480,11 @@ export function CasoDetalle() {
         )}
 
         <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-r border border-line bg-card p-5">
+          <div className="tarjeta p-5">
             <h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2>
             <p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico || <span className="text-ink3">Sin completar.</span>}</p>
           </div>
-          <div className="rounded-r border border-line bg-card p-5">
+          <div className="tarjeta p-5">
             <h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Procedimiento</h2>
             <p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento || <span className="text-ink3">Sin completar.</span>}</p>
           </div>

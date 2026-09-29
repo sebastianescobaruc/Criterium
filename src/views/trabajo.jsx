@@ -112,7 +112,7 @@ export function Asistente() {
           <div className="flex flex-wrap items-center gap-3"><Btn v="primary" onClick={preguntar} disabled={!!cargando || iaOff}>{cargando === 'preguntar' ? 'Leyendo la biblioteca…' : 'Resolver con la biblioteca'}</Btn><span className="text-[12px] text-ink3">Busca en los {abiertos.length} protocolos publicados</span></div>
           {iaNecesaria}
           {resp && (
-            <div className="mt-2 rounded-r border border-line bg-card p-5 sm:p-6">
+            <div className="mt-2 tarjeta p-5 sm:p-6">
               {resp.enBiblioteca === false && <Pill tono="warn" className="mb-3">FUERA DE LA BIBLIOTECA</Pill>}
               {(resp.respuesta || []).map((t, i) => <p key={i} className="m-0 mb-3 font-serif text-[15.5px] leading-[1.7] text-ink">{t}</p>)}
               {(resp.pasos || []).length > 0 && (
@@ -140,7 +140,7 @@ export function Asistente() {
               <h2 className="m-0 text-[22px] font-extrabold leading-tight tracking-[-.02em] text-deep">{bor.titulo || 'Borrador sin título'}</h2>
               <p className="m-0 mb-2 font-serif text-[15px] leading-relaxed text-ink2"><b className="font-sans text-[13px] text-ink">Alcance:</b> {bor.alcance}</p>
               {(bor.pasos || []).map((s, i) => (
-                <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] gap-3 rounded-r border border-line bg-card p-4">
+                <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] gap-3 tarjeta p-4">
                   <b className="text-[13px] tabular-nums text-acentodeep">{('0' + (i + 1)).slice(-2)}</b>
                   <div>
                     <h3 className="m-0 mb-1.5 text-[15.5px] font-bold text-deep">{s.corto}</h3>
@@ -169,13 +169,13 @@ export function Asistente() {
           </Field>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[[val.total, 'pasos revisados', 'text-deep'], [val.ok, 'sin observaciones', 'text-acentodeep'], [val.revisar, 'a revisar', 'text-ink2'], [val.falla, 'rompen una regla', 'text-warn']].map(([n, t, c]) => (
-              <div key={t} className="rounded-r border border-line bg-card px-4 py-3"><b className={cx('block text-[24px] font-extrabold tabular-nums', c)}>{n}</b><span className="text-[12px] text-ink3">{t}</span></div>
+              <div key={t} className="tarjeta px-4 py-3"><b className={cx('block text-[24px] font-extrabold tabular-nums', c)}>{n}</b><span className="text-[12px] text-ink3">{t}</span></div>
             ))}
           </div>
           <p className="m-0 text-[14px] font-semibold leading-relaxed text-ink">{val.veredicto}</p>
           <div className="flex flex-col gap-2">
             {val.filas.map((f) => (
-              <div key={f.n} className="grid grid-cols-[30px_minmax(0,1fr)] items-start gap-2.5 rounded-r border border-line bg-card px-4 py-3 sm:grid-cols-[30px_minmax(0,1fr)_auto]">
+              <div key={f.n} className="grid grid-cols-[30px_minmax(0,1fr)] items-start gap-2.5 tarjeta px-4 py-3 sm:grid-cols-[30px_minmax(0,1fr)_auto]">
                 <b className="text-[13px] tabular-nums text-acentodeep">{f.n}</b>
                 <div>
                   <h3 className="m-0 mb-0.5 text-[14.5px] font-bold text-deep">{f.corto}</h3>
@@ -191,7 +191,7 @@ export function Asistente() {
             <p className="m-0 mt-2.5 max-w-[68ch] text-[12px] leading-relaxed text-ink3">Lo de arriba lo calcula la página sola y da siempre el mismo resultado. Esta segunda lectura la hace un modelo de lenguaje: sirve para encontrar lo que una regla fija no ve, y hay que leerla con ojo crítico.</p>
             {iaNecesaria}
             {valIA && (
-              <div className="mt-4 rounded-r border border-line bg-card p-5">
+              <div className="mt-4 tarjeta p-5">
                 {(valIA.observaciones || []).map((o, i) => <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] gap-2.5 border-b border-line py-2"><b className="text-[13px] text-acentodeep">{o.paso}</b><p className="m-0 text-[13.5px] leading-relaxed text-ink2">{o.txt}</p></div>)}
                 <p className="m-0 mt-3.5 font-serif text-[14.5px] leading-relaxed text-ink">{valIA.resumen}</p>
               </div>
@@ -220,7 +220,7 @@ function SiNo({ id, label, value, onChange, opciones }) {
     </Field>
   );
 }
-function Caja({ n, t }) { return <div className="flex-1 basis-[140px] rounded-r border border-line bg-card px-4 py-3"><b className="block text-[22px] font-extrabold tabular-nums text-acentodeep">{n}</b><span className="text-[11.5px] text-ink3">{t}</span></div>; }
+function Caja({ n, t }) { return <div className="flex-1 basis-[140px] tarjeta px-4 py-3"><b className="block text-[22px] font-extrabold tabular-nums text-acentodeep">{n}</b><span className="text-[11.5px] text-ink3">{t}</span></div>; }
 function Falta({ titulo = 'Qué falta verificar antes de publicar esto', items }) {
   return <div className="rounded-r border border-line bg-soft p-5"><h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">{titulo}</h3><ul className="m-0 pl-5 text-[13px] leading-[1.7] text-ink2">{items.map((x, i) => <li key={i}>{x}</li>)}</ul></div>;
 }
@@ -270,7 +270,7 @@ export function Herramientas() {
             <Num id="pHba" label="HbA1c (%) si es diabético" step="0.1" value={st.pHba} onChange={f('pHba')} placeholder="vacío si no aplica" />
           </div>
           {!rp.listo ? <p className="m-0 text-[13.5px] text-ink3">{rp.aviso}</p> : (
-            <div className="rounded-r border border-line bg-card p-5 sm:p-6">
+            <div className="tarjeta p-5 sm:p-6">
               <h2 className="m-0 mb-4 text-[21px] font-extrabold leading-tight tracking-[-.02em] text-deep">{rp.dx}</h2>
               <div className="mb-5 flex flex-wrap gap-2.5">
                 <div className="flex-1 basis-[130px] rounded-rs bg-soft px-4 py-3"><b className="block text-[22px] font-extrabold text-acentodeep">{rp.estadio}</b><span className="text-[11.5px] text-ink3">estadio</span></div>
@@ -306,7 +306,7 @@ export function Herramientas() {
           {!re.listo ? <p className="m-0 text-[13.5px] text-ink3">{re.aviso}</p> : (
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap gap-2.5"><Caja n={re.lt} t="longitud de trabajo" /><Caja n={re.permeabilidad} t="lima de pasaje" /><Caja n={re.dosTercios} t="tope Gates y aguja" /><Caja n={re.cateterismo} t="margen del cateterismo" /></div>
-              <div className="rounded-r border border-line bg-card px-4 py-3.5 text-[13.5px] leading-[1.75] text-ink2">
+              <div className="tarjeta px-4 py-3.5 text-[13.5px] leading-[1.75] text-ink2">
                 <div><b className="text-ink">Irrigante:</b> {re.irrigante}</div>
                 <div><b className="text-ink">Gates Glidden:</b> {re.gates}, máximo 3 entradas por conducto, activa al entrar y al salir</div>
                 <div><b className="text-ink">Medicación entre sesiones:</b> hidróxido de calcio hasta {re.medicacion}</div>
@@ -316,7 +316,7 @@ export function Herramientas() {
                   <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">{t}</h3>
                   <div className="flex flex-col gap-1.5">
                     {l.map((x, i) => (
-                      <div key={i} className="grid grid-cols-[96px_80px_minmax(0,1fr)] items-baseline gap-3 rounded-rs border border-line bg-card px-3.5 py-2.5">
+                      <div key={i} className="grid grid-cols-[96px_80px_minmax(0,1fr)] items-baseline gap-3 rounded-rs border border-cardline bg-card shadow-sh px-3.5 py-2.5">
                         <b className="text-[14px] tabular-nums text-deep">{x.lima}</b><span className="text-[14px] font-bold tabular-nums text-acentodeep">{x.prof}</span><span className="text-[12.5px] text-ink3">{x.nota}</span>
                       </div>
                     ))}
@@ -356,7 +356,7 @@ export function Herramientas() {
               {rn.pasado && <Aviso tono="bad">Los tubos registrados superan la dosis máxima para este peso. Detente y avisa al docente.</Aviso>}
               {rn.avisos.map((t, i) => <Aviso key={i} tono="warn">{t}</Aviso>)}
               <div className="flex flex-wrap gap-2.5"><Caja n={rn.maxMg} t="dosis máxima" /><Caja n={rn.maxTubos} t="tubos como máximo" /><Caja n={rn.usadoMg} t="usado hasta ahora" /><Caja n={rn.quedanTubos} t="tubos de margen" /></div>
-              <div className="rounded-r border border-line bg-card p-5">
+              <div className="tarjeta p-5">
                 <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió</h3>
                 <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{rn.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
               </div>
@@ -385,7 +385,7 @@ export function Herramientas() {
             <div className="flex flex-col gap-4">
               {ra.pasado && <Aviso tono="bad">Los tubos registrados superan la dosis máxima para este peso. Detente y avisa al docente.</Aviso>}
               <div className="flex flex-wrap gap-2.5"><Caja n={ra.maxMg} t="dosis máxima" /><Caja n={ra.maxTubos} t="tubos como máximo" /><Caja n={ra.usadoMg} t="usado hasta ahora" /><Caja n={ra.quedanTubos} t="tubos de margen" /></div>
-              <div className="rounded-r border border-line bg-card p-5">
+              <div className="tarjeta p-5">
                 <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió</h3>
                 <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{ra.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
               </div>

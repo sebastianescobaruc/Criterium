@@ -122,7 +122,7 @@ export default function Migracion({ uid, onTerminar }) {
 function Overlay({ children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg px-6">
-      <div className="flex max-w-md flex-col items-center gap-5 rounded-r border border-line bg-card p-8 shadow-shlg text-center">
+      <div className="flex max-w-md flex-col items-center gap-5 tarjeta p-8 shadow-shlg text-center">
         {children}
       </div>
     </div>

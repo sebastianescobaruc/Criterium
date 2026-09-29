@@ -290,7 +290,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   /* ── Render ── */
   const navBtn = (v, icon, t) => (
     <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
-      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-soft font-semibold text-ink' : 'text-ink2 hover:bg-soft hover:text-ink')}>
+      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-card font-semibold text-ink shadow-sh ring-1 ring-cardline' : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--soft)_70%,transparent)] hover:text-ink')}>
       <Ic n={icon} /><span className="flex-1">{t}</span>
       {badge[v] > 0 && <span className={cx('rounded-full px-1.5 text-[11px] font-bold tabular-nums', v === 'casos' ? 'bg-warn text-onc' : 'bg-acento text-onc')}>{badge[v]}</span>}
     </button>
@@ -309,12 +309,12 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     </button>
   );
   const temaBtn = () => (
-    <button type="button" onClick={toggleTema} className="flex items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-2 text-[13px] text-ink2 hover:bg-soft">
+    <button type="button" onClick={toggleTema} className="flex items-center gap-2.5 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] text-ink2 shadow-sh hover:bg-soft">
       <Ic n={tema === 'dark' ? 'sun' : 'moon'} s={15} />{tema === 'dark' ? 'Modo claro' : 'Modo oscuro'}
     </button>
   );
   const perfilBtn = (compacto) => perfil ? (
-    <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-2 rounded-full border border-line bg-card py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
+    <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-2 rounded-full border border-cardline bg-card shadow-sh py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
       <Avatar nombre={perfil.nombre} size={28} />{!compacto && <span className="max-w-[140px] truncate">{perfil.nombre.split(' ')[0]}</span>}
     </button>
   ) : <button type="button" onClick={() => setPerfilOpen(true)} className="whitespace-nowrap rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc hover:bg-acentodeep">Mi perfil</button>;
@@ -339,11 +339,11 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
   return (
     <Ctx.Provider value={ctx}>
-      <div className="min-h-screen bg-bg lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col gap-1 overflow-auto border-r border-line bg-card px-3.5 pb-5 pt-6 lg:flex">
+      <div className="fondo min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-screen flex-col gap-1 overflow-auto border-r border-cardline bg-[color-mix(in_srgb,var(--card)_78%,transparent)] px-4 pb-5 pt-7 backdrop-blur-xl lg:flex">
           <div className="px-3 pb-5">{marca()}<div className="mt-1.5 text-[11.5px] leading-snug text-ink3">Procedimientos clínicos basados en la evidencia</div></div>
           {navegacion()}
-          <div className="mt-5 rounded-r bg-soft p-3.5">
+          <div className="mt-6 rounded-r border border-cardline bg-[color-mix(in_srgb,var(--soft)_60%,transparent)] p-4">
             <div className="mb-2 text-[10.5px] font-bold uppercase tracking-[.07em] text-ink3">Estado del proyecto</div>
             {[['Protocolos validados', '0'], ['Borradores publicados', String(PROTOS.filter((p) => p.abre).length)], ['Revisores', '0 / 8'], ['Tus casos', String(mios.length)]].map(([a, b]) => (
               <div key={a} className="flex justify-between py-0.5 text-[12.5px]"><span className="text-ink2">{a}</span><b className="tabular-nums">{b}</b></div>
@@ -351,7 +351,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
           </div>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
             {temaBtn()}
-            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-line bg-card px-3.5 py-2 text-[13px] text-ink2 hover:bg-soft">
+            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] text-ink2 shadow-sh hover:bg-soft">
               <Ic n="back" s={15} />Cerrar sesión
             </button>
             <p className="m-0 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
@@ -359,17 +359,17 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
         </aside>
 
         <div className="min-w-0 pb-[84px] lg:pb-0">
-          <div className="sticky z-30 border-b border-line bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="sticky z-30 border-b border-cardline bg-[color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-xl" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
             <div className="mx-auto flex max-w-[1320px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
               <div className="lg:hidden">{marca()}</div>
               <div className="hidden whitespace-nowrap text-[12.5px] text-ink3 lg:block">{RUTAS[view]}</div>
-              <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-line bg-card px-4 focus-within:border-acento md:flex">
+              <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-cardline bg-card px-4 shadow-sh focus-within:border-acento md:flex">
                 <Ic n="search" s={15} className="text-ink3" />
                 <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (view !== 'biblioteca' && e.target.value) go('biblioteca'); }} aria-label="Buscar un protocolo" placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
               </form>
               <div className="ml-auto flex items-center gap-2">
                 <button type="button" onClick={() => setBuscarMovil(!buscarMovil)} className="rounded-full p-2 text-ink2 hover:bg-soft md:hidden" aria-label="Buscar"><Ic n="search" /></button>
-                <button type="button" onClick={() => nuevoCaso()} className="hidden items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-2 text-[13px] font-semibold text-acentodeep hover:bg-soft sm:inline-flex"><Ic n="plus" s={15} />Nuevo caso</button>
+                <button type="button" onClick={() => nuevoCaso()} className="hidden items-center gap-1.5 rounded-full border border-cardline bg-card px-3.5 py-2 shadow-sh text-[13px] font-semibold text-acentodeep hover:bg-soft sm:inline-flex"><Ic n="plus" s={15} />Nuevo caso</button>
                 {perfilBtn(false)}
               </div>
             </div>
@@ -381,11 +381,11 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               </form>
             )}
           </div>
-          <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{vista}</main>
+          <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">{vista}</main>
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisión']].map(([v, i, t]) => (
             <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}

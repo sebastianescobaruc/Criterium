@@ -20,7 +20,7 @@ export default function AuthGate({ usuario, cargando, children }) {
 /* ── Pantalla de carga ── */
 function Cargando() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-bg px-6">
+    <div className="fondo flex min-h-screen flex-col items-center justify-center gap-4 px-6">
       <Marca />
       <div className="h-8 w-48 animate-pulse rounded-rs bg-soft" />
       <p className="text-[13px] text-ink3">Cargando…</p>
@@ -45,7 +45,7 @@ function PantallaAuth() {
   const [modo, setModo] = useState('login'); // 'login' | 'registro' | 'recuperar'
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4 py-10">
+    <div className="fondo flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <Marca />
 
@@ -85,7 +85,7 @@ function FormLogin({ onCambiar }) {
   };
 
   return (
-    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 rounded-r border border-line bg-card p-6 shadow-sh">
+    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 tarjeta p-6">
       <h2 className="m-0 text-[18px] font-bold text-deep">Iniciar sesión</h2>
 
       <Field label="Correo electrónico" id="auth-email" error={intento && !esEmail(email) ? 'Escribe un correo válido.' : ''}>
@@ -150,7 +150,7 @@ function FormRegistro({ onCambiar }) {
   };
 
   return (
-    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 rounded-r border border-line bg-card p-6 shadow-sh">
+    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 tarjeta p-6">
       <h2 className="m-0 text-[18px] font-bold text-deep">Crear cuenta</h2>
       <p className="m-0 text-[13.5px] leading-relaxed text-ink2">
         Los aportes van firmados: un comentario sobre un paso clínico tiene que tener un responsable detrás.
@@ -225,7 +225,7 @@ function FormRecuperar({ onCambiar }) {
 
   if (enviado) {
     return (
-      <div className="mt-6 flex flex-col gap-4 rounded-r border border-line bg-card p-6 shadow-sh">
+      <div className="mt-6 flex flex-col gap-4 tarjeta p-6">
         <div className="grid h-12 w-12 place-items-center rounded-full bg-oksoft text-ok"><Ic n="check" s={22} /></div>
         <h2 className="m-0 text-[18px] font-bold text-deep">Correo enviado</h2>
         <p className="m-0 text-[14px] leading-relaxed text-ink2">
@@ -237,7 +237,7 @@ function FormRecuperar({ onCambiar }) {
   }
 
   return (
-    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 rounded-r border border-line bg-card p-6 shadow-sh">
+    <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 tarjeta p-6">
       <h2 className="m-0 text-[18px] font-bold text-deep">Recuperar contraseña</h2>
       <p className="m-0 text-[13.5px] leading-relaxed text-ink2">
         Te enviaremos un enlace para crear una contraseña nueva.

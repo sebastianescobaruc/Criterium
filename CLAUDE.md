@@ -150,7 +150,8 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 - Tres estados de tema: claro, oscuro y "sistema" (sin `data-theme`). Todo color nuevo se define en los tres bloques.
 - Texto sobre fondos de color sólido: `text-onc` (no `text-white`), para que funcione en tema oscuro.
 - Colores de la marca (del logo oficial): azul petróleo `#1B3949` (`--deep`, títulos y logo) y verde azulado `#346F7D` (`--acento` `#2F6A78` para botones y enlaces), sobre fondo `#F6F8F9`. En oscuro: `#0B1419`, tarjetas `#12212A`, acento `#5FA9B9`. El anillo de las historias usa `--ring`; el ícono del logo, `--logo-bg` y `--logo-acc`.
-- Tipografías del sistema: San Francisco (`-apple-system`) con Inter como respaldo fuera de Apple; `font-serif` es New York (`ui-serif`) para las explicaciones. Los `h1` van en SF Pro Display semibold con tracking apretado. **No usar tipografía monoespaciada.**
+- Una sola tipografía en toda la app: la del logo (San Francisco, `-apple-system`, con Inter como respaldo fuera de Apple). `font-serif` apunta a esa misma familia. **El logo y su tipografía no se cambian.** No usar tipografía monoespaciada.
+- Estilo "clínico premium": fondo `.fondo` (trama de puntos tenue + brillo de marca), recuadros con la clase `.tarjeta` (blanca, sin borde duro, sombra difusa, `--card-line`), barras con vidrio esmerilado (`backdrop-blur`), campos en `--input`. Encabezados de marca con `.banda-marca` (degradado del logo, texto blanco). Todo en `index.css`.
 - Los `<select>` no usan el estilo nativo del sistema: `index.css` les quita la apariencia y dibuja el chevron con el color del tema.
 - Logo: componente `Logo` en `ui.jsx`, recreado en SVG desde el logo oficial (C con una muela al centro y un tramo verde azulado; "Criter" en `text-deep` e "ium" en `text-acento`). El favicon está en `public/favicon.svg`.
 - **Fotos clínicas siempre completas dentro de su marco** (`object-contain`), nunca recortadas.

@@ -4,7 +4,7 @@ import { useApp } from '../ctx.js';
 import { PROTOS } from '../data.js';
 import { TuDia } from './protocolos.jsx';
 import { toggleLikeFS, responderPostFS, publicarPostFS, usePerfilPublico, usePostsDe, useSeguimientos } from '../db.js';
-import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, Vacio, inputCls, inputErr, cx } from '../ui.jsx';
+import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, Vacio, Logo, inputCls, inputErr, cx } from '../ui.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
 const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
@@ -84,22 +84,29 @@ function Guia() {
     );
   }
   return (
-    <section aria-labelledby="guia-titulo" className="-mx-4 border-y border-line bg-card px-4 py-5 sm:mx-0 sm:rounded-r sm:border-x sm:px-5">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h2 id="guia-titulo" className="m-0 text-[17px] font-semibold tracking-[-.015em] text-deep">Qué puedes hacer en Criterium</h2>
-          <p className="m-0 mt-0.5 text-[13px] text-ink3">Un ciclo de cuatro pasos. Toca uno para ir directo.</p>
+    <section aria-labelledby="guia-titulo" className="-mx-4 overflow-hidden border-y border-cardline bg-card shadow-sh sm:mx-0 sm:rounded-r sm:border-x">
+      {/* Encabezado de marca: degradado y el ícono del logo (sin cambios) como marca de agua. */}
+      <div className="banda-marca relative overflow-hidden px-4 pb-5 pt-5 sm:px-6">
+        <Logo size={150} texto={false} className="pointer-events-none absolute -bottom-16 right-12 opacity-[.14]" />
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.09) 1px,transparent 1.3px)', backgroundSize: '16px 16px' }} />
+        <div className="relative flex items-start justify-between gap-3">
+          <div>
+            <p className="m-0 text-[11px] font-semibold uppercase tracking-[.1em] text-white/70">Bienvenido a Criterium</p>
+            <h2 id="guia-titulo" className="m-0 mt-1 text-[20px] font-semibold tracking-[-.02em] text-white">Qué puedes hacer aquí</h2>
+            <p className="m-0 mt-1 text-[13px] text-white/75">Un ciclo de cuatro pasos. Toca uno para ir directo.</p>
+          </div>
+          <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full bg-white/10 p-1.5 text-white/80 backdrop-blur hover:bg-white/20 hover:text-white" aria-label="Ocultar la guía"><Ic n="x" s={16} /></button>
         </div>
-        <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-ink" aria-label="Ocultar la guía"><Ic n="x" s={16} /></button>
       </div>
+      <div className="px-4 pb-5 pt-4 sm:px-6">
 
       {/* Móvil: línea vertical. Desde sm: cuatro columnas unidas por una línea horizontal. */}
       <ol className="relative m-0 grid list-none gap-0 p-0 sm:grid-cols-4 sm:gap-3">
-        <span aria-hidden="true" className="absolute bottom-6 left-[19px] top-6 w-[2px] bg-line sm:bottom-auto sm:left-[12.5%] sm:right-[12.5%] sm:top-[19px] sm:h-[2px] sm:w-auto" />
+        <span aria-hidden="true" className="absolute bottom-8 left-[24px] top-8 w-0 border-l-2 border-dashed border-line sm:bottom-auto sm:left-[12.5%] sm:right-[12.5%] sm:top-[29px] sm:h-0 sm:w-auto sm:border-l-0 sm:border-t-2" />
         {PASOS_GUIA.map((p) => (
           <li key={p.n} className="relative">
-            <button type="button" onClick={() => p.ir(app)} className="group grid w-full grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-rs py-2 text-left sm:flex sm:flex-col sm:items-center sm:px-1 sm:text-center">
-              <span className="relative z-10 grid h-10 w-10 place-items-center rounded-full border-2 border-acento bg-card text-acento transition-colors group-hover:bg-acento group-hover:text-onc">
+            <button type="button" onClick={() => p.ir(app)} className="group grid w-full grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-rs px-1 py-2.5 text-left transition-colors hover:bg-[color-mix(in_srgb,var(--soft)_60%,transparent)] sm:flex sm:flex-col sm:items-center sm:px-2 sm:text-center">
+              <span className="relative z-10 grid h-10 w-10 place-items-center rounded-full bg-card text-acento shadow-sh ring-2 ring-acento ring-offset-2 ring-offset-card transition-colors group-hover:bg-acento group-hover:text-onc">
                 <Ic n={p.icon} s={18} sw={1.9} />
               </span>
               <span className="min-w-0">
@@ -113,9 +120,10 @@ function Guia() {
         ))}
       </ol>
 
-      <div className="mt-4 flex flex-col gap-2 rounded-rs bg-soft px-3.5 py-3 text-[12.5px] leading-snug text-ink2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-2 rounded-rs border border-cardline bg-[color-mix(in_srgb,var(--soft)_65%,transparent)] px-3.5 py-3 text-[12.5px] leading-snug text-ink2 sm:flex-row sm:items-center sm:justify-between">
         <span className="inline-flex items-start gap-2"><Ic n="sparkle" s={15} className="mt-px text-acento" />Lo que se aprueba y se resuelve aquí vuelve a mejorar los protocolos.</span>
         <button type="button" onClick={() => app.go('herramientas')} className="inline-flex flex-none items-center gap-1.5 self-start font-semibold text-acento hover:underline sm:self-auto"><Ic n="tool" s={14} />También: calculadoras clínicas</button>
+      </div>
       </div>
     </section>
   );
@@ -178,7 +186,7 @@ function Post({ p }) {
     : <span className={cls}>{contenido}</span>;
   const sinResp = !p.respuestas.length && !p.autor.verificado;
   return (
-    <article className="-mx-4 border-y border-line bg-card sm:mx-0 sm:rounded-r sm:border-x">
+    <article className="-mx-4 border-y border-cardline bg-card shadow-sh sm:mx-0 sm:rounded-r sm:border-x">
       <header className="flex items-center gap-3 px-4 pb-2 pt-3.5">
         <span className="rounded-full p-[2px]" style={{ background: p.autor.verificado ? 'var(--ring)' : 'transparent' }}>
           <span className="block rounded-full bg-card p-[2px]">{autorUid ? <button type="button" onClick={() => verPerfil(autorUid)} aria-label={'Ver el perfil de ' + p.autor.nombre} className="block rounded-full"><Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} /></button> : <Avatar nombre={p.autor.nombre} verificado={p.autor.verificado} size={36} />}</span>
@@ -270,18 +278,18 @@ export function Feed() {
   const fp = feedProto && protoPorId(feedProto);
   return (
     <div className="mx-auto grid max-w-[980px] grid-cols-[minmax(0,1fr)] items-start gap-10 xl:grid-cols-[minmax(0,600px)_300px] xl:justify-between">
-      <div className="mx-auto flex w-full min-w-0 max-w-[600px] flex-col gap-4">
+      <div className="mx-auto flex w-full min-w-0 max-w-[600px] flex-col gap-5">
         <h1 className="sr-only">Inicio</h1>
         <Guia />
         <Historias />
-        <div className="-mx-4 border-y border-line bg-card px-4 py-3.5 sm:mx-0 sm:rounded-r sm:border-x">
+        <div className="-mx-4 border-y border-cardline bg-card shadow-sh px-4 py-3.5 sm:mx-0 sm:rounded-r sm:border-x">
           <div className="flex gap-3">
             <Avatar nombre={(perfil && perfil.nombre) || '?'} size={36} />
             <textarea id="feed-txt" value={txt} onChange={(e) => { setTxt(e.target.value); setErr(''); }} rows={2} placeholder="¿Qué te pasó en el box?" aria-label="Escribe tu pregunta o aporte" className="min-w-0 flex-1 resize-y bg-transparent pt-1.5 text-[15px] leading-normal text-ink outline-none placeholder:text-ink3" />
           </div>
           {err && <p className="m-0 mb-1 ml-12 text-[12px] text-bad">{err}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-2.5 pl-12">
-            <label className={cx('relative inline-flex min-w-0 max-w-full flex-1 items-center rounded-full transition-colors sm:max-w-[320px] sm:flex-none', proto ? 'bg-acentosoft text-acentodeep' : 'bg-soft text-ink2 hover:text-ink')}>
+            <label className={cx('relative inline-flex min-w-0 max-w-full flex-1 items-center rounded-full transition-colors sm:max-w-[320px] sm:flex-none', proto ? 'bg-acentosoft text-acentodeep' : 'bg-input text-ink2 ring-1 ring-inset ring-cardline hover:text-ink')}>
               <Ic n="book" s={14} className="pointer-events-none absolute left-3" />
               <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className="w-full min-w-0 truncate rounded-full border-0 bg-transparent py-1.5 pl-8 text-[13px] font-semibold text-current outline-none focus-visible:ring-2 focus-visible:ring-acento">
                 <option value="">Agregar protocolo</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
@@ -330,7 +338,7 @@ export function PerfilPublico() {
   return (
     <div className="mx-auto flex max-w-[600px] flex-col gap-5">
       <div>{volver}</div>
-      <section className="-mx-4 border-y border-line bg-card px-4 py-5 sm:mx-0 sm:rounded-r sm:border-x sm:px-6">
+      <section className="-mx-4 border-y border-cardline bg-card shadow-sh px-4 py-5 sm:mx-0 sm:rounded-r sm:border-x sm:px-6">
         <div className="flex items-center gap-4 sm:gap-6">
           <Avatar nombre={pf.nombre} size={76} />
           <div className="grid flex-1 grid-cols-3 gap-2">
@@ -397,7 +405,7 @@ export function Postular() {
       <div className="grid gap-3.5 md:grid-cols-2">
         {[['Lo que se te pide', [['De 30 a 60 minutos por ronda.', 'Dos rondas, con fechas avisadas con anticipación.'], ['Puntuar cada paso', 'en pertinencia, claridad y suficiencia de la evidencia, y comentar lo que esté mal.'], ['Respuestas anónimas entre revisores', ', para que el resultado no lo determine la jerarquía.']]],
           ['Lo que recibes', [['Tu nombre como revisor', 'en cada protocolo que firmes.'], ['Coautoría en el artículo de consenso', 'si cumples los criterios ICMJE.'], ['El material disponible para tus estudiantes', ', con la evidencia trazada.']]]].map(([t, l]) => (
-          <div key={t} className="rounded-r border border-line bg-card p-5 sm:p-6">
+          <div key={t} className="tarjeta p-5 sm:p-6">
             <h3 className="m-0 mb-3 text-[17px] font-bold text-deep">{t}</h3>
             <ul className="m-0 flex flex-col gap-2 pl-5 font-serif text-[14.5px] leading-relaxed text-ink2">{l.map(([b, r]) => <li key={b}><b className="font-sans text-[13.5px] text-ink">{b}</b> {r}</li>)}</ul>
           </div>
@@ -418,7 +426,7 @@ export function Postular() {
           </div>
         </div>
       ) : (
-        <form onSubmit={enviar} noValidate className="max-w-[960px] rounded-r border border-line bg-card p-5 shadow-sh sm:p-7">
+        <form onSubmit={enviar} noValidate className="max-w-[960px] tarjeta p-5 sm:p-7">
           <div className="grid gap-4 sm:grid-cols-2">
             {campo('nombre', 'Nombre y apellido', <input id="post-nombre" value={f.nombre} onChange={(x) => setF({ ...f, nombre: x.target.value })} placeholder="Dra. Rosa Sepúlveda" className={ic('nombre')} />)}
             {campo('area', 'Área a la que postulas', <select id="post-area" value={f.area} onChange={(x) => setF({ ...f, area: x.target.value })} className={ic('area')}><option value="">Elige un área</option>{AREAS.map((a) => <option key={a}>{a}</option>)}</select>)}
@@ -478,7 +486,7 @@ export function Contacto() {
             <div className="flex flex-wrap gap-2"><Btn icon="copy" onClick={() => copiar(listo)}>Copiar mensaje</Btn><Btn v="ghost" onClick={() => setListo(null)}>Escribir otro</Btn></div>
           </div>
         ) : (
-          <form onSubmit={enviar} noValidate className="grid gap-4 rounded-r border border-line bg-card p-5 shadow-sh sm:p-6">
+          <form onSubmit={enviar} noValidate className="grid gap-4 tarjeta p-5 sm:p-6">
             <Field label="Motivo" id="c-motivo"><select id="c-motivo" value={f.motivo} onChange={(x) => setF({ ...f, motivo: x.target.value })} className={inputCls}>{MOTIVOS_C.map((m) => <option key={m}>{m}</option>)}</select></Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nombre" id="c-nombre" error={intento ? e.nombre : ''}><input id="c-nombre" value={f.nombre} onChange={(x) => setF({ ...f, nombre: x.target.value })} placeholder="Tu nombre" className={ic('nombre')} /></Field>
@@ -489,7 +497,7 @@ export function Contacto() {
           </form>
         )}
         {mensajes.length > 0 && (
-          <details className="rounded-r border border-line bg-card px-5 py-3.5">
+          <details className="tarjeta px-5 py-3.5">
             <summary className="text-[13px] font-semibold text-acentodeep">{mensajes.length === 1 ? '1 mensaje guardado' : mensajes.length + ' mensajes guardados'} en este navegador</summary>
             <div className="flex flex-col gap-2 pt-3">
               {mensajes.map((m) => (
@@ -502,7 +510,7 @@ export function Contacto() {
           </details>
         )}
       </div>
-      <div className="rounded-r border border-line bg-card px-5 py-2">
+      <div className="tarjeta px-5 py-2">
         {[['mail', 'Correo', null], ['pin', 'Institución', null], ['userCheck', 'Equipo', 'Dos estudiantes de quinto año de Odontología'], ['clock', 'Respuesta', 'Dentro de una semana. Somos dos y estamos en clínica.']].map(([i, t, d]) => (
           <div key={t} className="grid grid-cols-[20px_minmax(0,1fr)] gap-3 border-b border-line2 py-4 last:border-0">
             <Ic n={i} s={18} className="text-acento" />
