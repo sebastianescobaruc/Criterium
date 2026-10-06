@@ -19,7 +19,7 @@ Criterium no es un apunte. Cada paso dice **qué hacer**, **cuándo terminaste**
 5. **El material de clase no es evidencia.** Un protocolo docente, un apunte o una clase dicen cómo se hace en un lugar, pero no por qué funciona. Úsalos para la secuencia y los detalles prácticos, y busca la evidencia aparte. Si el paso solo se apoya en el material de clase, va con `sinEv`.
 6. **Sin nombres de instituciones.** No escribas el nombre ni la marca de ninguna universidad o escuela en el texto del protocolo. Cita el material docente como «Protocolo docente de la asignatura (material de clase, no publicado)». Nunca escribas «aprobado por» una institución.
 7. **No mezcles datos del paciente.** Nada de nombres, RUT, fichas ni campos para llenar con datos personales. La ficha del PDF de box no pasa a Criterium.
-8. **No inventes la comunidad.** `aportes` va vacío. Los aportes son experiencias reales de usuarios y llegan después.
+8. **No inventes la comunidad.** Nada de comentarios, casos ni opiniones de usuarios. Los comentarios de cada paso los escriben personas reales en la app y no van en `data.js`.
 9. **Si dos fuentes se contradicen, no elijas en silencio.** El paso lleva `marca:'en disputa'`, el campo `disputa` y una ficha «dónde no hay acuerdo» con las dos posiciones. El panel de expertos lo resuelve.
 
 ## Grados de evidencia
@@ -118,8 +118,7 @@ Entrega **dos bloques de código JavaScript** que se puedan pegar tal cual, y de
         ] },
         { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña.','Lo que dice la evidencia.','Por qué Criterium no cambia todavía.'], fuentes:[ /* … */ ] },
         { titulo:'ojo con esta evidencia', parrafos:['Límite de la fuente: población, diseño o tamaño.'] }
-      ],
-      aportes:[] }
+      ] }
   ]
 }
 ```
@@ -154,7 +153,7 @@ Después, tres listas:
 - [ ] Toda fuente de población distinta tiene su ficha «ojo con esta evidencia».
 - [ ] Todo `listo` empieza con «Terminaste cuando».
 - [ ] No aparece el nombre de ninguna institución ni ningún dato de paciente.
-- [ ] `aportes` está vacío en todos los pasos.
+- [ ] Ningún paso trae comentarios ni experiencias de usuarios inventados.
 - [ ] El conteo de `bandera` («N fuentes verificadas») coincide con las fuentes reales.
 - [ ] El código se puede pegar en `data.js` sin errores de sintaxis.
 

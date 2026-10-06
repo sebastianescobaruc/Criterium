@@ -7,6 +7,8 @@ export const TEXTO_SIN_PORQUE = 'Este paso no trae explicación.';
 export const TEXTO_PRUEBA = 'Paso uno. Confirma el material de la corona. Terminaste cuando lo tienes anotado en la ficha.';
 export const textoPaso = (s, k) => 'Paso ' + (k + 1) + '. ' + s.hacer + ' ' + (s.listo || '');
 export const textoPorque = (s) => (s.porque || [])[0] || TEXTO_SIN_PORQUE;
+// El «¿Por qué?» completo, para el botón «Escuchar» del paso
+export const textoPorqueCompleto = (s) => (s.porque || []).join(' ') || TEXTO_SIN_PORQUE;
 export const textoCierre = (hechos, total) => 'Protocolo terminado. Marcaste ' + hechos + ' de ' + total + ' pasos.';
 
 // Todos los textos que puede leer un protocolo (para generar sus audios)
@@ -16,6 +18,7 @@ export function textosDe(d) {
     TEXTO_BANDEJA, TEXTO_SIN_PORQUE,
     ...d.pasos.map(textoPaso),
     ...d.pasos.map(textoPorque),
+    ...d.pasos.map(textoPorqueCompleto),
     ...Array.from({ length: N + 1 }, (_, h) => textoCierre(h, N))
   ];
 }

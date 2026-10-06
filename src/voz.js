@@ -46,10 +46,22 @@ const puntaje = (v) => {
 };
 let voces = [];
 const oyentesVoces = new Set();
+// El mismo nombre de voz llega varias veces (Safari: «Paulina» y «Paulina (mejorada)»; Chrome: la local y la de
+// Google con nombres parecidos; macOS: copias con distinto voiceURI). Se deja una sola por nombre e idioma: la de mejor calidad.
+const nombreBase = (v) => v.name.replace(/\s*\((?:enhanced|premium|mejorad[ao]|compact|compacta|[^)]*español[^)]*)\)\s*/gi, ' ').replace(/^(microsoft|google|apple)\s+/i, '').replace(/\s+(online|\(natural\)).*$/i, '').trim().toLowerCase();
+function sinDuplicados(lista) {
+  const mejor = new Map();
+  for (const v of lista) {
+    const k = sinTildes(nombreBase(v)) + '|' + v.lang.replace('_', '-').toLowerCase();
+    const otra = mejor.get(k);
+    if (!otra || puntaje(v) > puntaje(otra) || (puntaje(v) === puntaje(otra) && v.localService && !otra.localService)) mejor.set(k, v);
+  }
+  return [...mejor.values()];
+}
 function cargarVoces() {
   try {
-    voces = window.speechSynthesis.getVoices()
-      .filter((v) => /^es([-_]|$)/i.test(v.lang) && !JUGUETE.test(v.name))
+    voces = sinDuplicados(window.speechSynthesis.getVoices()
+      .filter((v) => /^es([-_]|$)/i.test(v.lang) && !JUGUETE.test(v.name)))
       .sort((a, b) => puntaje(b) - puntaje(a) || a.name.localeCompare(b.name));
     oyentesVoces.forEach((f) => f(voces));
   } catch (e) {}
@@ -71,7 +83,8 @@ if (typeof window !== 'undefined' && typeof fetch === 'function') {
     oyentesVoces.forEach((f) => f(listaVoces()));
   }).catch(() => {});
 }
-const nombreNatural = (v) => 'Natural · ' + v.nombre + (v.genero === 'FEMALE' ? ' (femenina)' : v.genero === 'MALE' ? ' (masculina)' : '');
+// Alejandra trae su propia etiqueta («Alejandra · voz chilena»); las de Google se muestran como «Natural · …»
+const nombreNatural = (v) => v.etiqueta || ('Natural · ' + v.nombre + (v.genero === 'FEMALE' ? ' (femenina)' : v.genero === 'MALE' ? ' (masculina)' : ''));
 const listaVoces = () => [...natural.voces.map((v) => ({ voiceURI: 'gcp:' + v.id, name: nombreNatural(v), lang: v.idioma || 'es-US', natural: true })), ...voces];
 export function useVoces() {
   const [v, setV] = useState(listaVoces);
@@ -177,6 +190,39 @@ export function useHablando() {
   const [v, setV] = useState(hablandoAhora);
   useEffect(() => { oyentes.add(setV); return () => { oyentes.delete(setV); }; }, []);
   return v;
+}
+
+/* ═══ Permiso del micrófono y audio desbloqueado ═══ */
+
+// Estado del permiso sin preguntar nada: 'granted' | 'denied' | 'prompt' (si el navegador no lo dice, 'prompt')
+export async function estadoMicrofono() {
+  try { const p = await navigator.permissions.query({ name: 'microphone' }); return p.state; } catch (e) { return 'prompt'; }
+}
+// Pide el micrófono (el navegador muestra su aviso) y lo suelta al tiro: después el reconocedor ya tiene permiso.
+// Devuelve 'granted' | 'denied' | 'sin-micro' | 'error'.
+export async function pedirMicrofono() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return 'granted'; // sin esta API, el reconocedor pregunta solo
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach((t) => t.stop());
+    return 'granted';
+  } catch (e) {
+    const n = e && e.name;
+    return n === 'NotAllowedError' || n === 'SecurityError' ? 'denied' : n === 'NotFoundError' || n === 'OverconstrainedError' ? 'sin-micro' : 'error';
+  }
+}
+// Safari solo deja sonar audio que partió dentro de un toque. Si la voz va a empezar después (cuando se acepte el
+// permiso), se "desbloquea" en el toque con un sonido mudo: el mismo elemento y la síntesis quedan habilitados.
+const SILENCIO = 'data:audio/wav;base64,UklGRmQBAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+export function desbloquearAudio() {
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) {}
+  try {
+    if (!audio) audio = new Audio();
+    audio.muted = true; audio.src = SILENCIO;
+    const p = audio.play();
+    const fin = () => { if (audio.src === SILENCIO) { try { audio.pause(); } catch (e) {} } audio.muted = false; }; // si ya empezó a leer, no se corta
+    if (p && p.then) p.then(fin, fin); else fin();
+  } catch (e) {}
 }
 
 /* ═══ Órdenes por micrófono ═══ */

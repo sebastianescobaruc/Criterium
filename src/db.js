@@ -441,3 +441,24 @@ export function useMisSolicitudes(uid) {
 export async function crearSolicitudFS(s) {
   return addDoc(collection(db, 'solicitudes'), { ...s, estado: 'recibida', fecha: new Date().toISOString() });
 }
+
+/* ═══════ Comentarios en cada paso de un protocolo ═══════
+   comentarios/{id}: { protoId, paso (índice), pasoCorto, version, uid, autor: { uid, nombre, rol, docente },
+                       tipo: 'comentario' | 'correccion', txt, fecha }
+   Hoy los escribe y los lee cualquiera con sesión. Más adelante: correcciones de los expertos que validan
+   el protocolo y comentarios de docentes para sus estudiantes (por eso se guardan el tipo y si el autor es docente). */
+export function useComentariosProto(protoId, activo = true) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!protoId || !activo) { setLista([]); return; }
+    const q = query(collection(db, 'comentarios'), where('protoId', '==', protoId));
+    return onSnapshot(q, (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => a.fecha.localeCompare(b.fecha))), () => setLista([]));
+  }, [protoId, activo]);
+  return lista;
+}
+export async function comentarPasoFS(c) {
+  return addDoc(collection(db, 'comentarios'), { ...c, fecha: new Date().toISOString() });
+}
+export async function borrarComentarioFS(id) {
+  return deleteDoc(doc(db, 'comentarios', id));
+}

@@ -3,17 +3,17 @@ export const PROTOS = [
     { id:'cementado-pmma', corto:'Cementado PMMA', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.4',
       t:'Cementado de corona provisional de PMMA fresado CAD/CAM',
       s:'Corona unitaria sobre diente natural, de 6 a 24 meses. Dos vías: convencional y adhesiva. Solo la sesión de cementado.',
-      extraTxt:'1 paso en disputa', n:'5 aportes', abre:true,
+      extraTxt:'1 paso en disputa', n:'', abre:true,
       k:'cementar cemento provisional pmma cadcam corona temporal eugenol adhesivo arenado primer mma resina superbond ferula larga duracion' },
     { id:'resina-clase-i', corto:'Resina clase I', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.2',
       t:'Restauración de resina compuesta clase I oclusal',
       s:'Caries oclusal primaria en diente permanente vital. De la marca de oclusión al pulido.',
-      extraTxt:'2 pasos en disputa', n:'2 aportes', abre:true, estudio:true,
+      extraTxt:'2 pasos en disputa', n:'', abre:true, estudio:true,
       k:'resina composite obturacion clase i oclusal caries operatoria aislamiento dique adhesivo grabado bulk fill incremental fotopolimerizar pulido' },
     { id:'exodoncia-18', corto:'Exodoncia 1.8 / 2.8', esp:'Cirugía', estadoTxt:'Borrador v0.2',
       t:'Exodoncia simple de tercer molar superior (1.8 / 2.8)',
       s:'Tercer molar superior erupcionado en paciente sano. Con los dos puntos donde este diente se complica.',
-      extraTxt:'2 pasos críticos', n:'2 aportes', abre:true, estudio:true,
+      extraTxt:'2 pasos críticos', n:'', abre:true, estudio:true,
       k:'exodoncia extraccion 18 28 tercer molar cordal superior erupcionado forceps elevador tuberosidad seno maxilar comunicacion bucosinusal antibiotico cirugia' },
     { id:'pulpectomia-premolar', corto:'Pulpectomía premolar', esp:'Endodoncia', estadoTxt:'Borrador v0.1', estudio:true,
       t:'Bio/necropulpectomía de primer premolar superior',
@@ -84,7 +84,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Elegir ionómero modificado con resina en un muñón corto pensando que el cemento compensa la falta de retención. No la compensa: ese cemento no se une al acrílico.','Dejar la decisión para el momento del cementado. Si eliges la vía adhesiva a esa altura, la corona ya se probó en boca y está contaminada con saliva, y el arenador no está montado.'] }
           ] },
-        { corto:'Mide la férula si el pilar está endodonciado', hacer:'Mide con sonda milimetrada la dentina sana que queda por debajo del margen de la corona, en todo el perímetro.',
+        { anim:'pmma.ferula', corto:'Mide la férula si el pilar está endodonciado', hacer:'Mide con sonda milimetrada la dentina sana que queda por debajo del margen de la corona, en todo el perímetro.',
           cond:'→ solo si el pilar está endodonciado y llevará poste',
           listo:'Terminaste cuando la medida está registrada en la ficha y confirmas al menos 2 mm de dentina sana en todo el contorno.',
           porque:['La férula es ese anillo de dentina sana por debajo del margen. Reparte la carga sobre el diente en vez de concentrarla en la unión entre el poste y el muñón.','Una revisión sistemática de 2026 que reúne 33 estudios encontró que una férula de 2 mm o más aumenta la resistencia a la fractura en 165 N de media, y recomienda entre 1,5 y 2,0 mm de altura con al menos 1 mm de espesor de dentina. Si no la hay, no se arregla eligiendo mejor cemento: hay que conseguirla antes de coronar.'],
@@ -95,25 +95,21 @@ export const DATOS = {
             ] },
             { titulo:'ojo con esta evidencia', parrafos:['Los 165 N vienen sobre todo de ensayos de laboratorio. En pacientes el efecto es menos claro: la revisión clínica de 2024 encuentra mejor éxito con férula en 2 estudios con 123 dientes, pero al ampliar a 8 estudios y 407 dientes la diferencia desaparece.','Exige los 2 mm porque el laboratorio y la práctica lo respaldan, no porque exista un ensayo clínico grande que lo demuestre.'] }
           ] },
-        { corto:'Retira el provisional anterior y prueba en seco', hacer:'Retira el provisional anterior, elimina todo resto de cemento del muñón y prueba la corona en boca antes de preparar nada.',
+        { anim:'pmma.probar', corto:'Retira el provisional anterior y prueba en seco', hacer:'Retira el provisional anterior, elimina todo resto de cemento del muñón y prueba la corona en boca antes de preparar nada.',
           listo:'Terminaste cuando asienta por completo sin presión, los márgenes contactan la preparación en todo el perímetro y el punto de contacto pasa hilo dental con resistencia leve.',
           porque:['Una corona que no asienta antes del cemento no va a asentar después. La película de cemento agrega espesor: si ya había interferencia en seco, al cementar queda alta y con el margen abierto.','Un margen abierto en un provisional de larga duración deja expuesta la dentina durante meses. Ahí es donde aparecen la sensibilidad y la caries recurrente que después obligan a rehacer.','Si el provisional anterior estaba cementado con óxido de zinc con eugenol y vas por la vía adhesiva, el eugenol que queda en la dentina inhibe la polimerización del cemento de resina. No basta con lavar: hay que limpiar mecánicamente, con piedra pómez sin flúor o con clorhexidina al 2 %. Nada de pastas de profilaxis con glicerina o aceites.'],
-          sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Probar el asentamiento empujando fuerte con el dedo. La presión enmascara la interferencia: la corona entra, pero rebota apenas se suelta. Si tienes que forzarla, no asienta.','No revisar el punto de contacto. Un provisional sin contacto proximal deja migrar al diente vecino en semanas, y la corona definitiva ya no calza.','Probar la corona en boca y después cementarla por vía adhesiva sin descontaminar la cara interna. La saliva deja una película que el agua no saca.'] }],
-          aportes:[
-            { av:'MF', quien:'m.fuentes', txt:'A mí me pasó que asentaba perfecto en seco y después de cementar quedó alto. Era el punto de contacto, no la oclusión. Ahora reviso el contacto con hilo antes de mezclar.', rol:'Estudiante 5º', cuando:'5 d', likes:'14 les pasó lo mismo' },
-            { av:'JB', quien:'j.bravo', txt:'Ojo con probarlo apretando fuerte. Entra igual y uno cree que asienta. Si lo sueltas y rebota, no asienta.', rol:'Estudiante 5º', cuando:'1 sem', likes:'9 les pasó lo mismo' }
-          ] },
-        { corto:'Ajusta la oclusión sin cementar', hacer:'Ajusta la oclusión con el provisional todavía sin cementar.',
+          sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Probar el asentamiento empujando fuerte con el dedo. La presión enmascara la interferencia: la corona entra, pero rebota apenas se suelta. Si tienes que forzarla, no asienta.','No revisar el punto de contacto. Un provisional sin contacto proximal deja migrar al diente vecino en semanas, y la corona definitiva ya no calza.','Probar la corona en boca y después cementarla por vía adhesiva sin descontaminar la cara interna. La saliva deja una película que el agua no saca.'] }] },
+        { anim:'pmma.oclusion', corto:'Ajusta la oclusión sin cementar', hacer:'Ajusta la oclusión con el provisional todavía sin cementar.',
           listo:'Terminaste cuando el papel de articular marca contactos del mismo grosor que en los dientes vecinos, en máxima intercuspidación y en lateralidades.',
           porque:['Ajustar después de cementar obliga a desgastar con el provisional fijo. El desgaste genera calor, y el calor sobre un cemento recién fraguado puede romper la unión que acabas de lograr.','Además el polvo de PMMA se mete en el surco y es difícil de retirar sin dañar el tejido.'] },
-        { corto:'Pule solo lo que ajustaste', hacer:'Pule solo las zonas que ajustaste. No pulas el resto del provisional.',
+        { anim:'pmma.pulir', corto:'Pule solo lo que ajustaste', hacer:'Pule solo las zonas que ajustaste. No pulas el resto del provisional.',
           listo:'Terminaste cuando la zona ajustada devuelve brillo y la sonda recorre el margen sin engancharse.',
           porque:['Bajo 0,2 µm de rugosidad, seguir puliendo ya no reduce la adhesión bacteriana. Y un provisional fresado en PMMA sale de la fresadora entre 0,136 y 0,144 µm, o sea ya está bajo ese umbral.','Por eso pulir la superficie intacta no aporta nada. Lo que sí quedó rugoso es lo que tú desgastaste al ajustar oclusión y márgenes. Esa es la única zona que necesita pulido.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
             { grado:'Grado B · estudio in vitro comparativo', cita:'Burduroglu HD, Kanpalta B, Şentürk H, Keleş ZH, Sismanoglu S. Surface roughness and bacterial adhesion of CAD/CAM and conventional provisional restorative materials. Materials. 2026.', url:'https://doi.org/10.3390/ma19163421', loc:'Telio CAD 0,136 ± 0,011 µm · Vita CAD-Temp 0,144 ± 0,005 µm · localizador pendiente' },
             { grado:'Grado B · umbral de referencia', cita:'Bollen CM, Lambrechts P, Quirynen M. Comparison of surface roughness of oral hard materials to the threshold surface roughness for bacterial plaque retention. Dent Mater. 1997.', url:'https://doi.org/10.1016/S0109-5641(97)80038-3', loc:'Umbral de 0,2 µm · localizador pendiente' }
           ] }] },
-        { corto:'Vía convencional: cementa sin eugenol', marca:'en disputa',
+        { anim:'pmma.cemento', corto:'Vía convencional: cementa sin eugenol', marca:'en disputa',
           disputa:'La evidencia de 2023 contradice la práctica establecida. Pendiente de resolución por el panel de expertos.',
           hacer:'Carga el cemento de óxido de zinc sin eugenol en una capa fina sobre la cara interna, sin llenar la cofia.',
           cond:'→ vía convencional, cuando la definitiva se cementará con un cemento resinoso',
@@ -122,13 +118,8 @@ export const DATOS = {
           sub:[
             { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña: el eugenol residual interfiere con la polimerización de los cementos resinosos, así que hay que evitarlo si la definitiva va adherida.','Lo que dice la evidencia más reciente: una revisión sistemática con metaanálisis de 2023 concluye que los materiales temporales con eugenol no tienen efecto adverso sobre la adhesión a dentina pasados 14 días.','Por qué Criterium no cambia la recomendación todavía: ese metaanálisis reúne solo estudios in vitro. La regla del validador impide que una revisión otorgue un grado superior al de los estudios que resume, así que su techo es grado C. Un grado C no basta para desplazar una práctica establecida.','El paso queda marcado en disputa hasta que lo resuelva el panel.'],
               fuentes:[{ grado:'Grado C · metaanálisis de estudios in vitro', cita:'da Rosa LS, Ribeiro JF, Pinto LT, Gonçalves LS, Rocha RO, Soares FZM. No adverse effect of eugenol-based temporary materials on bonding to dentin after 14 days: a systematic review and meta-analysis of in vitro studies. Int J Adhes Adhes. 2023.', loc:'DOI 10.1016/j.ijadhadh.2023.103398 · localizador de párrafo pendiente' }] }
-          ],
-          aportes:[
-            { av:'RS', quien:'r.sepulveda', marca:'✓', txt:'Llevo años cementando provisionales con eugenol y después adhiriendo cerámica sin problemas de retención. Mi impresión coincide con el metaanálisis. Pero una impresión no es un dato: por eso vale la pena que el panel lo resuelva bien.', rol:'Especialista · Rehabilitación oral', cuando:'2 d', likes:'31 les pasó lo mismo' },
-            { av:'CA', quien:'c.aguilera', txt:'En el pañol el que casi siempre hay es el con eugenol. Saber que hay evidencia de que no pasa nada me sirve más que la regla a secas.', rol:'Estudiante 5º', cuando:'4 d', likes:'22 les pasó lo mismo' },
-            { av:'PT', quien:'p.tapia', txt:'Cuidado con el resinoso en provisionales largos: retiene muy bien, pero cuando toca sacarlo a los 18 meses se fractura el provisional y hay que rehacerlo.', rol:'Cirujano dentista', cuando:'1 sem', likes:'17 les pasó lo mismo' }
           ] },
-        { corto:'Vía adhesiva: arena la cara interna y prímala con MMA', hacer:'Descontamina la cara interna con ácido ortofosfórico al 37 % durante 60 segundos, lava y seca. Después arena con óxido de aluminio de 50 µm a 1–2 bar, limpia en ultrasonido y aplica una capa fina de primer con MMA.',
+        { anim:'pmma.arenar', corto:'Vía adhesiva: arena la cara interna y prímala con MMA', hacer:'Descontamina la cara interna con ácido ortofosfórico al 37 % durante 60 segundos, lava y seca. Después arena con óxido de aluminio de 50 µm a 1–2 bar, limpia en ultrasonido y aplica una capa fina de primer con MMA.',
           cond:'→ vía adhesiva, fuera de la boca',
           listo:'Terminaste cuando la cara interna está mate y uniforme, seca, con el primer fotopolimerizado, y la corona guardada protegida de la luz.',
           porque:['El PMMA no tiene fase vítrea, así que el ácido fluorhídrico no disuelve nada y no deja ningún patrón de grabado. El ortofosfórico tampoco graba el acrílico: sirve solo para retirar la película de saliva que el agua no saca.','La unión a un PMMA ya polimerizado se consigue por dos caminos y solo dos: la rugosidad que deja el arenado y la unión química del MMA, que hincha el acrílico, penetra en él y copolimeriza. Un adhesivo universal corriente no hace eso.','La presión del arenado es el parámetro crítico. El acrílico se erosiona mucho antes que la cerámica: si arenas a presión alta pierdes ajuste marginal en una corona que tiene que durar meses. El objetivo del arenado aquí es rugosidad, no desgaste.'],
@@ -139,7 +130,7 @@ export const DATOS = {
             { titulo:'ojo con esta evidencia', parrafos:['La fuente que tenemos prueba el primer, no la presión. Lo demostrado es que sin acondicionar no hay unión y que un primer con MMA la levanta.','Las cifras de 50 µm y 1–2 bar no salen de un ensayo sobre tu bloque comercial: vienen de la práctica establecida. No existe una presión normalizada por material, así que Criterium las publica como extrapolación declarada, no como dato duro.'] },
             { titulo:'dónde se equivoca la gente', parrafos:['Grabar la cara interna con ácido fluorhídrico. No hay fase vítrea que disolver: solo añade riesgo de manipulación.','Saltarse el primer con MMA y confiar en un adhesivo universal. Ese es el escenario clásico del descementado a las pocas semanas: el cemento se queda pegado al diente y la corona sale entera.','Arenar a la presión que usarías sobre circonia. Sobre circonia retiras una capa despreciable; sobre acrílico desajustas la corona.'] }
           ] },
-        { corto:'Vía adhesiva: acondiciona el muñón y cementa con resina', hacer:'Aísla, graba esmalte 30 segundos y dentina 15, aplica el adhesivo frotando 20 segundos, evapora el disolvente 5 segundos y cementa con resina.',
+        { anim:'pmma.adhesivo', corto:'Vía adhesiva: acondiciona el muñón y cementa con resina', hacer:'Aísla, graba esmalte 30 segundos y dentina 15, aplica el adhesivo frotando 20 segundos, evapora el disolvente 5 segundos y cementa con resina.',
           cond:'→ vía adhesiva, una corona a la vez',
           listo:'Terminaste cuando el margen se comprueba con sonda, el exceso se retiró en fase gel, polimerizaste 20 a 40 segundos por cara y repolimerizaste 10 segundos con glicerina en los márgenes.',
           porque:['Se empieza grabando el esmalte y el ácido llega a la dentina después, nunca al revés. Sobregrabar la dentina colapsa la malla de colágeno y la capa híbrida queda incompleta: la adhesión empeora, no mejora.','El esmalte se seca hasta que queda con aspecto de tiza; la dentina solo hasta húmeda y brillante. Desecada, el colágeno se desploma.','La glicerina tapa el oxígeno del aire. Sin ella queda una capa superficial sin polimerizar justo en el margen, que es donde menos te conviene.','Una corona a la vez. Si cementas varias juntas, en alguna el exceso fragua antes de que llegues a retirarlo.'],
@@ -147,10 +138,10 @@ export const DATOS = {
             { titulo:'dónde no hay acuerdo', parrafos:['Si el adhesivo del muñón se fotopolimeriza antes de asentar la corona depende del sistema de cemento que uses. Hay sistemas duales donde se indica y otros donde no.','No hay una regla general que valga para todos. Confírmalo en las instrucciones de uso del cemento antes de la sesión.'] },
             { titulo:'dónde se equivoca la gente', parrafos:['Dispensar el cemento sobre el muñón en vez de sobre la cara interna de la corona. Se incorporan burbujas y el exceso sale donde no quieres.','Cementar sobre restos de cemento provisional con eugenol. Inhibe la polimerización de la resina.'] }
           ] },
-        { corto:'Asienta y retira el exceso en el momento justo', hacer:'Asienta con presión digital firme y sostenida, con vibración suave, hasta el asentamiento completo, y retira el exceso en el momento justo.',
+        { anim:'pmma.asentar', corto:'Asienta y retira el exceso en el momento justo', hacer:'Asienta con presión digital firme y sostenida, con vibración suave, hasta el asentamiento completo, y retira el exceso en el momento justo.',
           listo:'Terminaste cuando el margen se recorre con sonda sin escalón y el exceso salió entero: en la vía convencional cuando ya no se deforma y se quiebra, en la adhesiva en fase gel.',
           porque:['En la vía convencional, el exceso se retira entero justo cuando pierde el brillo. Si lo sacas antes, todavía está pegajoso y arrastras cemento desde debajo del margen, dejando la zona sin sellar. Si lo dejas endurecer del todo, después tienes que rasparlo y rayas la raíz.','En la vía adhesiva el momento es la fase gel. Si el sistema lo permite, un destello de 1 a 3 segundos por cara lleva el cemento a esa consistencia y el exceso sale de una pieza.'] },
-        { corto:'Revisa el margen con sonda y pasa hilo', hacer:'Revisa el margen con sonda cara por cara y pasa hilo dental por ambos contactos en vaivén, sacándolo hacia vestibular.',
+        { anim:'pmma.hilo', corto:'Revisa el margen con sonda y pasa hilo', hacer:'Revisa el margen con sonda cara por cara y pasa hilo dental por ambos contactos en vaivén, sacándolo hacia vestibular.',
           listo:'Terminaste cuando la sonda recorre todo el margen sin encontrar cemento y el hilo sale limpio.',
           porque:['El cemento que queda bajo la encía no se reabsorbe. Se comporta como un cuerpo extraño y mantiene inflamación mientras dure el provisional. A 24 meses eso no es un detalle estético.','Un estudio endoscópico de 2025 encontró cemento residual en el 80,4 % de los implantes que ya tenían enfermedad periimplantaria: 37 de 46. De esos, 64,9 % con mucositis y 35,1 % con periimplantitis.'],
           sub:[
@@ -158,7 +149,7 @@ export const DATOS = {
               fuentes:[{ grado:'Grado C · transversal, población distinta', cita:'Montevecchi M, Valeriani L, Salvadori MF, Stefanini M, Zucchelli G. Excess cement and peri-implant disease: a cross-sectional clinical endoscopic study. J Periodontol. 2025;96(9):965–973.', url:'https://doi.org/10.1002/jper.24-0510', loc:'Recomienda óxido de zinc por ser más detectable y removible · localizador pendiente' }] },
             { titulo:'dónde se equivoca la gente', parrafos:['Pasar el hilo hacia abajo y tirarlo de vuelta hacia oclusal. Eso vuelve a meter el cemento en el contacto. El hilo se saca tirando hacia vestibular o lingual.','Rascar el exceso endurecido con instrumento. Genera fragmentos que se meten más profundo en el surco en vez de salir.'] }
           ] },
-        { corto:'Sella toda superficie que hayas fresado', hacer:'Repule con fresa de acrílico, discos y pasta, y aplica un recubrimiento de superficie fotopolimerizable sobre la cara vestibular.',
+        { anim:'pmma.sellar', corto:'Sella toda superficie que hayas fresado', hacer:'Repule con fresa de acrílico, discos y pasta, y aplica un recubrimiento de superficie fotopolimerizable sobre la cara vestibular.',
           cond:'→ si la permanencia prevista pasa de 6 meses',
           listo:'Terminaste cuando ninguna zona fresada queda mate y la vestibular está recubierta y polimerizada.',
           porque:['En cuanto ajustas con fresa un contacto, un margen o la oclusión, pierdes el pulido de fábrica en esa zona. Queda una superficie rugosa que retiene placa y pigmento.','A dos años el modo de fallo más probable de esta corona no es la fractura ni el descementado: es el color. El PMMA absorbe agua y se tiñe más que la cerámica.','El recubrimiento de resina fotopolimerizable mejora bastante la estabilidad de color. En laboratorio, con 5000 termociclados y 28 días en café, cola o jugo de uva, los autores estiman color clínicamente aceptable durante unos 7 meses. Por eso se reaplica en cada control.'],
@@ -201,14 +192,13 @@ export const DATOS = {
       ],
       nota:'Borrador v0.2. Rehace la v0.1 con el formato del master prompt y carga como fuentes las referencias que la v0.1 solo nombraba. La revisión Cochrane de liners convierte el paso 04 de «sin evidencia» en un paso con fuente. Se retiró la cifra de 34,69 MPa del paso 05 y el «hasta 40 %» de la barrera de la lámpara, porque no se pudieron verificar en las fuentes. Faltan los localizadores de párrafo. No usar como estándar de atención hasta la revisión del panel.',
       pasos:[
-        { corto:'Marca los contactos antes', marca:'sin evidencia',
+        { anim:'molar.papel', corto:'Marca los contactos antes', marca:'sin evidencia',
           hacer:'Marca los contactos oclusales con papel de articular antes de tocar el diente.',
           listo:'Terminaste cuando tienes registrado en la ficha o en una foto dónde contacta el diente y dónde no.',
           sinEv:'Práctica habitual, sin estudio que la compare con no registrar',
           porque:['Cuando termines vas a tener que decidir qué marca sobra. Si no sabes cómo contactaba antes, no tienes contra qué comparar y terminas desgastando a ojo hasta que el papel deje de marcar.','Ese desgaste a ciegas deja la restauración baja: el diente deja de tocar, el antagonista se extruye con los meses y aparece una interferencia nueva.'],
-          sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Marcar recién al final, con el diente anestesiado y sin referencia previa.','Pedirle al paciente anestesiado que «muerda normal». Con anestesia no muerde normal: la referencia sirve solo si se toma antes.'] }],
-          aportes:[{ av:'MF', quien:'m.fuentes', txt:'Yo tomo una foto con el celular al papel de articular antes de anestesiar. Toma cinco segundos y después tengo con qué comparar.', rol:'Estudiante 5º', cuando:'3 d', likes:'18 les pasó lo mismo' }] },
-        { corto:'Aísla con dique de goma', marca:'en disputa',
+          sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Marcar recién al final, con el diente anestesiado y sin referencia previa.','Pedirle al paciente anestesiado que «muerda normal». Con anestesia no muerde normal: la referencia sirve solo si se toma antes.'] }] },
+        { anim:'molar.dique', corto:'Aísla con dique de goma', marca:'en disputa',
           disputa:'La evidencia que respalda el dique de goma en restauraciones es de certeza baja a muy baja. Pendiente de resolución por el panel de expertos.',
           hacer:'Aísla con dique de goma.',
           listo:'Terminaste cuando el diente está seco, el dique no se mueve al soplar y el clamp no tapa ninguna parte de la cavidad.',
@@ -219,7 +209,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña: sin dique de goma no se puede adherir bien.','Lo que dice la evidencia: la revisión Cochrane de 2021 encontró que el dique mejora la supervivencia de restauraciones de resina en lesiones cervicales a los 6 meses, pero la ventaja no se mantiene a los 12 ni a los 18 meses. En restauraciones atraumáticas proximales en molares temporales hubo menos fracaso a 24 meses (HR 0,80; IC 95 % 0,66–0,97).','Por qué Criterium mantiene el dique: la certeza es baja a muy baja y ninguno de esos estudios es una clase I oclusal. La razón biológica (adhesión sin humedad) y la de seguridad (vía aérea) siguen en pie mientras el panel decide.'] }
           ] },
-        { corto:'Abre y remueve la caries', hacer:'Abre la cavidad y remueve la caries hasta dentina firme en la periferia y en el piso.',
+        { anim:'molar.fresa', corto:'Abre y remueve la caries', hacer:'Abre la cavidad y remueve la caries hasta dentina firme en la periferia y en el piso.',
           listo:'Terminaste cuando el margen de esmalte está sano y sin socavado, y la dentina de las paredes resiste la presión del explorador sin ceder.',
           porque:['El consenso internacional sobre remoción de tejido cariado recomienda, en lesiones poco y moderadamente profundas, remover hasta dentina firme. Es el caso típico de una clase I oclusal.','No se trata de dejar el diente «limpio a ojo»: se quita lo que impide sellar bien y se conserva el resto. Cada milímetro de dentina que sacas de más debilita el diente y acerca la pulpa.'],
           sub:[
@@ -232,7 +222,7 @@ export const DATOS = {
               { q:'¿Ya hay exposición pulpar?', a:'Fuera del alcance. Es otro protocolo.' }
             ] }
           ] },
-        { corto:'No pongas base ni liner', hacer:'No pongas base ni liner.', cond:'→ si la cavidad es poco o moderadamente profunda',
+        { anim:'molar.sinliner', corto:'No pongas base ni liner', hacer:'No pongas base ni liner.', cond:'→ si la cavidad es poco o moderadamente profunda',
           listo:'Terminaste cuando confirmaste que queda dentina entre el piso de la cavidad y la pulpa, y la cavidad está lista para grabar.',
           porque:['Una revisión Cochrane de 2019 reunió los ensayos que comparan liner contra no liner bajo resinas clase I y II. No encontró diferencia en la duración de la restauración a 1 y 2 años, y la evidencia sobre sensibilidad después del tratamiento fue inconsistente.','El adhesivo sella la dentina. Un liner agrega una capa más donde algo puede fallar, sin un beneficio demostrado en una cavidad de rutina.'],
           sub:[
@@ -245,7 +235,7 @@ export const DATOS = {
               { q:'¿Hubo exposición pulpar?', a:'Fuera del alcance de este protocolo.' }
             ] }
           ] },
-        { corto:'Grabado selectivo del esmalte', marca:'en disputa',
+        { anim:'molar.grabado', corto:'Grabado selectivo del esmalte', marca:'en disputa',
           disputa:'No hay acuerdo sobre si grabar el esmalte por separado cuando se usa un adhesivo universal. Pendiente de resolución por el panel.',
           hacer:'Graba solo el esmalte con ácido fosfórico durante 15 a 30 segundos. Lava y seca sin resecar la dentina.',
           cond:'→ grabado selectivo: ácido solo en esmalte, no en dentina',
@@ -257,13 +247,13 @@ export const DATOS = {
             ] },
             { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña en muchas clínicas: con un adhesivo universal en modo autograbante basta y no hay que grabar nada.','Lo que dice el laboratorio: un metaanálisis en red de 2026, con 82 estudios, concluye que la adhesión a dentina depende sobre todo de cómo se aplica el adhesivo y de su composición.','Por qué Criterium no lo convierte en regla: son estudios in vitro. La regla del validador les pone techo de grado C. Una cifra de resistencia en una probeta no es una restauración que duró años en boca.'] }
           ] },
-        { corto:'Adhesivo frotado y curado', marca:'sin evidencia',
+        { anim:'molar.adhesivo', corto:'Adhesivo frotado y curado', marca:'sin evidencia',
           hacer:'Aplica el adhesivo frotando, sopla suave para evaporar el solvente y fotopolimeriza.',
           listo:'Terminaste cuando toda la cavidad se ve con brillo parejo, sin zonas mate ni acumulaciones en los ángulos, y fotopolimerizaste el adhesivo antes de poner resina.',
           sinEv:'Práctica habitual e instrucciones del fabricante del adhesivo; sin un ensayo clínico que la compare en clase I',
           porque:['Frotar ayuda a que el adhesivo penetre la dentina. Si lo dejas quieto, queda una capa que se despega.','El soplado evapora el solvente. Si queda solvente atrapado, el adhesivo no polimeriza bien. Una zona mate significa que ahí faltó adhesivo o sobró soplado.','El adhesivo se fotopolimeriza antes de poner la resina. Si no, la resina lo desplaza al condensarla.'],
           sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Soplar fuerte y de cerca. Corre el adhesivo hacia un lado y deja los ángulos secos y el piso encharcado.','Saltarse la fotopolimerización del adhesivo para ahorrar tiempo.','Dejar el frasco abierto entre pacientes: el solvente se evapora y cambia lo que queda.'] }] },
-        { corto:'Coloca la resina', hacer:'Coloca la resina en capas de hasta 2 mm, o en un solo bloque si usas una resina bulk-fill.',
+        { anim:'molar.incrementos', corto:'Coloca la resina', hacer:'Coloca la resina en capas de hasta 2 mm, o en un solo bloque si usas una resina bulk-fill.',
           listo:'Terminaste cuando la resina reproduce la anatomía oclusal, sin excesos sobre el esmalte sano y sin burbujas en los ángulos.',
           porque:['Las dos técnicas funcionan. Un metaanálisis de 2025, con 9 ensayos clínicos y 632 restauraciones clase I y II, no encontró diferencia en fracaso entre bulk-fill e incremental (RR 0,82; IC 95 % 0,33–2,01). Tampoco en adaptación marginal, cambio de color ni sensibilidad.','Lo que sí importa es respetar el espesor máximo del material. Una resina convencional en un bloque de 4 mm no polimeriza en el fondo.'],
           sub:[
@@ -276,7 +266,7 @@ export const DATOS = {
               { q:'¿La cavidad mide menos de 2 mm de profundidad?', a:'Un solo incremento con cualquiera de las dos.' }
             ] }
           ] },
-        { corto:'Fotopolimeriza bien', hacer:'Fotopolimeriza con la punta lo más cerca posible del material, perpendicular a la superficie, el tiempo que indica el fabricante.',
+        { anim:'molar.luz', corto:'Fotopolimeriza bien', hacer:'Fotopolimeriza con la punta lo más cerca posible del material, perpendicular a la superficie, el tiempo que indica el fabricante.',
           listo:'Terminaste cuando polimerizaste cada capa por separado y la superficie no se raya con el explorador.',
           porque:['La luz pierde intensidad rápido con la distancia y con el ángulo. El consenso internacional sobre fotopolimerización pide la punta lo más cerca posible, perpendicular a la superficie, y protección para los ojos.','Una resina mal polimerizada en el fondo se ve perfecta el día que la pones. El problema aparece meses después, como sensibilidad o caries secundaria.'],
           sub:[
@@ -284,9 +274,8 @@ export const DATOS = {
               { grado:'Grado D · consenso internacional de expertos', cita:'Price RB. Light curing guidelines for practitioners: a consensus statement from the 2014 symposium on light curing in dentistry, Dalhousie University, Halifax, Canada. J Can Dent Assoc. 2014;80:e61.', loc:'Recomendaciones para el operador · PMID 25437940 · sin resumen en PubMed: localizador de párrafo pendiente' }
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Apoyar la punta en una cúspide y polimerizar en ángulo, dejando el fondo en sombra.','Usar tiempos ultracortos de alta potencia sin confirmar que el material los admite.','No medir nunca la salida de la lámpara. Mídela con el radiómetro y con la funda de barrera puesta, porque la funda también le quita luz.'] }
-          ],
-          aportes:[{ av:'RS', quien:'r.sepulveda', marca:'✓', txt:'Lo de la funda plástica de la lámpara es real y casi no se habla.', rol:'Especialista', cuando:'1 d', likes:'51 les pasó lo mismo' }] },
-        { corto:'Ajusta oclusión y pule', hacer:'Retira el aislamiento, ajusta la oclusión contra el registro del paso 01 y pule.',
+          ] },
+        { anim:'molar.pulir', corto:'Ajusta oclusión y pule', hacer:'Retira el aislamiento, ajusta la oclusión contra el registro del paso 01 y pule.',
           listo:'Terminaste cuando el diente contacta como antes, el paciente no siente nada raro al morder y la superficie brilla sin enganchar el explorador en el margen.',
           porque:['El ajuste se hace sin dique: con el dique puesto la mordida no es la real.','Aquí sirve el registro del paso 01. Sin él comparas contra tu memoria, y la memoria de hace 40 minutos con un paciente anestesiado no sirve.','Un metaanálisis de 12 estudios con al menos 5 años de seguimiento encontró que las causas principales de fracaso son la caries secundaria y la fractura. El riesgo sube en pacientes con alto riesgo de caries y con más superficies restauradas. Una clase I tiene una sola superficie: es la de mejor pronóstico.'],
           sub:[
@@ -339,7 +328,7 @@ export const DATOS = {
             ] },
             { titulo:'ojo con esta evidencia', parrafos:['El ensayo de la bacteriemia usó clorhexidina al 0,2 %. Si en tu clínica hay al 0,12 %, el efecto puede ser menor: no está medido.','El dato de la alveolitis es de otro escenario: gel puesto dentro del alveolo después de extraer, y en terceros molares inferiores, donde la alveolitis es mucho más frecuente. No se puede trasladar tal cual a un enjuague antes de extraer un tercer molar superior.'] }
           ] },
-        { corto:'Anestesia vestibular y palatina', hacer:'Infiltra por vestibular y completa con una punción palatina. Empieza con un tubo y ten más a mano.',
+        { anim:'exo.anestesia', corto:'Anestesia vestibular y palatina', hacer:'Infiltra por vestibular y completa con una punción palatina. Empieza con un tubo y ten más a mano.',
           listo:'Terminaste cuando el paciente no siente dolor al presionar el surco vestibular con la sonda y la mucosa palatina vecina se ve isquémica.',
           porque:['El hueso del maxilar posterior es delgado y poroso, así que la anestesia infiltrativa vestibular difunde bien y no hace falta una técnica troncular. La punción palatina cubre la mucosa del paladar, que la vestibular no alcanza.','Cada tubo de lidocaína al 2 % trae 36 mg. La ficha técnica pone el techo en 7 mg por kilo, sin pasar de 500 mg: en un adulto de 60 kg son 420 mg, unos 11 tubos. Cuatro tubos quedan lejos del límite. Quedarse corto por miedo a la dosis es más frecuente que pasarse.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
@@ -350,13 +339,13 @@ export const DATOS = {
           listo:'Terminaste cuando la piel perioral está tratada, el campo cubre y el instrumental está ordenado de izquierda a derecha según su uso.',
           sinEv:'Práctica habitual de asepsia quirúrgica, sin un estudio que la compare en exodoncia simple',
           porque:['El orden del instrumental no es manía: en el tercer molar superior el momento crítico dura segundos y no quieres buscar el fórceps con el elevador dentro de la boca.'] },
-        { corto:'Sindesmotomía completa', marca:'sin evidencia',
+        { anim:'exo.sindesmotomia', corto:'Sindesmotomía completa', marca:'sin evidencia',
           hacer:'Separa la encía del cuello del diente con la sonda o el sindesmótomo, en todo el contorno.',
           listo:'Terminaste cuando el instrumento recorre el perímetro completo sin encontrar resistencia de tejido blando.',
           sinEv:'Práctica habitual, sin estudio que la compare con no hacerla',
           porque:['Separar la encía antes de luxar evita desgarrarla cuando el diente sale. Un desgarro en la zona de la tuberosidad sangra más de lo esperado y tapa la vista del alveolo.','En este diente hay una razón más: si sale arrastrando encía, la sangre tapa la primera señal de una comunicación con el seno.'],
           sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Separar solo por vestibular porque es lo que se ve. Las caras palatina y distal son las que cuesta ver y las que se desgarran.'] }] },
-        { corto:'Luxa sosteniendo la tuberosidad', marca:'paso crítico',
+        { anim:'exo.luxar', corto:'Luxa sosteniendo la tuberosidad', marca:'paso crítico',
           hacer:'Luxa con el elevador mientras sostienes la tuberosidad con los dedos de la otra mano.',
           listo:'Terminaste cuando el diente tiene movilidad clara y los dedos que sostienen la tuberosidad no sienten que el hueso se mueva junto con el diente.',
           porque:['La fractura de la tuberosidad es la complicación propia de este diente, y es más frecuente de lo que se enseña. En un estudio de 403 terceros molares superiores apareció en 18,1 %. El riesgo subió con la edad, un 3,1 % por año, y con las raíces divergentes.','La mano que sostiene es tu alarma. Si sientes que se mueve un bloque y no solo el diente, para. Esa diferencia solo se percibe con los dedos puestos ahí.','Un ensayo clínico con 100 pacientes comparó dos técnicas de extracción de terceros molares superiores: la técnica con apoyo y movimiento controlado tuvo menos fracturas de tuberosidad y de raíz.'],
@@ -370,15 +359,14 @@ export const DATOS = {
               { q:'¿Se mueve un bloque de hueso junto con el diente?', a:'Detente. No sigas luxando ni tomes el fórceps. Avisa al docente antes de cualquier otro movimiento.' },
               { q:'¿El paciente tiene más de 30 años o las raíces son divergentes?', a:'Riesgo mayor: luxa con más paciencia y menos fuerza, y avisa al docente antes de empezar.' }
             ] }
-          ],
-          aportes:[{ av:'RS', quien:'r.sepulveda', marca:'✓', txt:'La mano de apoyo es lo primero que el estudiante saca cuando se pone nervioso.', rol:'Especialista', cuando:'2 d', likes:'47 les pasó lo mismo' }] },
-        { corto:'Prehensión y avulsión', marca:'sin evidencia',
+          ] },
+        { anim:'exo.forceps', corto:'Prehensión y avulsión', marca:'sin evidencia',
           hacer:'Toma el diente con el fórceps y extráelo con un movimiento controlado hacia vestibular y oclusal.',
           listo:'Terminaste cuando el diente salió completo y comparaste sus raíces con la radiografía.',
           sinEv:'Sin estudio sobre la dirección del movimiento: fundamento anatómico y práctica habitual',
           porque:['Comparar el diente con la radiografía es la única forma de saber si quedó un ápice dentro. Hacerlo cuando el paciente ya se fue no sirve.','El movimiento va hacia vestibular porque la tabla vestibular del maxilar posterior es más delgada que la palatina. Forzar hacia palatino es empujar contra el hueso más grueso.'],
           sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Botar el diente sin mirarlo. Si falta un tercio de raíz, quieres saberlo ahora.','Rotar un molar de tres raíces. La rotación sirve en dientes de una sola raíz cónica.'] }] },
-        { corto:'Descarta comunicación al seno', marca:'paso que suele faltar',
+        { anim:'exo.seno', corto:'Descarta comunicación al seno', marca:'paso que suele faltar',
           hacer:'Antes de soltar al paciente, mira el fondo del alveolo con buena luz y descarta una comunicación con el seno maxilar.',
           listo:'Terminaste cuando inspeccionaste el fondo del alveolo y, si hubo sospecha, estimaste el tamaño del defecto y avisaste al docente.',
           porque:['El piso del seno maxilar queda justo sobre las raíces de este diente. Si se abre una comunicación y nadie la ve, el paciente vuelve en unos días con paso de líquido a la nariz y una sinusitis.','La maniobra de Valsalva (soplar con la nariz tapada y mirar si burbujea el alveolo) se usa mucho, pero una prueba negativa no descarta una comunicación pequeña. Por eso manda la inspección con buena luz.','El tamaño decide qué hacer. Una revisión sistemática de 2025 resume que los defectos menores de 5 mm se manejaron de forma conservadora, y los mayores necesitaron cierre quirúrgico.'],
@@ -391,9 +379,8 @@ export const DATOS = {
               { q:'¿Hay una comunicación menor de 5 mm?', a:'Manejo conservador: protege el coágulo, afronta los bordes si hace falta e indica no sonarse ni usar bombilla. Avisa igual al docente y agenda control.' },
               { q:'¿El defecto mide más de 5 mm?', a:'Necesita cierre quirúrgico con colgajo. Fuera del alcance de este protocolo: docente o derivación.' }
             ] }
-          ],
-          aportes:[{ av:'PT', quien:'p.tapia', txt:'Este paso me salvó una vez. El Valsalva salió negativo y al mirar bien había comunicación.', rol:'Cirujano dentista', cuando:'4 d', likes:'39 les pasó lo mismo' }] },
-        { corto:'Alveolo, irrigación y hemostasia', marca:'sin evidencia',
+          ] },
+        { anim:'exo.hemostasia', corto:'Alveolo, irrigación y hemostasia', marca:'sin evidencia',
           hacer:'Revisa el alveolo, irriga suave con suero fisiológico y logra la hemostasia con compresión.',
           listo:'Terminaste cuando no quedan esquirlas ni bordes de hueso filosos al pasar el dedo, y el coágulo se mantiene al retirar la gasa a los 10 minutos.',
           sinEv:'Práctica habitual, sin estudio que la compare en exodoncia simple',
@@ -443,7 +430,7 @@ export const DATOS = {
       ],
       nota:'Borrador v0.1, construido con la secuencia de un protocolo docente de box (material de clase, no publicado) y con evidencia buscada aparte. Dos medidas quedan en disputa porque el material de clase y un apunte de aula no coinciden: la longitud de trabajo (LRD − 1 mm o − 0,5 mm) y la lima de permeabilidad (LT + 1 mm o + 0,5 mm). Las concentraciones de hipoclorito que usa la escuela (2,25 % en necropulpectomía, 2,5 a 5,25 % en biopulpectomía) no tienen respaldo propio: un ensayo clínico no encontró diferencia de resultado entre 1 % y 5 %. Faltan los localizadores de párrafo. No usar en pacientes hasta la revisión del panel.',
       pasos:[
-        { corto:'Diagnóstico pulpar y periapical', hacer:'Haz las pruebas de sensibilidad al frío, primero en dos o tres dientes control y después en el diente en estudio. Completa con percusión, palpación y sondaje.',
+        { anim:'endo.frio', corto:'Diagnóstico pulpar y periapical', hacer:'Haz las pruebas de sensibilidad al frío, primero en dos o tres dientes control y después en el diente en estudio. Completa con percusión, palpación y sondaje.',
           listo:'Terminaste cuando tienes anotado el diagnóstico pulpar y el periapical, y sabes si es una biopulpectomía (pulpa vital) o una necropulpectomía (pulpa necrótica).',
           porque:['El diagnóstico decide todo lo que sigue: la longitud de trabajo, la irrigación y si se medica entre sesiones. Una biopulpectomía y una necropulpectomía se parecen en la técnica, pero no en el objetivo.','Los dientes control sirven para saber cómo responde ese paciente al frío. Así no confundes una respuesta débil normal con una pulpa enferma. Una revisión sistemática de 2022 encontró que la prueba de frío distingue razonablemente bien la pulpa vital de la no vital, aunque el oxímetro de pulso, que mide circulación y no nervio, lo hace mejor.'],
           sub:[
@@ -458,7 +445,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Probar primero el diente sospechoso. El paciente se asusta y después responde mal en los dientes control.','Medir la movilidad con los dedos. Se toma el diente entre los extremos romos de dos instrumentos.'] }
           ] },
-        { corto:'Radiografía y cálculos previos', hacer:'En la radiografía mide la longitud aparente del diente (LAD), marca sus dos tercios y mide la distancia desde tu referencia coronal hasta el techo de la cámara.',
+        { anim:'endo.rx', corto:'Radiografía y cálculos previos', hacer:'En la radiografía mide la longitud aparente del diente (LAD), marca sus dos tercios y mide la distancia desde tu referencia coronal hasta el techo de la cámara.',
           listo:'Terminaste cuando tienes anotados la LAD, los 2/3 de la LAD y la distancia al techo de la cámara, y sabes cuántas raíces ves.',
           porque:['Los 2/3 de la LAD son el tope de las fresas Gates Glidden y de la aguja de irrigación. La distancia al techo de la cámara te avisa si te estás desviando: si ya pasaste esa medida y no llegaste a la cámara, detente y reorienta.','El primer premolar superior casi siempre tiene dos raíces y dos conductos, uno vestibular y uno palatino. Una revisión sistemática de 2025 lo confirma, aunque hay variantes de una raíz y, rara vez, de tres. Si en la radiografía ves algo distinto, no es este protocolo.'],
           sub:[
@@ -466,12 +453,12 @@ export const DATOS = {
               { grado:'Grado B · revisión sistemática de estudios anatómicos', cita:'Wolf TG, Ulugöl DS, Wierichs RJ, Holtkamp AKM, Spagnuolo G, Donnermeyer D, et al. Maxillary first premolars internal morphology: a systematic review and meta-analysis. Dent J (Basel). 2025;13(11):510.', loc:'Predominan dos raíces y configuración 2-2-2/2 (tipo IV); tres raíces entre 0,4 y 6,5 % · DOI 10.3390/dj13110510 · PMID 41294491 · localizador de párrafo pendiente' }
             ] }
           ] },
-        { corto:'Prepara el diente antes de entrar', marca:'sin evidencia',
+        { anim:'endo.preparar', corto:'Prepara el diente antes de entrar', marca:'sin evidencia',
           hacer:'Elimina la caries y las restauraciones defectuosas, y reconstruye las paredes que falten con resina compuesta.',
           listo:'Terminaste cuando el diente tiene cuatro paredes firmes que permiten poner el clamp y mantener sellada la cámara entre sesiones.',
           sinEv:'Práctica habitual, sin un ensayo que compare reconstruir antes con no hacerlo',
           porque:['Sin paredes, el dique filtra y el irrigante y la saliva se mezclan. Y entre sesiones no hay dónde sostener el sellado provisional.','También es el momento de mirar al paciente completo: con gingivitis, periodontitis o muchas caries activas, la carga de bacterias es alta y el pronóstico empeora. Eso se trata antes o en paralelo.'] },
-        { corto:'Anestesia y cavidad de acceso', hacer:'Anestesia. Entra por el tercio del surco hacia la cúspide vestibular con fresa de diamante perpendicular a la superficie y, al llegar a dentina, sigue con carburo de baja velocidad paralelo al eje del diente.',
+        { anim:'endo.acceso', corto:'Anestesia y cavidad de acceso', hacer:'Anestesia. Entra por el tercio del surco hacia la cúspide vestibular con fresa de diamante perpendicular a la superficie y, al llegar a dentina, sigue con carburo de baja velocidad paralelo al eje del diente.',
           listo:'Terminaste cuando la cavidad es ovoide en sentido vestíbulo-palatino, ves las dos entradas de los conductos y los instrumentos entran en línea recta.',
           porque:['El premolar superior es angosto de mesial a distal y ancho de vestibular a palatino. Por eso el acceso es ovoide en ese sentido, y por eso es fácil perforar hacia mesial o distal si pierdes el eje.','Krasner y Rankow describieron, tras estudiar 500 cámaras pulpares, reglas para ubicar la cámara y las entradas de los conductos: la cámara está centrada a la altura del límite amelocementario, sus paredes siguen la forma externa del diente y el piso es más oscuro que las paredes. Te sirven para no perder el eje.','La fresa de punta inactiva desgasta las paredes sin tocar el piso, así no borras las entradas de los conductos.'],
           sub:[
@@ -480,7 +467,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Esperar la «sensación de caída» al llegar a la cámara. Solo aparece en cámaras altas; en las estrechas no la vas a sentir.','Rebajar el piso con una fresa de punta activa y perder las entradas de los conductos.'] }
           ] },
-        { corto:'Aislamiento absoluto', marca:'paso crítico',
+        { anim:'endo.dique', corto:'Aislamiento absoluto', marca:'paso crítico',
           hacer:'Instala el dique de goma y amarra el clamp al arco con hilo dental. Desinfecta el campo. Nunca dejes algodón bajo el dique.',
           listo:'Terminaste cuando el dique sella alrededor del diente, el clamp está amarrado y no hay algodón entre el dique y la encía.',
           porque:['El dique impide que la saliva contamine el conducto y que el paciente trague un instrumento o el irrigante. Las guías de calidad de la Sociedad Europea de Endodoncia lo consideran obligatorio en todo tratamiento de conductos.','Y tiene un efecto que se puede medir: en un estudio con más de 500.000 dientes tratados, los que se trataron con dique tuvieron menos riesgo de terminar extraídos (HR 0,81; IC 95 % 0,79–0,84).','El algodón bajo el dique es peligroso: si el dique filtra, el algodón se empapa en hipoclorito y quema la mucosa. Sin algodón, una filtración solo da mal sabor y el paciente avisa.'],
@@ -491,7 +478,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Dejar una torunda bajo el dique «para que no filtre». Es exactamente lo que convierte una filtración en una quemadura química.','No amarrar el clamp. Si se suelta, el hilo evita que el paciente se lo trague.'] }
           ] },
-        { corto:'Prepara los tercios cervical y medio', hacer:'Explora con una lima #10 hasta los 2/3 de la LAD e irriga. Después ensancha los tercios cervical y medio con fresas Gates Glidden, sin pasar de los 2/3 de la LAD.',
+        { anim:'endo.tercios', corto:'Prepara los tercios cervical y medio', hacer:'Explora con una lima #10 hasta los 2/3 de la LAD e irriga. Después ensancha los tercios cervical y medio con fresas Gates Glidden, sin pasar de los 2/3 de la LAD.',
           cond:'→ secuencia 1-2-1 si el conducto es fino o medio, 3-2-1 si es amplio',
           listo:'Terminaste cuando las Gates entraron hasta los 2/3 de la LAD sin forzarlas, como máximo tres veces cada una, irrigando entre cada cambio.',
           porque:['Los tercios cervical y medio son los que tienen más bacterias. Si los limpias primero, no las arrastras hacia el ápice cuando llegues con las limas.','Además, abrir el tercio cervical antes de medir mejora la medición: en un ensayo en conductos curvos, la lima llegó más cerca de la longitud real cuando se ensanchó primero la parte coronal.','Las Gates no se fuerzan. Forzarlas deja escalones, desgasta de más y debilita la raíz.'],
@@ -502,7 +489,7 @@ export const DATOS = {
             { titulo:'ojo con esta evidencia', parrafos:['El ensayo es en conductos mesiales curvos de molares inferiores, no en premolares superiores. El principio es el mismo, pero el tamaño del efecto en este diente no está medido. Población distinta.'] },
             { titulo:'dónde se equivoca la gente', parrafos:['Meter la Gates sin probar antes, fuera de la boca, que gira centrada. Una Gates doblada gira en hélice y daña la pared.','Seguir empujando cuando la Gates no baja. Si no entra a los 2/3, no se empuja.'] }
           ] },
-        { corto:'Mide la longitud con el localizador', marca:'en disputa',
+        { anim:'endo.localizador', corto:'Mide la longitud con el localizador', marca:'en disputa',
           disputa:'El protocolo docente usa LT = LRD − 1 mm y un apunte de aula usa LRD − 0,5 mm. Pendiente de resolución por el panel.',
           hacer:'Con el conducto húmedo y la cámara seca, lleva una lima K10 o K15 con el localizador hasta «0.0», ajusta el tope y mide. Repite para confirmar. Resta 1 mm y toma la radiografía de conductometría.',
           listo:'Terminaste cuando tienes la longitud real (LRD) y la longitud de trabajo (LT) de cada conducto anotadas por separado, confirmadas con una segunda lectura y con la radiografía.',
@@ -518,7 +505,7 @@ export const DATOS = {
               { q:'¿El localizador no marca o salta de lectura?', a:'Revisa que la cámara esté seca y el conducto húmedo, y que el conducto esté permeable. Si sigue, mide con radiografía.' }
             ] }
           ] },
-        { corto:'Irriga durante toda la preparación', hacer:'Irriga con hipoclorito de sodio durante toda la preparación, con la aguja precurvada y con tope a 2/3 de la LT, sin trabar la aguja ni empujar fuerte. Aspira de forma continua.',
+        { anim:'endo.irrigar', corto:'Irriga durante toda la preparación', hacer:'Irriga con hipoclorito de sodio durante toda la preparación, con la aguja precurvada y con tope a 2/3 de la LT, sin trabar la aguja ni empujar fuerte. Aspira de forma continua.',
           cond:'→ concentración según el protocolo de tu clínica: la evidencia no muestra diferencia entre 1 % y 5 %',
           listo:'Terminaste cuando irrigaste entre cada lima, la aguja nunca quedó trabada en el conducto y el irrigante siempre volvió hacia la cámara.',
           porque:['El hipoclorito disuelve tejido y mata bacterias. Las limas solas no llegan a todas las paredes: el irrigante limpia donde la lima no toca.','La concentración pesa menos de lo que se cree. En un ensayo con 100 molares con necrosis y lesión apical, irrigar al 5 % o al 1 % dio la misma cicatrización (81,4 % contra 72,1 %, sin diferencia significativa).','Lo que no se discute es la seguridad: el irrigante entra y sale del conducto, nunca se inyecta hacia el periápice. Por eso la aguja va con tope y nunca trabada.'],
@@ -528,7 +515,7 @@ export const DATOS = {
             ] },
             { titulo:'ojo con esta evidencia', parrafos:['El ensayo es en molares inferiores con necrosis, no en premolares superiores ni en biopulpectomía. Población distinta: sugiere que la concentración no es decisiva, pero no reemplaza la indicación de tu docente.'] }
           ] },
-        { corto:'Instrumenta el tercio apical', hacer:'Define la lima inicial (la primera que llega a la LT con leve retención). Amplía 4 o 5 limas sobre ella, con entrada pasiva y salida activa, hasta una lima maestra de al menos #30. Pasa una lima fina de permeabilidad entre cada lima.',
+        { anim:'endo.apical', corto:'Instrumenta el tercio apical', hacer:'Define la lima inicial (la primera que llega a la LT con leve retención). Amplía 4 o 5 limas sobre ella, con entrada pasiva y salida activa, hasta una lima maestra de al menos #30. Pasa una lima fina de permeabilidad entre cada lima.',
           listo:'Terminaste cuando tienes anotadas la lima inicial y la lima maestra de cada conducto, la LT se mantiene y la lima de permeabilidad pasa sin resistencia.',
           porque:['Entrar cortando empuja limalla hacia el ápice y forma un tapón que bloquea el conducto. Por eso la lima entra pasiva y corta al salir.','La lima de permeabilidad es una lima fina que pasa apenas más allá de la LT, sin cortar, solo para mantener limpio el final del conducto. Un metaanálisis de 2024 encontró menos dolor después del tratamiento cuando se mantiene la permeabilidad (OR 0,59 para dolor a las 24 horas).'],
           sub:[
@@ -538,13 +525,13 @@ export const DATOS = {
             { titulo:'dónde no hay acuerdo', parrafos:['Hasta dónde pasa la lima de permeabilidad: el protocolo docente la lleva a LT + 1 mm y un apunte de aula a LT + 0,5 mm.','La evidencia apoya mantener la permeabilidad, pero no fija la distancia. Pregunta a tu docente cuál usa antes de la sesión.'] },
             { titulo:'dónde se equivoca la gente', parrafos:['Precurvar limas de calibre mayor que 25. Sobre ese calibre ya no se precurvan.','Usar la lima de permeabilidad para cortar. Solo limpia; si corta, agranda el foramen.'] }
           ] },
-        { corto:'Escalona con recapitulación (step-back)', hacer:'Lleva la lima siguiente a LT − 1 mm, después a − 2 mm y a − 3 mm, y sigue hasta empalmar con el tercio medio. Entre cada lima: irriga, recapitula con la lima maestra a LT, irriga, pasa la lima de permeabilidad e irriga.',
+        { anim:'endo.stepback', corto:'Escalona con recapitulación (step-back)', hacer:'Lleva la lima siguiente a LT − 1 mm, después a − 2 mm y a − 3 mm, y sigue hasta empalmar con el tercio medio. Entre cada lima: irriga, recapitula con la lima maestra a LT, irriga, pasa la lima de permeabilidad e irriga.',
           cond:'→ completo en el conducto vestibular y después, desde el principio, en el palatino',
           listo:'Terminaste cuando el escalonado llegó al menos a una lima #50 a la altura de los 2/3 de la LAD y la lima maestra sigue llegando a LT.',
           sinEv:'Técnica docente de instrumentación manual; no encontramos un ensayo que compare la recapitulación con no hacerla',
           porque:['Cada lima que escalona deja limalla en apical. Volver con la lima maestra a LT la saca antes de que se compacte. Si te saltas la recapitulación formas un tapón y pierdes la longitud de trabajo.','Se llega al menos a #50 porque ese es el diámetro de la primera Gates. Así el step-back empalma con lo que ya preparaste arriba y la conicidad queda continua, sin escalón.'],
           sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Saltarse la recapitulación «porque la lima maestra ya llegó». Es justo cuando se forma el tapón.','Quedarse corto con el escalonado y dejar un escalón entre el tercio apical y el medio.'] }] },
-        { corto:'Irrigación final', hacer:'Irriga en este orden: hipoclorito, suero fisiológico, EDTA al 17 % durante 1 minuto y suero fisiológico. Si usas clorhexidina, va al final, después del suero.',
+        { anim:'endo.irrigacionfinal', corto:'Irrigación final', hacer:'Irriga en este orden: hipoclorito, suero fisiológico, EDTA al 17 % durante 1 minuto y suero fisiológico. Si usas clorhexidina, va al final, después del suero.',
           listo:'Terminaste cuando hiciste la secuencia completa en cada conducto, sin hipoclorito directo después del EDTA, y secaste con conos de papel.',
           porque:['El EDTA retira la capa de barro dentinario que dejan las limas. Pero el hipoclorito justo después del EDTA erosiona la dentina: en laboratorio, esa secuencia agrandó la entrada de los túbulos en más de 100 %. Por eso va suero entre medio.','Nunca mezcles hipoclorito con clorhexidina. Forman un precipitado café que contiene paracloroanilina. Si vas a usar clorhexidina, lava antes el hipoclorito con suero.'],
           sub:[
@@ -554,7 +541,7 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Saltarse el suero entre el EDTA y el hipoclorito porque «es solo agua».','Pasar de hipoclorito a clorhexidina directo y ver aparecer el precipitado café dentro del conducto.'] }
           ] },
-        { corto:'Medica si no terminas hoy', hacer:'Si el tratamiento sigue en otra sesión, lleva hidróxido de calcio hasta LT − 1 o − 2 mm, girando la lima en sentido antihorario o con jeringa. Sella con torunda estéril, 2 mm de obturación provisional e ionómero encima.',
+        { anim:'endo.medicacion', corto:'Medica si no terminas hoy', hacer:'Si el tratamiento sigue en otra sesión, lleva hidróxido de calcio hasta LT − 1 o − 2 mm, girando la lima en sentido antihorario o con jeringa. Sella con torunda estéril, 2 mm de obturación provisional e ionómero encima.',
           cond:'→ solo si el tratamiento no se completa en una sesión',
           listo:'Terminaste cuando el conducto está lleno de hidróxido de calcio, el sellado provisional es doble y el paciente sabe que debe avisar si se le cae.',
           porque:['Entre sesiones el conducto no puede quedar vacío ni abierto. Un metaanálisis de 2022 encontró que el hidróxido de calcio reduce el dolor a las 24 horas comparado con no medicar.','Hacerlo en una o en dos sesiones da resultados parecidos: una revisión Cochrane de 2022 no encontró que una forma sea más eficaz que la otra. Lo que sí cambia es el dolor de la primera semana, algo más frecuente en una sola sesión.','El giro antihorario deposita la pasta. En horario, la lima la arrastra hacia afuera.'],
@@ -569,7 +556,7 @@ export const DATOS = {
               { q:'¿Terminas en esta sesión?', a:'No medicas. Pasa a la conometría.' }
             ] }
           ] },
-        { corto:'Conometría y obturación', hacer:'Elige un cono maestro que llegue a la LT con retención en los últimos 2 a 3 mm y confírmalo con radiografía. Cementa con sellador, compacta lateralmente con al menos tres conos accesorios y toma la radiografía de control.',
+        { anim:'endo.obturar', corto:'Conometría y obturación', hacer:'Elige un cono maestro que llegue a la LT con retención en los últimos 2 a 3 mm y confírmalo con radiografía. Cementa con sellador, compacta lateralmente con al menos tres conos accesorios y toma la radiografía de control.',
           listo:'Terminaste cuando la radiografía muestra el conducto lleno hasta la LT, sin espacios vacíos y sin material pasado del ápice.',
           porque:['Una revisión de los factores del resultado encontró que la obturación sin vacíos y dentro de los 2 mm del ápice se asocia a mejor cicatrización.','La técnica de condensación lateral en frío sigue siendo válida: en un metaanálisis de 2026 tuvo más éxito que el cono único en el corto plazo, y después de 3 años no hubo diferencia entre las técnicas.','Pasar gutapercha más allá del ápice provoca una reacción a cuerpo extraño. Si la radiografía muestra vacíos, sigue compactando.'],
           sub:[
@@ -578,7 +565,7 @@ export const DATOS = {
               { grado:'Grado B · metaanálisis de estudios clínicos', cita:'Mushtaq A, Alsanafi S, Elmsmari F, González JA, Garcia-Font M, Abella Sans F, et al. Effect of root canal filling techniques and materials on endodontic treatment outcomes: a systematic review and meta-analysis. Sci Rep. 2026;16(1).', loc:'Condensación lateral en frío: 5 % más de éxito que cono único a corto plazo; sin diferencias después de 3 años · DOI 10.1038/s41598-026-37936-7 · PMID 41872366 · localizador de párrafo pendiente' }
             ] }
           ] },
-        { corto:'Sella la corona y rehabilita pronto', marca:'paso que suele faltar',
+        { anim:'endo.sellar', corto:'Sella la corona y rehabilita pronto', marca:'paso que suele faltar',
           hacer:'Corta la gutapercha 1 mm bajo el cuello, limpia la cámara con alcohol y haz el doble sellado coronario. Ajusta la oclusión, da las indicaciones y deja agendada la rehabilitación definitiva.',
           listo:'Terminaste cuando el sellado coronario está completo, la oclusión ajustada y la cita de rehabilitación quedó agendada en ese momento.',
           porque:['Una endodoncia bien hecha fracasa igual si la corona filtra. Un metaanálisis encontró que la probabilidad de que sane la lesión apical sube tanto con una buena endodoncia como con una buena restauración coronaria, y que una buena endodoncia con mala restauración no rinde más que lo contrario.','Por eso la cita de rehabilitación se agenda ahí mismo y no se deja en manos del paciente.'],
@@ -615,7 +602,7 @@ export const DATOS = {
       ],
       nota:'Borrador v0.1, construido solo con literatura. La guía conjunta de las asociaciones dental y de odontopediatría de Estados Unidos no recomienda un material sobre otro por falta de evidencia, así que la elección entre resina e ionómero queda como árbol de decisión. Faltan los localizadores de párrafo. No usar en pacientes hasta la revisión del panel.',
       pasos:[
-        { corto:'Decide si el diente se sella', hacer:'Revisa la superficie oclusal limpia y seca, y decide si está sana o tiene una lesión no cavitada que se pueda sellar.',
+        { anim:'fisura.revisar', corto:'Decide si el diente se sella', hacer:'Revisa la superficie oclusal limpia y seca, y decide si está sana o tiene una lesión no cavitada que se pueda sellar.',
           listo:'Terminaste cuando anotaste en la ficha qué molares se sellan y por qué, y descartaste cavidades que necesitan restauración.',
           porque:['El sellante es una barrera que tapa las fisuras donde se acumula la placa. Una revisión Cochrane encontró que los sellantes de resina reducen la caries entre 11 y 51 % a los 24 meses, comparados con no sellar.','La guía de práctica clínica de las asociaciones dental y de odontopediatría de Estados Unidos agrega que el sellante también puede frenar una lesión no cavitada. Pero si ya hay cavidad, no es un sellante: es una restauración.'],
           sub:[
@@ -645,19 +632,19 @@ export const DATOS = {
             ] },
             { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña en muchas clínicas: la resina es el sellante «de verdad» y el ionómero es de segunda.','Lo que dice la evidencia: el ionómero previene caries igual, aunque se cae más. La guía de 2016 no pudo recomendar un material sobre otro.','Mientras el panel resuelve, Criterium decide por la humedad del campo.'] }
           ] },
-        { corto:'Limpia la superficie', hacer:'Limpia la cara oclusal con cepillo dental seco o con agua y aire de la jeringa triple.',
+        { anim:'fisura.limpiar', corto:'Limpia la superficie', hacer:'Limpia la cara oclusal con cepillo dental seco o con agua y aire de la jeringa triple.',
           listo:'Terminaste cuando no se ve placa ni restos en las fisuras al secar con aire.',
           porque:['No hace falta profilaxis con pasta y contraángulo. Una revisión encontró que la retención del sellante después de limpiar con cepillo es al menos igual a la de limpiar con profilaxis.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
             { grado:'Grado B · revisión de ensayos clínicos', cita:'Kolavic Gray S, Griffin SO, Malvitz DM, Gooch BF. A comparison of the effects of toothbrushing and handpiece prophylaxis on retention of sealants. J Am Dent Assoc. 2009;140(1):38-46.', loc:'Dos ensayos: sin diferencia en retención completa · retención con cepillo igual o mayor · DOI 10.14219/jada.archive.2009.0016 · PMID 19119165 · localizador de párrafo pendiente' }
           ] }] },
-        { corto:'Aísla el diente', hacer:'Aísla con dique de goma si se puede. Si no, usa rollos de algodón y aspiración, con un ayudante.',
+        { anim:'fisura.aislar', corto:'Aísla el diente', hacer:'Aísla con dique de goma si se puede. Si no, usa rollos de algodón y aspiración, con un ayudante.',
           listo:'Terminaste cuando el diente está seco y lo puedes mantener seco el tiempo que dura la aplicación.',
           porque:['La saliva es la principal enemiga del sellante de resina. Un metaanálisis de 2025 encontró más retención a los 12 meses con dique de goma que con rollos de algodón, aunque a los 6 meses no había diferencia.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
             { grado:'Grado B · metaanálisis de ensayos clínicos', cita:'Shukla N, Akram Z, Kumar PGN, Khairnar MR, Jadhav SK, Priyadarsini S. Comparative evaluation of pit and fissure sealant retention using cotton roll and rubber dam isolation techniques: a systematic review and meta-analysis. Evid Based Dent. 2025;26(2):112.', loc:'Sin diferencia a 6 meses (OR 1,15) · más retención con dique a 12 meses · DOI 10.1038/s41432-024-01092-6 · PMID 39622909 · localizador de párrafo pendiente' }
           ] }] },
-        { corto:'Rama resina: graba el esmalte', hacer:'Graba las fisuras con ácido fosfórico al 37 % por el tiempo que indica el fabricante, lava bien y seca.',
+        { anim:'fisura.grabar', corto:'Rama resina: graba el esmalte', hacer:'Graba las fisuras con ácido fosfórico al 37 % por el tiempo que indica el fabricante, lava bien y seca.',
           cond:'→ rama resina',
           listo:'Terminaste cuando el esmalte grabado se ve blanco tiza y opaco, y nada de saliva lo tocó.',
           porque:['El ácido deja en el esmalte microporos donde se traba el sellante al endurecer.','Si la saliva toca el esmalte grabado, tapa esos poros. En laboratorio, la contaminación con saliva bajó claramente la unión y aumentó la filtración, y volver a grabar recuperó la unión. Si se contamina, se vuelve a grabar: no se sigue.'],
@@ -670,7 +657,7 @@ export const DATOS = {
               { q:'¿El esmalte no se ve blanco tiza después de secar?', a:'Graba de nuevo el sector que no cambió de color.' }
             ] }
           ] },
-        { corto:'Rama resina: adhesivo y sellante', hacer:'Aplica una capa fina de adhesivo de grabado y lavado, fotopolimeriza y después aplica el sellante en las fisuras, sin burbujas, y fotopolimeriza.',
+        { anim:'fisura.sellante', corto:'Rama resina: adhesivo y sellante', hacer:'Aplica una capa fina de adhesivo de grabado y lavado, fotopolimeriza y después aplica el sellante en las fisuras, sin burbujas, y fotopolimeriza.',
           cond:'→ rama resina',
           listo:'Terminaste cuando el sellante cubre todas las fisuras, está duro y no se levanta al pasarle la sonda por el borde.',
           porque:['Un metaanálisis encontró que poner adhesivo bajo el sellante aumenta su retención (OR 3,29), y que los adhesivos de grabado y lavado rinden mucho mejor que los autograbantes en este uso.','El sellante va solo en las fisuras, en capa fina. El exceso sobre las vertientes de las cúspides queda alto y se fractura.'],
@@ -680,13 +667,13 @@ export const DATOS = {
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Dejar burbujas en el fondo de la fisura. Se pasan con el aplicador antes de polimerizar.','Pasarse a las vertientes. El sellante alto se cae primero.'] }
           ] },
-        { corto:'Rama ionómero: aplica y protege', marca:'sin evidencia',
+        { anim:'fisura.ionomero', corto:'Rama ionómero: aplica y protege', marca:'sin evidencia',
           hacer:'Acondiciona la superficie según el fabricante, aplica el ionómero en las fisuras presionando con el dedo enguantado y protégelo con vaselina o barniz.',
           cond:'→ rama ionómero',
           listo:'Terminaste cuando el ionómero cubre las fisuras, fraguó y quedó protegido de la saliva durante el fraguado.',
           sinEv:'Técnica según las instrucciones del fabricante; no encontramos un ensayo que compare las formas de aplicarlo',
           porque:['El ionómero libera flúor y tolera algo de humedad, pero mientras fragua es sensible al agua: si la saliva lo moja, queda débil y se desgasta antes.','Aunque se caiga antes que la resina, el ionómero sigue protegiendo: el metaanálisis del paso 02 no encontró más caries con ionómero que con resina.'] },
-        { corto:'Revisa oclusión y agenda control', hacer:'Retira el aislamiento, revisa la oclusión con papel de articular, quita los excesos y agenda el control.',
+        { anim:'fisura.oclusion', corto:'Revisa oclusión y agenda control', hacer:'Retira el aislamiento, revisa la oclusión con papel de articular, quita los excesos y agenda el control.',
           listo:'Terminaste cuando no hay contactos altos sobre el sellante y la fecha del control quedó en la ficha.',
           porque:['Un sellante que se cae deja de proteger la fisura. La revisión Cochrane mostró que el efecto de los sellantes de resina todavía se ve a los 48 a 54 meses (OR 0,21).','El control sirve para encontrar a tiempo un sellante parcial y repararlo, antes de que la fisura vuelva a quedar expuesta.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
@@ -723,7 +710,7 @@ export const DATOS = {
           sub:[{ titulo:'ver fuentes', fuentes:[
             { grado:'Grado D · consenso de clasificación', cita:'Tonetti MS, Greenwell H, Kornman KS. Staging and grading of periodontitis: framework and proposal of a new classification and case definition. J Clin Periodontol. 2018;45 Suppl 20:S149-S161.', loc:'Estadios I a IV y grados A a C · DOI 10.1111/jcpe.12945 · PMID 29926495 · localizador de párrafo pendiente' }
           ] }] },
-        { corto:'Primero, control de placa', hacer:'Muestra la placa con revelador, enseña la técnica de cepillado y de limpieza interdental, y revisa los factores de riesgo (tabaco, diabetes).',
+        { anim:'perio.placa', corto:'Primero, control de placa', hacer:'Muestra la placa con revelador, enseña la técnica de cepillado y de limpieza interdental, y revisa los factores de riesgo (tabaco, diabetes).',
           listo:'Terminaste cuando el paciente vio su placa teñida, practicó la técnica frente a ti y quedó anotado su índice de placa.',
           porque:['La guía europea S3 ordena el tratamiento en pasos. El primero es siempre el control de la placa supragingival y de los factores de riesgo. La instrumentación viene después y no reemplaza ese paso.','Si el paciente no controla su placa, los sacos que instrumentas hoy se vuelven a llenar.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
@@ -737,13 +724,13 @@ export const DATOS = {
               { grado:'Grado B · revisión Cochrane, certeza baja a muy baja', cita:'Kumbargere Nagraj S, Eachempati P, Paisi M, Nasser M, Sivaramakrishnan G, Francis T, et al. Preprocedural mouth rinses for preventing transmission of infectious diseases through aerosols in dental healthcare providers. Cochrane Database Syst Rev. 2022;8(8):CD013826.', loc:'La clorhexidina puede reducir las unidades formadoras de colonias en el aerosol · sin datos sobre infecciones · DOI 10.1002/14651858.CD013826.pub2 · PMID 35994295 · localizador de párrafo pendiente' }
             ] }
           ] },
-        { corto:'Anestesia si la necesitas', marca:'sin evidencia',
+        { anim:'perio.anestesia', corto:'Anestesia si la necesitas', marca:'sin evidencia',
           hacer:'Anestesia el cuadrante si los sacos son profundos o el paciente siente dolor al sondaje.',
           cond:'→ sacos de 5 mm o más, o paciente sensible',
           listo:'Terminaste cuando el paciente no siente dolor al pasar la sonda en los sacos que vas a instrumentar.',
           sinEv:'Práctica habitual; no encontramos un ensayo que compare con y sin anestesia en raspado',
           porque:['Con dolor, el paciente se mueve y tú instrumentas con miedo. El alisado incompleto deja cálculo, y el cálculo que queda mantiene la inflamación.'] },
-        { corto:'Instrumenta supra y subgingival', hacer:'Retira el cálculo supragingival y después instrumenta cada saco subgingival con ultrasonido, curetas Gracey o ambos, hasta dejar la raíz lisa.',
+        { anim:'perio.raspar', corto:'Instrumenta supra y subgingival', hacer:'Retira el cálculo supragingival y después instrumenta cada saco subgingival con ultrasonido, curetas Gracey o ambos, hasta dejar la raíz lisa.',
           listo:'Terminaste cuando la sonda de exploración recorre la raíz de cada saco sin encontrar cálculo ni rugosidades.',
           porque:['Una revisión sistemática para la guía europea encontró que la instrumentación subgingival reduce en promedio 1,4 mm la profundidad de los sacos y cierra el 74 % de ellos a los 6–8 meses.','La misma revisión no encontró diferencias importantes entre instrumentos manuales y ultrasónicos. Usa los que domines, pero termina siempre explorando la raíz.'],
           sub:[
@@ -765,7 +752,7 @@ export const DATOS = {
               { q:'¿El paciente viene de lejos o le cuesta volver?', a:'Boca completa en 24 horas: da resultados parecidos. Coordínalo con el docente.' }
             ] }
           ] },
-        { corto:'Irriga e indica', marca:'sin evidencia', hacer:'Irriga los sacos con suero, revisa que no quede cálculo visible y explica qué sentirá en los próximos días.',
+        { anim:'perio.irrigar', corto:'Irriga e indica', marca:'sin evidencia', hacer:'Irriga los sacos con suero, revisa que no quede cálculo visible y explica qué sentirá en los próximos días.',
           listo:'Terminaste cuando el paciente sabe que puede tener sensibilidad y algo de sangrado, y cómo seguir limpiando la zona.',
           sinEv:'Práctica habitual; no encontramos un ensayo sobre estas indicaciones',
           porque:['Después del raspado la encía se desinflama y se retrae un poco. Eso puede dejar la raíz sensible al frío. Si el paciente lo sabe, no deja de limpiar por miedo.'] },

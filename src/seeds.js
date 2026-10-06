@@ -113,22 +113,3 @@ export function casosIniciales() {
     }
   ];
 }
-
-export function feedInicial() {
-  return [
-    { id: 'f1', ejemplo: true, autor: { nombre: 'j.bravo', rol: 'Estudiante 5º' }, protocoloId: 'exodoncia-18', fecha: new Date(Date.now() - 2 * 3600000).toISOString(),
-      txt: '¿Cómo saben de verdad si se abrió comunicación cuando el alveolo está lleno de sangre? Aspirar para mirar mejor me da miedo de que sea peor.',
-      likes: 7, liked: false, respuestas: [] },
-    { id: 'f2', ejemplo: true, autor: { nombre: 'r.sepulveda', rol: 'Especialista · Rehabilitación oral', verificado: true }, protocoloId: 'resina-clase-i', fecha: new Date(Date.now() - 5 * 3600000).toISOString(),
-      txt: 'Sobre el pulido: es correcto que un fresado CAD/CAM ya viene bajo el umbral, pero ojo con extrapolarlo a una resina que ustedes acaban de modelar a mano. Ahí sí hay que pulir todo.',
-      likes: 31, liked: false, respuestas: [] },
-    { id: 'f3', ejemplo: true, autor: { nombre: 'm.fuentes', rol: 'Estudiante 5º' }, protocoloId: 'cementado-pmma', fecha: iso(1),
-      txt: 'Si en mi clínica solo hay cemento con eugenol y la definitiva va adherida, ¿qué hago? ¿Pido que compren o uso el que hay?',
-      likes: 19, liked: false,
-      respuestas: [{ id: 'r1', autor: { nombre: 'p.tapia', rol: 'Cirujano dentista', verificado: true }, fecha: iso(1, 14),
-        txt: 'Usa el que hay y limpia bien la preparación antes del cementado definitivo. El metaanálisis de 2023 apunta justo a eso. Pero deja registrado en la ficha qué cemento usaste.' }] },
-    { id: 'f4', ejemplo: true, autor: { nombre: 'c.aguilera', rol: 'Estudiante 5º' }, protocoloId: 'resina-clase-i', fecha: iso(2),
-      txt: '¿Alguien mide la lámpara de su box con radiómetro? En la mía nadie sabe dónde está.',
-      likes: 28, liked: false, respuestas: [] }
-  ];
-}

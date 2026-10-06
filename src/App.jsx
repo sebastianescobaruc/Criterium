@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { PROTOS } from './data.js';
 import { ESTADOS, chequeoCaso, leer, escribir, uid } from './logic.js';
-import { casosIniciales, feedInicial } from './seeds.js';
+import { casosIniciales } from './seeds.js';
 import { Ctx } from './ctx.js';
 import { Ic, Avatar, Lightbox, Logo, useToasts, cx } from './ui.jsx';
 import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
@@ -266,9 +266,11 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   }, [myUid]);
 
   /* ── Mensajes (sync) ── */
+  // El mensaje va a Firestore (mensajes/); si falla, el error llega al formulario para avisar
   const guardarMensaje = useCallback(async (msg) => {
+    if (!myUid) throw new Error('sin sesión');
+    await enviarMensajeFS(myUid, msg);
     setMensajes((l) => [...l, msg]);
-    if (myUid) await enviarMensajeFS(myUid, msg);
   }, [myUid]);
 
   /* ── Cerrar sesión ── */

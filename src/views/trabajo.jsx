@@ -6,6 +6,7 @@ import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, inputCls, cx } from '../ui.
 // Master prompt de protocolos: el asistente lo usa como razonamiento para buscar evidencia y armar borradores.
 // Se lee del mismo archivo de docs/, así una edición ahí cambia lo que hace la app.
 import MASTER_MD from '../../docs/MASTER_PROMPT_PROTOCOLOS.md?raw';
+import { DesdeCaso } from './desdecaso.jsx';
 const MASTER = MASTER_MD.split(/\n---\n/).slice(1).join('\n---\n').trim() || MASTER_MD;
 
 /* ═════════ ASISTENTE ═════════ */
@@ -63,7 +64,7 @@ export function Asistente() {
       '- En vez de los dos bloques de código y la tabla, devuelve un solo JSON con la forma de abajo. "proto" es la entrada de PROTOS y "datos" el objeto de DATOS, con los mismos campos del formato de salida.', '',
       'MATERIAL:', m, '',
       'Devuelve solo JSON con esta forma exacta:',
-      '{"id": "id-con-guiones", "proto": {"esp": "", "t": "", "s": "", "extraTxt": "", "k": ""}, "datos": {"esp": "", "titulo": "", "bandera": "", "tags": [""], "alcance": "", "bandeja": [{"fase": "", "items": [""]}], "evidencia": [{"n": "01", "grado": "", "txt": ""}], "nota": "", "pasos": [{"corto": "", "hacer": "", "cond": "", "listo": "Terminaste cuando ...", "porque": [""], "marca": "", "disputa": "", "sinEv": "", "sub": [{"titulo": "ver fuentes", "fuentes": [{"grado": "", "cita": "", "loc": ""}]}], "aportes": []}]}, "reporte": {"fuentes": [{"paso": "01", "cita": "", "dato": "", "grado": ""}], "sinFuente": [{"paso": "02", "motivo": ""}], "busquedas": [{"paso": "02", "consulta": ""}], "conflictos": [""], "pendientes": [""]}}'
+      '{"id": "id-con-guiones", "proto": {"esp": "", "t": "", "s": "", "extraTxt": "", "k": ""}, "datos": {"esp": "", "titulo": "", "bandera": "", "tags": [""], "alcance": "", "bandeja": [{"fase": "", "items": [""]}], "evidencia": [{"n": "01", "grado": "", "txt": ""}], "nota": "", "pasos": [{"corto": "", "hacer": "", "cond": "", "listo": "Terminaste cuando ...", "porque": [""], "marca": "", "disputa": "", "sinEv": "", "sub": [{"titulo": "ver fuentes", "fuentes": [{"grado": "", "cita": "", "loc": ""}]}]}]}, "reporte": {"fuentes": [{"paso": "01", "cita": "", "dato": "", "grado": ""}], "sinFuente": [{"paso": "02", "motivo": ""}], "busquedas": [{"paso": "02", "consulta": ""}], "conflictos": [""], "pendientes": [""]}}'
     ].join('\n'), setBor);
   };
   const segunda = () => {
@@ -107,9 +108,11 @@ export function Asistente() {
   return (
     <div className="mx-auto flex max-w-[980px] flex-col gap-5">
       <PageHead eyebrow="Criterium · asistente" titulo="Trabaja sobre la biblioteca">
-        Tres cosas: resolver una duda con lo que ya está escrito, convertir material de clase en un borrador con el formato de Criterium, y pasar un protocolo por el validador. El asistente no sale de la biblioteca: si algo no está, lo dice.
+        Cuatro cosas: resolver una duda con lo que ya está escrito, armar el protocolo completo desde un caso clínico, convertir material de clase en un borrador con el formato de Criterium, y pasar un protocolo por el validador. El asistente no sale de la biblioteca: si algo no está, lo dice.
       </PageHead>
-      <Seg valor={tab} onChange={(v) => { setTab(v); setError(''); }} opciones={[{ v: 'preguntar', t: 'Preguntar' }, { v: 'borrador', t: 'Borrador de protocolo' }, { v: 'validador', t: 'Validador' }]} />
+      <Seg valor={tab} onChange={(v) => { setTab(v); setError(''); }} opciones={[{ v: 'preguntar', t: 'Preguntar' }, { v: 'caso', t: 'Desde un caso' }, { v: 'borrador', t: 'Borrador de protocolo' }, { v: 'validador', t: 'Validador' }]} />
+
+      {tab === 'caso' && <DesdeCaso iaOff={iaOff} setIaOff={setIaOff} />}
       {error && <Aviso tono="warn">{error}</Aviso>}
 
       {tab === 'preguntar' && (

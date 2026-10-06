@@ -33,7 +33,7 @@ const critico = (s) => /crítico|suele faltar/i.test(s.marca || '');
 function html(id, d, qr, enlace) {
   const p = PROTOS.find((x) => x.id === id) || {};
   const version = (d.tags || []).find((t) => /^v\d/.test(t)) || '';
-  const campos = CAMPOS[id] || ['Pieza'];
+  const campos = d.campos || CAMPOS[id] || ['Pieza']; // los borradores nuevos traen sus campos en data.js
   const noSaltar = d.pasos.map((s, i) => ({ s, i })).filter(({ s }) => critico(s));
   const disputa = d.pasos.map((s, i) => ({ s, i })).filter(({ s }) => s.marca === 'en disputa');
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(d.titulo)}</title><style>

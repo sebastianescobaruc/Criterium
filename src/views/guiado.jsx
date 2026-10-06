@@ -4,8 +4,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
 import { Ic, Btn, Aviso, Seg, cx } from '../ui.jsx';
 import { Paso, Flecha } from './protocolos.jsx';
+import { PantallaLibre, Orbe } from './libre.jsx';
 import { TEXTO_BANDEJA, TEXTO_PRUEBA, textoPaso, textoPorque, textoCierre } from '../lectura.js';
-import { useVoz, vozDisponible, lecturaDisponible, useHablando, hablar, callar, useVoces, vozElegida, elegirVoz, velocidad, elegirVelocidad, VELOCIDADES } from '../voz.js';
+import { useVoz, estadoMicrofono, pedirMicrofono, desbloquearAudio, vozDisponible, lecturaDisponible, useHablando, hablar, callar, useVoces, vozElegida, elegirVoz, velocidad, elegirVelocidad, VELOCIDADES } from '../voz.js';
 
 
 const reducido = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
@@ -112,14 +113,61 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   // y la pantalla no se apaga. En iPhone no hay pantalla completa real: queda la capa fija que tapa todo.
   const bloqueo = useRef(null);
   const pedirBloqueo = async () => { try { if (navigator.wakeLock) bloqueo.current = await navigator.wakeLock.request('screen'); } catch (e) {} };
-  const entrarLibre = () => {
-    setLibre(true);
-    if (!leer) encenderVoz(); // dentro del toque: así el navegador deja sonar el audio y abrir el micrófono
-    try { const el = document.documentElement; const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { const r = f.call(el); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
+  // Orden al entrar: primero el permiso del micrófono, después la pantalla completa y recién ahí la voz.
+  // Si se pide la pantalla completa a la vez que el permiso, el aviso del navegador queda escondido detrás.
+  // prep: null | 'permiso' (esperando el aviso) | 'tocar' (falta un toque para la pantalla completa) | 'denied' | 'sin-micro' | 'error'
+  const [prep, setPrep] = useState(null);
+  const intento = useRef(0); // salir o volver a empezar invalida un permiso que todavía está pendiente
+  const sinSalir = useRef(false); // se sale de la pantalla completa a propósito para pedir el permiso: no cierra manos libres
+  const hayPantalla = () => { const el = document.documentElement; return !!(el.requestFullscreen || el.webkitRequestFullscreen); };
+  const enPantalla = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const pantallaCompleta = () => new Promise((ok) => {
+    try {
+      const el = document.documentElement; const f = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (!f) return ok(false);
+      const r = f.call(el);
+      if (r && r.then) r.then(() => ok(true), () => ok(false)); else setTimeout(() => ok(enPantalla()), 120);
+    } catch (e) { ok(false); }
+  });
+  const salirPantalla = () => new Promise((ok) => {
+    if (!enPantalla()) return ok();
+    sinSalir.current = true;
+    try { const r = document.fullscreenElement ? document.exitFullscreen() : document.webkitExitFullscreen(); if (r && r.then) r.then(ok, ok); else setTimeout(ok, 200); } catch (e) { ok(); }
+  });
+  // Pantalla completa (si se puede) y voz encendida. Va dentro de un toque o justo después de él.
+  const arrancar = async (conMicro) => {
+    await pantallaCompleta();
+    sinSalir.current = false; setPrep(null);
+    if (conMicro) encenderVoz(); else { setLeer(true); leerPaso(cur); }
     pedirBloqueo();
   };
+  const prepararVoz = async () => {
+    const t = ++intento.current; const vigente = () => t === intento.current;
+    desbloquearAudio(); // dentro del toque: así la lectura puede sonar aunque empiece después del permiso
+    if (!vozDisponible()) { arrancar(false); return; }
+    const st = await estadoMicrofono();
+    if (!vigente()) return;
+    if (st === 'granted') { arrancar(true); return; }
+    await salirPantalla();
+    setPrep('permiso');
+    const r = await pedirMicrofono();
+    if (!vigente()) return;
+    if (r !== 'granted') { setPrep(r); return; }
+    // Aceptado: se intenta la pantalla completa de inmediato. Si el navegador ya no cuenta el toque, se pide uno.
+    if (!hayPantalla()) { arrancar(true); return; }
+    const ok = await pantallaCompleta();
+    if (!vigente()) return;
+    if (ok) arrancar(true); else setPrep('tocar');
+  };
+  const entrarLibre = () => {
+    setLibre(true);
+    if (leer) { pantallaCompleta(); pedirBloqueo(); return; } // la voz ya estaba encendida: el permiso ya se dio
+    prepararVoz();
+  };
+  // En manos libres, encender la voz pasa por el mismo orden (permiso → pantalla completa → voz)
+  const alternarVozLibre = () => { if (leer) apagarVoz(); else prepararVoz(); };
   const salirLibre = () => {
-    setLibre(false); apagarVoz();
+    intento.current++; setLibre(false); setPrep(null); sinSalir.current = false; apagarVoz();
     try { if (document.fullscreenElement) document.exitFullscreen(); else if (document.webkitFullscreenElement) document.webkitExitFullscreen(); } catch (e) {}
     try { if (bloqueo.current) bloqueo.current.release(); } catch (e) {}
     bloqueo.current = null;
@@ -129,8 +177,8 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
     if (!libre) return;
     const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
     // Esc o salir de la pantalla completa del navegador también cierra manos libres
-    const fs = () => { if (!document.fullscreenElement && !document.webkitFullscreenElement) salirRef.current(); };
-    const esc = (e) => { if (e.key === 'Escape') salirRef.current(); };
+    const fs = () => { if (!document.fullscreenElement && !document.webkitFullscreenElement && !sinSalir.current) salirRef.current(); };
+    const esc = (e) => { if (e.key === 'Escape' && !sinSalir.current) salirRef.current(); };
     // Al volver a la pestaña, el bloqueo de pantalla se pierde: se pide de nuevo
     const vis = () => { if (document.visibilityState === 'visible') pedirBloqueo(); };
     document.addEventListener('fullscreenchange', fs); document.addEventListener('webkitfullscreenchange', fs);
@@ -150,13 +198,24 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   const mapa = <Recorrido d={d} cur={cur} visto={visto} hechos={hechos} ir={ir} />;
   const s = cur >= 0 && cur < N ? d.pasos[cur] : null;
 
+  // Manos libres: otra pantalla, minimalista (libre.jsx); el estado y las acciones son los mismos
+  if (libre) return (
+    <PantallaLibre d={d} cur={cur} visto={visto} hechos={hechos} ir={ir} siguiente={siguiente} anterior={anterior} listo={listo} dir={dir}
+      salir={salirLibre} AjustesVoz={AjustesVoz} onPdf={onPdf} bajando={bajando} pq={pq} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+      voz={{ leer, hablando, estado, oido, orden, encender, alternar: alternarVozLibre }}
+      prep={prep} onTocar={() => arrancar(true)} onSinMicro={() => { intento.current++; arrancar(false); }}
+      reiniciar={() => { reiniciar(); setVisto(-1); ir(-1); }}
+      onRegistrar={onRegistrar && (() => { salirLibre(); onRegistrar(); })}
+      onVerTodo={() => { salirLibre(); onVerTodo(); }} />
+  );
+
   return (
-    <div ref={raiz} className={cx('flex flex-col gap-4', libre && 'fondo fixed inset-0 z-[60] overflow-y-auto px-4 pb-5 pt-[calc(16px+env(safe-area-inset-top,0px))] sm:px-8')}>
+    <div ref={raiz} className="flex flex-col gap-4">
       {/* Franja superior compacta */}
       <div className="mx-auto flex w-full max-w-[1100px] flex-wrap items-center gap-3">
-        {!libre && <button type="button" onClick={volver} className="inline-flex flex-none items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Biblioteca</button>}
+        <button type="button" onClick={volver} className="inline-flex flex-none items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Biblioteca</button>
         <div className="min-w-0 flex-1 basis-[240px]">
-          <p className="rotulo m-0">{d.esp} · {libre ? 'manos libres' : 'modo guiado'}</p>
+          <p className="rotulo m-0">{d.esp} · modo guiado</p>
           <h1 className="m-0 truncate text-[18px] font-extrabold leading-tight tracking-[-.02em] text-deep sm:text-[22px]" title={d.titulo}>{d.titulo}</h1>
         </div>
         <div className="flex flex-none items-center gap-2">
@@ -178,7 +237,7 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
               <Ic n="dots" s={18} />
             </button>
           )}
-          {!libre && <button type="button" onClick={onVerTodo} aria-label="Ver todo el protocolo" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
+          <button type="button" onClick={onVerTodo} aria-label="Ver todo el protocolo" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
             <Ic n="book" s={16} /><span className="hidden sm:inline">Ver todo</span>
           </button>}
           {libre
@@ -196,12 +255,12 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
       </div>
 
       {ajustes && <div className="mx-auto w-full max-w-[1100px]"><AjustesVoz cerrar={() => setAjustes(false)} /></div>}
-      {leer && vozDisponible() && <div className="mx-auto w-full max-w-[1100px]"><PanelVoz estado={estado} oido={oido} orden={orden} libre={libre} encender={encender} /></div>}
+      {leer && vozDisponible() && <div className="mx-auto w-full max-w-[1100px]"><PanelVoz estado={estado} oido={oido} orden={orden} encender={encender} hablando={hablando} /></div>}
       {leer && !vozDisponible() && <p className="mx-auto m-0 w-full max-w-[1100px] text-[12.5px] text-ink3">Este navegador no reconoce la voz: cada paso se lee en voz alta y avanzas tocando «Terminé» o deslizando.</p>}
 
       <div ref={escenario} className="mx-auto w-full min-w-0 max-w-[1100px] touch-pan-y" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {/* El paso anterior queda arriba, compacto, unido por una flecha */}
-          {cur > 0 && cur <= N && !libre && (
+          {cur > 0 && cur <= N && (
             <div key={'prev' + cur}>
               <button type="button" onClick={() => ir(cur - 1)} className="compacta flex w-full items-center gap-3 rounded-full px-2 py-1.5 text-left text-[13px] text-ink3 hover:bg-soft hover:text-ink2">
                 <span className={cx('grid h-6 w-6 flex-none place-items-center rounded-full text-[11px] font-bold', hechos.includes(cur - 1) ? 'bg-menta text-mentaink' : 'bg-card text-ink3')}>
@@ -221,17 +280,17 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
 
           {/* Navegación: fija abajo, al alcance del pulgar */}
           {cur < N && (
-            <div className={cx('sticky z-20 mt-5', libre ? 'bottom-[env(safe-area-inset-bottom,0px)]' : 'bottom-[calc(76px+env(safe-area-inset-bottom,0px))] lg:bottom-5')}>
-            <div className={cx('flex items-center gap-2 rounded-full border border-cardline bg-[color-mix(in_srgb,var(--card)_86%,transparent)] p-1.5 shadow-shlg backdrop-blur-xl', libre && 'p-2')}>
+            <div className={'sticky bottom-[calc(76px+env(safe-area-inset-bottom,0px))] z-20 mt-5 lg:bottom-5'}>
+            <div className={'flex items-center gap-2 rounded-full border border-cardline bg-[color-mix(in_srgb,var(--card)_86%,transparent)] p-1.5 shadow-shlg backdrop-blur-xl'}>
               <button type="button" onClick={() => anterior()} disabled={cur === -1} aria-label="Paso anterior"
-                className={cx('grid flex-none place-items-center rounded-full text-ink2 hover:bg-soft disabled:opacity-35', libre ? 'h-16 w-16' : 'h-11 w-11')}><Ic n="back" s={libre ? 24 : 18} /></button>
+                className={'grid h-11 w-11 flex-none place-items-center rounded-full text-ink2 hover:bg-soft disabled:opacity-35'}><Ic n="back" s={18} /></button>
               <span className="min-w-0 flex-1 truncate text-center text-[12.5px] tabular-nums text-ink3">
                 {cur === -1 ? 'Antes de empezar' : <>Paso <b className="text-ink">{nn(cur)}</b> de {N}</>}
-                <span className="hidden sm:inline"> · {libre && vozDisponible() ? 'di «siguiente» o «salir»' : <>usa ← →{vozDisponible() ? ' o di «siguiente»' : ''}</>}</span>
+                <span className="hidden sm:inline"> · usa ← →{vozDisponible() ? ' o di «siguiente»' : ''}</span>
                 <span className="sm:hidden"> · desliza</span>
               </span>
               <button type="button" onClick={() => siguiente()}
-                className={cx('inline-flex flex-none items-center gap-2 rounded-full font-bold', libre ? 'h-16 px-8 text-[17px]' : 'h-11 px-5 text-[14px]', 'shadow-[0_8px_20px_-10px_var(--acento)] transition-colors active:scale-[.97]', listo ? 'confirma bg-menta text-mentaink' : 'bg-acento text-onc hover:bg-acentodeep')}>
+                className={cx('inline-flex flex-none items-center gap-2 rounded-full font-bold', 'h-11 px-5 text-[14px]', 'shadow-[0_8px_20px_-10px_var(--acento)] transition-colors active:scale-[.97]', listo ? 'confirma bg-menta text-mentaink' : 'bg-acento text-onc hover:bg-acentodeep')}>
                 {listo ? <><Ic n="check" s={17} sw={2.6} />Hecho</> : <>
                   {cur === -1 ? 'Empezar' : cur === N - 1 ? 'Terminar' : <><span className="sm:hidden">Terminé</span><span className="hidden sm:inline">Terminé este paso</span></>}
                   <span className="rotate-180"><Ic n="back" s={17} sw={2.2} /></span>
@@ -245,41 +304,44 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   );
 }
 
-function PanelVoz({ estado, oido, orden, libre, encender }) {
+function PanelVoz({ estado, oido, orden, encender, hablando }) {
   const NOMBRE = { siguiente: 'Siguiente paso', anterior: 'Paso anterior', leer: 'Leyendo el paso', porque: 'Leyendo el porqué', callar: 'Silencio', salir: 'Salir' };
   return (
-    <div className="aparece panel flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:gap-5">
+    <div className="aparece tarjeta flex items-center gap-4 px-4 py-3.5 sm:gap-5 sm:px-5">
+      <Orbe size={52} e={['denegado', 'sin-micro', 'error', 'pausado'].includes(estado) ? 'apagado' : estado === 'iniciando' ? 'espera' : hablando ? 'habla' : orden && Date.now() - orden.t < 2500 ? 'oye' : 'escucha'} />
+      <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
       <div className="min-w-0 flex-1">
-        {estado === 'denegado' ? <p className="m-0 text-[13.5px] text-panelink">El navegador no dio permiso para usar el micrófono. Actívalo en el candado de la barra de direcciones (en iPhone: Ajustes › Safari › Micrófono) y vuelve a tocar «Voz».</p>
-          : estado === 'sin-micro' ? <p className="m-0 text-[13.5px] text-panelink">No se encontró un micrófono. Conecta uno o revisa que otra app no lo esté usando.</p>
-          : estado === 'error' ? <p className="m-0 text-[13.5px] text-panelink">No hay conexión con el servicio de reconocimiento de voz. Revisa internet y <button type="button" onClick={encender} className="font-bold text-menta underline">vuelve a intentar</button>.</p>
-          : estado === 'pausado' ? <p className="m-0 text-[13.5px] text-panelink">La escucha se pausó. <button type="button" onClick={encender} className="font-bold text-menta underline">Toca aquí para seguir escuchando</button>.</p>
-          : estado === 'iniciando' ? <p className="m-0 text-[13.5px] text-panelink">Encendiendo el micrófono… si el navegador pregunta, toca «Permitir».</p>
-          : <p className="m-0 text-[13.5px] leading-normal text-panelink">Di <b className="text-menta">«siguiente»</b> o «sigamos» para avanzar, «anterior», «lee» para escuchar el paso, «por qué» o «silencio»{libre ? ', y «salir» para terminar' : ''}. Puedes hablar aunque esté leyendo.</p>}
-        <p className="m-0 mt-1 text-[11.5px] leading-snug text-panelink2">El navegador manda el audio a su servicio de reconocimiento (Google en Chrome, Apple en Safari). No digas nombres ni datos del paciente.</p>
+        {estado === 'denegado' ? <p className="m-0 text-[13.5px] text-ink2">El navegador no dio permiso para usar el micrófono. Actívalo en el candado de la barra de direcciones (en iPhone: Ajustes › Safari › Micrófono) y vuelve a tocar «Voz».</p>
+          : estado === 'sin-micro' ? <p className="m-0 text-[13.5px] text-ink2">No se encontró un micrófono. Conecta uno o revisa que otra app no lo esté usando.</p>
+          : estado === 'error' ? <p className="m-0 text-[13.5px] text-ink2">No hay conexión con el servicio de reconocimiento de voz. Revisa internet y <button type="button" onClick={encender} className="font-bold text-acento underline">vuelve a intentar</button>.</p>
+          : estado === 'pausado' ? <p className="m-0 text-[13.5px] text-ink2">La escucha se pausó. <button type="button" onClick={encender} className="font-bold text-acento underline">Toca aquí para seguir escuchando</button>.</p>
+          : estado === 'iniciando' ? <p className="m-0 text-[13.5px] text-ink2">Encendiendo el micrófono… si el navegador pregunta, toca «Permitir».</p>
+          : <p className="m-0 text-[13.5px] leading-normal text-ink2">Di <b className="text-acento">«siguiente»</b> o «sigamos» para avanzar, «anterior», «lee» para escuchar el paso, «por qué» o «silencio». Puedes hablar aunque esté leyendo.</p>}
+        <p className="m-0 mt-1 text-[11.5px] leading-snug text-ink3">El navegador manda el audio a su servicio de reconocimiento (Google en Chrome, Apple en Safari). No digas nombres ni datos del paciente.</p>
       </div>
-      <div className="min-w-0 rounded-rs bg-panel2 px-3.5 py-2 text-[12.5px] text-panelink2 sm:w-[260px]" aria-live="polite">
-        {orden && Date.now() - orden.t < 4000 ? <><b className="text-menta">{NOMBRE[orden.o]}</b> · «{orden.texto}»</> : oido ? <>Oí: «{oido}»</> : 'Esperando una orden…'}
+      <div className="min-w-0 rounded-rs bg-soft px-3.5 py-2 text-[12.5px] text-ink3 sm:w-[260px]" aria-live="polite">
+        {orden && Date.now() - orden.t < 4000 ? <><b className="text-acento">{NOMBRE[orden.o]}</b> · «{orden.texto}»</> : oido ? <>Oí: «{oido}»</> : 'Esperando una orden…'}
+      </div>
       </div>
     </div>
   );
 }
 
 // Elegir la voz de lectura y la velocidad (se guarda en este navegador)
-function AjustesVoz({ cerrar }) {
+function AjustesVoz({ cerrar, plano }) {
   const voces = useVoces();
   const [uri, setUri] = useState(vozElegida);
   const [vel, setVel] = useState(() => String(velocidad()));
   const actual = voces.find((v) => v.voiceURI === uri) || voces[0];
   const probar = () => hablar(TEXTO_PRUEBA);
   return (
-    <div className="aparece tarjeta flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:gap-5 sm:p-5">
+    <div className={cx('flex flex-col gap-3', !plano && 'aparece tarjeta p-4 sm:flex-row sm:items-end sm:gap-5 sm:p-5')}>
       <label className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="text-[12.5px] font-semibold text-ink2">Voz de lectura</span>
         {voces.length ? (
           <select value={actual ? actual.voiceURI : ''} onChange={(e) => { setUri(e.target.value); elegirVoz(e.target.value); }}
             className="min-w-0 rounded-rs border border-line bg-input px-3 py-2.5 text-[14px] text-ink">
-            {voces.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang.replace('_', '-')}</option>)}
+            {voces.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.natural ? v.name : v.name + ' · ' + v.lang.replace('_', '-')}</option>)}
           </select>
         ) : <span className="text-[13px] text-ink3">Este navegador no trae voces en español. Instala una en los ajustes del sistema (Accesibilidad › Contenido leído).</span>}
       </label>
@@ -289,7 +351,7 @@ function AjustesVoz({ cerrar }) {
       </div>
       <div className="flex gap-2">
         <Btn v="soft" icon="volumen" onClick={probar}>Probar</Btn>
-        <Btn v="ghost" onClick={cerrar}>Listo</Btn>
+        {!plano && <Btn v="ghost" onClick={cerrar}>Listo</Btn>}
       </div>
     </div>
   );

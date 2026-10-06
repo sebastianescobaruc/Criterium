@@ -1,5 +1,7 @@
 # Voces naturales con Google Cloud Text-to-Speech
 
+> La voz chilena (**Alejandra**, la voz por defecto) se genera con Azure: mira `docs/VOZ_ALEJANDRA_AZURE.md`. Esta guía es para sumar, además, las voces de Google en español latino.
+
 Criterium lee los pasos del modo guiado en voz alta. Con esta configuración usa las voces **Chirp 3 HD** de Google, que son las más naturales que ofrece, en lugar de las voces del sistema.
 
 ## Cómo funciona
@@ -42,7 +44,7 @@ Para ver las disponibles y elegir, agrega a `.env.local`:
 VOCES_TTS=es-US-Chirp3-HD-Aoede,es-US-Chirp3-HD-Charon
 ```
 
-Si escribes un nombre que no existe, `npm run voces` muestra la lista de las voces Chirp 3 HD disponibles para ese idioma. Para voces de España usa `IDIOMA_TTS=es-ES`. No hay voces Chirp 3 HD de Chile: `es-US` es el español latino más cercano.
+Si escribes un nombre que no existe, `npm run voces` muestra la lista de las voces Chirp 3 HD disponibles para ese idioma. Para voces de España usa `IDIOMA_TTS=es-ES`. Google no tiene voces de Chile: para eso está Alejandra, con Azure.
 
 ## Si algo falla
 

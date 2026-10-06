@@ -2,9 +2,13 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { PROTOS, DATOS } from '../data.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
+import { ComentariosProvider, ComentariosPaso, useNComentarios } from './comentarios.jsx';
+import { Animacion } from './animaciones.jsx';
 import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
 import { Guiado } from './guiado.jsx';
+import { hablar, callar, useHablando, lecturaDisponible } from '../voz.js';
+import { textoPorqueCompleto } from '../lectura.js';
 import { SolicitudesProtocolo } from './agenda.jsx';
 
 // Cómo se recorre un protocolo: 'guiado' (un paso a la vez) o 'todo' (la lista completa). Comodidad local.
@@ -316,7 +320,7 @@ const FICHA = {
   '¿y si mi caso es otro?': ['¿Y si mi caso es otro?', 'tool'],
   'ojo con esta evidencia': ['Ojo con la evidencia', 'alert']
 };
-const fichaDe = (t) => FICHA[t] || [t.charAt(0).toUpperCase() + t.slice(1), 'sparkle'];
+export const fichaDe = (t) => FICHA[t] || [t.charAt(0).toUpperCase() + t.slice(1), 'sparkle'];
 
 // Enlaces de una fuente: url propia (verificada) o el DOI y PMID escritos en loc. Nunca se arma un enlace inventado.
 export function enlacesFuente(f) {
@@ -379,7 +383,7 @@ export function Arbol({ l }) {
   );
 }
 
-function Sub({ x }) {
+export function Sub({ x }) {
   return (
     <div>
       {(x.parrafos || []).map((t, i) => <p key={i} className="m-0 mb-2.5 text-[14.5px] leading-[1.65] text-ink2">{t}</p>)}
@@ -387,18 +391,6 @@ function Sub({ x }) {
       {(x.fuentes || []).map((f, i) => <Fuente key={i} f={f} />)}
     </div>
   );
-}
-
-function Aportes({ l }) {
-  return l.map((c, k) => (
-    <div key={k} className={cx('grid grid-cols-[32px_minmax(0,1fr)] gap-3 py-3', k > 0 && 'border-t border-line2')}>
-      <div className="grid h-8 w-8 place-items-center rounded-full bg-acentosoft text-[11px] font-bold text-acentodeep">{c.av}</div>
-      <div>
-        <div className="text-[13.5px] leading-normal text-ink2"><b className="text-ink">{c.quien}</b> {c.marca && <span className="text-ok">{c.marca}</span>} {c.txt}</div>
-        <div className="mt-1 flex flex-wrap gap-3 text-[11.5px] text-ink3"><span>{c.rol}</span><span>hace {c.cuando}</span><span>♡ {c.likes}</span></div>
-      </div>
-    </div>
-  ));
 }
 
 // Descarga el PDF de box de un protocolo (archivo en public/)
@@ -411,6 +403,30 @@ async function bajarPdf(archivo, avisar) {
 
 const reducido = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 
+// «Escuchar»: lee en voz alta el «¿Por qué?» completo. Solo se activa al tocarlo; tocar de nuevo lo detiene.
+// Si cambias de paso mientras lee, se calla.
+export function Escuchar({ s, onEmpezar, className = '', suave = false }) {
+  const hablando = useHablando();
+  const [mio, setMio] = useState(false);
+  const mioRef = useRef(false); mioRef.current = mio;
+  useEffect(() => { if (!hablando) setMio(false); }, [hablando]);
+  useEffect(() => () => { if (mioRef.current) callar(); }, []);
+  if (!lecturaDisponible() || !(s.porque || []).length) return null;
+  const activo = mio && hablando;
+  const tocar = () => {
+    if (activo) { callar(); setMio(false); return; }
+    if (onEmpezar) onEmpezar();
+    hablar(textoPorqueCompleto(s)); setMio(true);
+  };
+  return (
+    <button type="button" onClick={tocar} aria-pressed={activo} aria-label={activo ? 'Detener la lectura del porqué' : 'Escuchar el porqué en voz alta'}
+      className={cx('inline-flex flex-none items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', activo ? 'bg-deep text-panelink' : suave ? 'bg-soft text-acentodeep hover:bg-acentosoft' : 'bg-card text-acentodeep shadow-sh hover:bg-acentosoft', className)}>
+      {activo ? <span className="barras inline-flex h-3.5 items-end gap-[2px]" aria-hidden="true"><i /><i /><i /></span> : <Ic n="volumen" s={15} />}
+      {activo ? 'Detener' : 'Escuchar'}
+    </button>
+  );
+}
+
 /* Un paso en tres niveles, como en la presentación:
    1 · siempre visible (qué hacer y cuándo terminaste), 2 · por qué, 3 · fuente, errores, disenso y lo que reportan otros. */
 export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorque, autoPorque, mapa }) {
@@ -420,14 +436,15 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
   useEffect(() => { if (abrirPorque) setMas(true); }, [abrirPorque]);
   const porque = s.porque || [];
   const subs = s.sub || [];
-  const aportes = s.aportes || [];
+  // Comentarios del paso: la última ficha, siempre presente (el botón para comentar este paso)
+  const nCom = useNComentarios(i);
   const fichas = [...subs.map((x, k) => ({ k: 's' + k, t: fichaDe(x.titulo)[0], ic: fichaDe(x.titulo)[1], x })),
-    ...(aportes.length ? [{ k: 'aportes', t: 'Otros casos · ' + aportes.length, ic: 'chat' }] : [])];
+    ...(nCom !== null ? [{ k: 'com', t: nCom ? 'Comentarios · ' + nCom : 'Comentar', ic: 'chat' }] : [])];
   const abierta = fichas.find((f) => f.k === ficha);
   // autoPorque (segundos, modo guiado): recorrido solo. Cada tantos segundos se abre lo siguiente
   // (el «¿Por qué?», después cada ficha: fuentes, errores, otros casos…) y la página baja para leerlo entero.
   // Tocar el «¿Por qué?» o una ficha detiene el recorrido.
-  const etapas = [...(porque.length ? ['porque'] : []), ...fichas.map((f) => f.k)];
+  const etapas = [...(porque.length ? ['porque'] : []), ...fichas.filter((f) => f.k !== 'com').map((f) => f.k)]; // los comentarios no se abren solos
   const [auto, setAuto] = useState(!!autoPorque && etapas.length > 0);
   const [etapa, setEtapa] = useState(-1);
   const [falta, setFalta] = useState(autoPorque || 0);
@@ -482,6 +499,9 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
         {s.sinEv && <p className="m-0 mt-3.5 rounded-rs border border-dashed border-navline px-3 py-2 text-[12.5px] leading-normal text-panelink2">◻ {s.sinEv}</p>}
       </div>
 
+      {/* Cómo se hace: esquema animado del gesto del paso */}
+      {s.anim && <div className={cx(nivel(1).className, grande ? 'mx-auto w-full max-w-[620px]' : 'w-full sm:max-w-[460px]')} style={nivel(1).style}><Animacion id={s.anim} /></div>}
+
       {s.disputa && (
         <div className={cx('rounded-[20px] bg-warnsoft px-5 py-4', nivel(1).className)} style={nivel(1).style}>
           <div className="mb-1 text-[11.5px] font-bold uppercase tracking-[.13em] text-warn">En disputa</div>
@@ -491,8 +511,9 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
 
       {porque.length > 0 && (
         <div ref={refPorque} className={cx('suave scroll-mb-[110px] scroll-mt-24 overflow-hidden', nivel(1).className)} style={nivel(1).style}>
+          <div className={cx('flex items-center', grande ? 'pr-5 sm:pr-9' : 'pr-5 sm:pr-6')}>
           <button type="button" onClick={() => { detener(); setMas(!mas); }} aria-expanded={mas}
-            className={cx('group relative flex w-full items-center gap-3 px-5 py-4 text-left', grande ? 'sm:px-9 sm:py-5' : 'sm:px-6')}>
+            className={cx('group relative flex min-w-0 flex-1 items-center gap-3 py-4 pl-5 pr-3 text-left', grande ? 'sm:py-5 sm:pl-9' : 'sm:pl-6')}>
             <span className="rotulo flex-1">¿Por qué?</span>
             {!mas && <span className="hidden min-w-0 flex-[3] truncate text-[13px] text-ink3 sm:block">{porque[0]}</span>}
             {contando && <span className="flex-none text-[12px] font-semibold tabular-nums text-ink3" aria-live="polite">Se abre en {falta} s</span>}
@@ -500,6 +521,8 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </span>
           </button>
+          <Escuchar s={s} onEmpezar={() => { detener(); setMas(true); }} />
+          </div>
           <div className={cx('despliega', mas && 'abierto')}>
             <div className={cx('min-h-0', grande ? 'px-5 sm:px-9' : 'px-5 sm:px-6')}>
               <div className={cx('pb-4', grande && 'sm:pb-7')}>
@@ -512,7 +535,7 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
 
       {fichas.length > 0 && (
         <div ref={refFichas} className={cx('scroll-mb-[110px] scroll-mt-24', grande ? 'px-2 pt-1 sm:px-4' : 'rounded-[20px] border border-line px-4 py-4 sm:px-6 sm:py-5', nivel(2).className)} style={nivel(2).style}>
-          <div className="rotulo mb-3">Fuente y otros casos</div>
+          <div className="rotulo mb-3">Fuentes y comentarios</div>
           <div className="flex flex-wrap gap-2" role="group" aria-label={'Más sobre el paso ' + nn(i)}>
             {fichas.map((f) => {
               const on = ficha === f.k;
@@ -526,7 +549,7 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
           </div>
           {abierta && (
             <div className="mt-4 border-t border-line pt-4">
-              {abierta.x ? <Sub x={abierta.x} /> : <Aportes l={aportes} />}
+              {abierta.x ? <Sub x={abierta.x} /> : <ComentariosPaso i={i} s={s} />}
             </div>
           )}
         </div>
@@ -561,7 +584,14 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
   );
 }
 
+// El protocolo abierto, con los comentarios de sus pasos al alcance de cada paso (también en modo guiado y manos libres)
 export function Protocolo() {
+  const { protoId } = useApp();
+  const id = DATOS[protoId] ? protoId : 'cementado-pmma';
+  return <ComentariosProvider id={id} d={DATOS[id]}><VistaProtocolo /></ComentariosProvider>;
+}
+
+function VistaProtocolo() {
   const { protoId, protoLibre, protoTodo, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid, verPerfil, esDocente } = useApp();
   const d = DATOS[protoId] || DATOS['cementado-pmma'];
   const id = DATOS[protoId] ? protoId : 'cementado-pmma';
@@ -671,9 +701,9 @@ export function Protocolo() {
         </div>
 
         <section className="mt-8">
-          <Pill tono="warn" className="mb-3">Sin validar · aportes de la comunidad</Pill>
-          <h2 className="m-0 mb-2 text-[22px] font-extrabold tracking-[-.025em] text-deep">Lo que reporta la gente que lo hace</h2>
-          <p className="m-0 mb-4 max-w-[66ch] font-serif text-[15px] leading-relaxed text-ink2">Nada de esta sección pasó por el validador ni por el panel. Son observaciones de quienes usan el protocolo en clínica. Sirven para detectar dónde se equivoca la gente, no para decidir un tratamiento.</p>
+          <Pill tono="warn" className="mb-3">Sin validar · comentarios de la comunidad</Pill>
+          <h2 className="m-0 mb-2 text-[22px] font-extrabold tracking-[-.025em] text-deep">Comenta cada paso</h2>
+          <p className="m-0 mb-4 max-w-[66ch] font-serif text-[15px] leading-relaxed text-ink2">Cada paso tiene su botón «Comentar», al lado de las fuentes. Marca «Corrección» si propones cambiarlo. Los comentarios no pasan por el validador ni por el panel: sirven para mejorar el protocolo, no para decidir un tratamiento.</p>
           <Btn icon="chat" onClick={() => go('feed', { feedProto: id })}>Preguntar en el feed sobre este protocolo</Btn>
           <p className="m-0 mt-5 max-w-[72ch] text-[12px] leading-relaxed text-ink3">{d.nota}</p>
         </section>

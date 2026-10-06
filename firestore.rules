@@ -66,6 +66,23 @@ service cloud.firestore {
     }
 
     // Solicitudes de protocolos: cada uno crea y ve las suyas. El equipo de Criterium las gestiona desde la consola.
+    // Comentarios en cada paso de un protocolo. Los lee cualquiera con sesión; cada uno crea a su nombre y borra los suyos.
+    // Marcarse como docente exige serlo. Más adelante: correcciones de expertos y comentarios de docentes para sus estudiantes.
+    match /comentarios/{id} {
+      allow read: if conSesion();
+      allow create: if conSesion()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.autor.uid == request.auth.uid
+        && (request.resource.data.autor.docente == false || esDocente())
+        && request.resource.data.protoId is string
+        && request.resource.data.paso is int && request.resource.data.paso >= 0
+        && request.resource.data.tipo in ['comentario', 'correccion']
+        && request.resource.data.txt is string
+        && request.resource.data.txt.size() >= 1 && request.resource.data.txt.size() <= 1000;
+      allow delete: if soy(resource.data.uid);
+      allow update: if false;
+    }
+
     match /solicitudes/{id} {
       allow create: if conSesion()
         && request.resource.data.uid == request.auth.uid

@@ -257,3 +257,155 @@ h1,h2,h3{letter-spacing:-.02em}
 .cita-mal{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .cita-cancelada{background:var(--line-2);border-color:var(--line);color:var(--ink-3);text-decoration:line-through}
 .cita-sel{box-shadow:0 0 0 2px var(--menta),var(--sh)}
+
+/* Manos libres (libre.jsx): relleno del «¿Por qué?» mientras falta para abrirse, y hojas que suben desde abajo */
+@keyframes llenado{from{width:0}to{width:100%}}
+.llenado{animation:llenado linear forwards}
+@keyframes hoja{from{transform:translateY(100%)}to{transform:none}}
+@keyframes hoja-sm{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes velo{from{opacity:0}to{opacity:1}}
+.hoja{animation:hoja .42s cubic-bezier(.2,.9,.25,1) both}
+@media (min-width:640px){.hoja{animation-name:hoja-sm;animation-duration:.3s}}
+.velo{animation:velo .3s ease both}
+@media (prefers-reduced-motion: reduce){.llenado,.hoja,.velo{animation:none}}
+
+/* Orbe de la voz (libre.jsx): una esfera suave en los colores de Criterium, como el modo voz de un asistente.
+   Tres manchas difusas giran a distinto ritmo y cambian de forma; el orbe respira al escuchar,
+   late al leer, crece un poco cuando oye algo y se apaga a gris si no hay micrófono. */
+.orbe{position:relative;flex:none;border-radius:50%;overflow:hidden;isolation:isolate;
+  background:radial-gradient(circle at 50% 115%,var(--menta) 0%,var(--acento-soft) 52%,var(--card) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 12px 44px -14px var(--menta),0 0 70px -20px var(--acento-soft);
+  transition:transform .5s cubic-bezier(.3,1.5,.5,1),filter .6s,opacity .6s}
+.orbe i{position:absolute;border-radius:42% 58% 63% 37%/41% 44% 56% 59%;filter:blur(calc(var(--s)*.17))}
+.orbe i:nth-child(1){inset:-12% 22% 30% -18%;background:var(--menta);opacity:.8;animation:orbe-gira 8s linear infinite}
+.orbe i:nth-child(2){inset:38% -22% -18% 22%;background:var(--acento);opacity:.5;animation:orbe-gira 11s linear infinite reverse}
+.orbe i:nth-child(3){inset:6% -8% 46% 38%;background:var(--card);opacity:.9;animation:orbe-gira 6.5s linear infinite}
+.orbe::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.85),transparent 40%)}
+@keyframes orbe-gira{to{transform:rotate(360deg)}}
+@keyframes orbe-respira{0%,100%{transform:scale(.95)}50%{transform:scale(1.04)}}
+@keyframes orbe-habla{0%{transform:scale(.97)}30%{transform:scale(1.08)}55%{transform:scale(1)}80%{transform:scale(1.06)}100%{transform:scale(.97)}}
+.orbe[data-e=escucha]{animation:orbe-respira 3.8s ease-in-out infinite}
+.orbe[data-e=espera]{animation:orbe-respira 2.4s ease-in-out infinite;opacity:.85}
+.orbe[data-e=habla]{animation:orbe-habla 1.3s ease-in-out infinite}
+.orbe[data-e=habla] i{animation-duration:3s}
+.orbe[data-e=oye]{transform:scale(1.13)}
+.orbe[data-e=oye] i{animation-duration:2.4s}
+.orbe[data-e=apagado]{filter:grayscale(1);opacity:.5}
+@media (prefers-reduced-motion: reduce){.orbe,.orbe i{animation:none!important}}
+
+/* Animaciones de los pasos (views/animaciones.jsx): corte del diente en tonos pastel, instrumentos en gris acero.
+   Solo se usan dentro de .anim. */
+:root{
+  --an-esmalte:#FBFDFD;--an-dentina:#F3E8D2;--an-pulpa:#F2C9C4;--an-caries:#9C7A55;--an-resina:#CFE9E4;--an-gel:#8FC1EC;
+  --an-adhesivo:#E3BC52;--an-metal:#8C9DA5;--an-instr:#E4EBED;--an-linea:#A9BBC2;--an-luz:#8DBEF5;--an-papel:#5F8FDB;
+  --an-dique:#6FBFB0;--an-liner:#F1D9A6;--an-liquido:#9FD3E6;--an-marca:#3E6FC7
+}
+.anim svg{font-family:inherit}
+.anim .esm{fill:var(--an-esmalte);stroke:var(--an-linea);stroke-width:1.2}
+.anim .den{fill:var(--an-dentina);stroke:var(--an-linea);stroke-width:1}
+.anim .den.sin-borde{stroke:none}
+.anim .pul{fill:var(--an-pulpa)}
+.anim .fis{fill:none;stroke:var(--an-caries);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.anim .car{fill:var(--an-caries);opacity:.9}
+.anim .aire{fill:var(--card)}
+.anim .res{fill:var(--an-resina);stroke:var(--an-linea);stroke-width:.8}
+.anim .gel{fill:var(--an-gel)}
+.anim .adh{fill:none;stroke:var(--an-adhesivo);stroke-width:2.6;stroke-linejoin:round}
+.anim .liner{fill:var(--an-liner);stroke:var(--an-adhesivo);stroke-width:.8}
+.anim .tacha{fill:none;stroke:var(--bad);stroke-width:2.4;stroke-linecap:round}
+.anim .borde-ok{fill:none;stroke:var(--acento);stroke-width:1.6;stroke-dasharray:3 3}
+.anim .diq{fill:none;stroke:var(--an-dique);stroke-width:4.5;stroke-linecap:round}
+.anim .clamp{fill:var(--an-metal)}
+.anim .ins{fill:var(--an-instr);stroke:var(--an-linea);stroke-width:1}
+.anim .mango{fill:none;stroke:var(--an-instr);stroke-width:9;stroke-linecap:round;paint-order:stroke;filter:drop-shadow(0 0 .6px var(--an-linea)) drop-shadow(0 0 .6px var(--an-linea))}
+.anim .mango.fino{stroke-width:2.6}
+.anim .mango.grueso{stroke-width:13}
+.anim .vastago,.anim .punta{fill:none;stroke:var(--an-metal);stroke-width:1.8;stroke-linecap:round}
+.anim .met{fill:var(--an-metal)}
+.anim .pulidor{fill:var(--an-instr);stroke:var(--an-metal);stroke-width:1}
+.anim .brush{fill:var(--an-adhesivo)}
+.anim .pap{fill:var(--an-papel)}
+.anim .marca{fill:var(--an-marca);opacity:.85}
+.anim .marca.alta{fill:var(--bad)}
+.anim .liq{fill:var(--an-liquido)}
+.anim .aire-l{fill:none;stroke:var(--an-linea);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:6 8}
+.anim .luz{fill:var(--an-luz)}
+.anim .cota{fill:none;stroke:var(--acento);stroke-width:1.2}
+.anim .guia{fill:none;stroke:var(--acento);stroke-width:1.2;stroke-dasharray:2 3}
+.anim .rot{font-size:10.5px;font-weight:600;fill:var(--ink-2)}
+.anim .rot.acento{fill:var(--acento)}
+.anim .rot.mal{fill:var(--bad)}
+
+/* Animaciones: segunda tanda (sellantes, periodonto, maxilar, premolar, corona) */
+:root{
+  --an-hueso:#EDE3CF;--an-encia:#F2C2BF;--an-calculo:#D9C27C;--an-placa:#E58FB8;--an-seno:#E6F1F6;--an-alveolo:#D99A98;--an-coagulo:#C77F7D;
+  --an-gutapercha:#EC9F69;--an-hidroxido:#FAFAF4;--an-suero:#E3F2F7;--an-edta:#DAD3F1;--an-ionomero:#E8E1D0;--an-provisorio:#C9CFD3;
+  --an-pmma:#F6EFE6;--an-viejo:#EDE0CF;--an-cemento:#F3EBD8;--an-guante:#D6E5F7;--an-tiza:#F4F7F7;--an-rx:#1F3441;
+  --an-iso-10:#B9A3DA;--an-iso-15:#FFFFFF;--an-iso-20:#F2D86B;--an-iso-25:#E58C8C;--an-iso-30:#7FA6E6;--an-iso-35:#86C79A;--an-iso-40:#4A5560;--an-iso-45:#FFFFFF;--an-iso-50:#F2D86B
+}
+.anim .hue{fill:var(--an-hueso);stroke:var(--an-linea);stroke-width:.8}
+.anim .enc{fill:var(--an-encia);stroke:var(--an-linea);stroke-width:.8}
+.anim .raiz{fill:var(--an-dentina);stroke:var(--an-linea);stroke-width:1;opacity:.92}
+.anim .cal{fill:var(--an-calculo);stroke:var(--an-linea);stroke-width:.6}
+.anim .pla{fill:none;stroke:var(--an-placa);stroke-width:3.4;stroke-linecap:round}
+.anim .pla-p{fill:var(--an-placa)}
+.anim .lisa{fill:none;stroke:var(--acento);stroke-width:1.6}
+.anim .seno{fill:var(--an-seno);stroke:var(--an-linea);stroke-width:.8}
+.anim .piso{fill:none;stroke:var(--an-linea);stroke-width:1.2}
+.anim .piso-ok{fill:none;stroke:var(--acento);stroke-width:2.4;stroke-linecap:round}
+.anim .alveolo{fill:var(--an-alveolo);stroke:var(--an-linea);stroke-width:.8}
+.anim .coagulo{fill:var(--an-coagulo)}
+.anim .haz{fill:var(--an-luz)}
+.anim .separa{fill:none;stroke:var(--acento);stroke-width:2;stroke-linecap:round}
+.anim .atras .punta,.anim .atras .mango{stroke-dasharray:3 3;opacity:.7}
+.anim .bocado{fill:none;stroke:var(--an-metal);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.anim .gasa{fill:var(--card);stroke:var(--an-linea);stroke-width:1}
+.anim .gasa-l{fill:none;stroke:var(--an-linea);stroke-width:.5}
+.anim .dedo{fill:var(--an-guante);stroke:var(--an-linea);stroke-width:1}
+.anim .una{fill:none;stroke:var(--an-linea);stroke-width:.8}
+.anim .algodon{fill:var(--card);stroke:var(--an-linea);stroke-width:1}
+.anim .algodon-l{fill:none;stroke:var(--an-linea);stroke-width:.6}
+.anim .cerdas{fill:none;stroke:var(--an-linea);stroke-width:1.4;stroke-linecap:round}
+.anim .mancha{fill:none;stroke:var(--an-caries);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
+.anim .tiza{fill:var(--an-tiza);stroke:var(--an-linea);stroke-width:.8;stroke-dasharray:1 2}
+.anim .iono{fill:var(--an-ionomero);stroke:var(--an-linea);stroke-width:.8}
+.anim .capa-prot{fill:none;stroke:var(--an-adhesivo);stroke-width:2;stroke-linecap:round;opacity:.8}
+.anim .adh.fino{stroke-width:1.6}
+.anim .vibra{fill:none;stroke:var(--an-metal);stroke-width:1.2;stroke-linecap:round}
+.anim .marca-sonda{fill:none;stroke:var(--ink);stroke-width:2.4}
+.anim .lima{fill:none;stroke:var(--an-metal);stroke-width:1.4;stroke-linejoin:round}
+.anim .mango-lima{stroke:var(--an-linea);stroke-width:1}
+.anim .tope{fill:var(--bad);opacity:.85}
+.anim .gut{fill:var(--an-gutapercha)}
+.anim .hidroxido{fill:var(--an-hidroxido);stroke:var(--acento);stroke-width:.7;stroke-dasharray:1.5 1.5}
+.anim .suero{fill:var(--an-suero);stroke:var(--an-linea);stroke-width:.4}
+.anim .edta{fill:var(--an-edta)}
+.anim .provisorio{fill:var(--an-provisorio)}
+.anim .entrada{fill:var(--acento)}
+.anim .hilo{fill:none;stroke:var(--acento);stroke-width:1.4;stroke-linecap:round}
+.anim .pantalla{fill:var(--deep)}
+.anim .lectura{font-size:17px;font-weight:700;fill:var(--panel-ink-2)}
+.anim .lectura.cero{fill:var(--menta)}
+.anim .cable{fill:none;stroke:var(--an-linea);stroke-width:1.2;stroke-dasharray:2 2}
+.anim .giro{fill:none;stroke:var(--acento);stroke-width:1.4}
+.anim .caliente{fill:none;stroke:var(--bad);stroke-width:2.2;stroke-linecap:round}
+.anim .frio{fill:none;stroke:var(--an-papel);stroke-width:1.2;stroke-linecap:round}
+.anim .onda{fill:none;stroke:var(--an-papel);stroke-width:1.2;stroke-linecap:round}
+.anim .rx-fondo{fill:var(--an-rx)}
+.anim .rx{filter:grayscale(1) brightness(1.05)}
+.anim .regla{fill:none;stroke:var(--menta);stroke-width:1.6;stroke-linecap:round}
+.anim .guia.claro{stroke:var(--panel-ink-2)}
+.anim .rot.chico{font-size:8.5px}
+.anim .rot.claro{fill:var(--panel-ink)}
+.anim .rot.claro.menta,.anim .rot.menta{fill:var(--menta)}
+.anim .pmma{fill:var(--an-pmma);stroke:var(--an-linea);stroke-width:1}
+.anim .viejo{fill:var(--an-viejo);stroke:var(--an-linea);stroke-width:1}
+.anim .cem{fill:none;stroke:var(--an-cemento);stroke-width:3;stroke-linejoin:round;filter:drop-shadow(0 0 .5px var(--an-linea))}
+.anim .cem-p,.anim .cem-ex{fill:var(--an-cemento);stroke:var(--an-linea);stroke-width:.6}
+.anim .mate{fill:var(--an-linea);opacity:.55}
+.anim .mate-l{fill:none;stroke:var(--an-linea);stroke-width:2.6;stroke-dasharray:1 1.5}
+.anim .gel-l{fill:none;stroke:var(--an-gel);stroke-width:3.4;stroke-linejoin:round}
+.anim .particula{fill:var(--an-metal)}
+.anim .disco{fill:var(--an-instr);stroke:var(--an-metal);stroke-width:1}
+.anim .disco-l{stroke:var(--an-metal);stroke-width:1}
+.anim .recubre{fill:none;stroke:var(--menta);stroke-width:3;stroke-linecap:round;opacity:.8}
