@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { registrar, iniciarSesion, recuperarPassword, errorAuth } from '../auth.js';
 import { AREAS } from '../logic.js';
 import { Btn, Field, Ic, Logo, inputCls, inputErr, cx } from '../ui.jsx';
@@ -12,20 +12,16 @@ const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
    Si hay sesión renderiza children.
    ═════════════════════════════════════════ */
 export default function AuthGate({ usuario, cargando, children }) {
+  // La pantalla de carga animada vive en index.html; se va cuando ya se sabe si hay sesión
+  useEffect(() => { if (!cargando) window.criteriumListo?.(); }, [cargando]);
   if (cargando) return <Cargando />;
   if (!usuario) return <PantallaAuth />;
   return children;
 }
 
-/* ── Pantalla de carga ── */
+/* ── Pantalla de carga: la tapa la animación de index.html (#carga); esto solo queda debajo ── */
 function Cargando() {
-  return (
-    <div className="fondo flex min-h-screen flex-col items-center justify-center gap-4 px-6">
-      <Marca />
-      <div className="h-8 w-48 animate-pulse rounded-rs bg-soft" />
-      <p className="text-[13px] text-ink3">Cargando…</p>
-    </div>
-  );
+  return <div className="fondo min-h-screen" />;
 }
 
 /* ── Marca / logo ── */

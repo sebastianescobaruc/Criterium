@@ -17,7 +17,7 @@ const ORDENES = [
   ['porque', /\bpor ?que\b/],
   ['anterior', /\b(anterior|atras|volver|vuelve|retrocede|retroceder)\b/],
   ['leer', /\b(lee|leer|leelo|repite|repetir|de nuevo|que hago)\b/],
-  ['siguiente', /\b(siguiente|sigamos|sigue|seguimos|seguir|avanza|avanzar|avancemos|listo|lista|termine|terminado|hecho|dale|next)\b/]
+  ['siguiente', /\b(siguiente|sigamos|sigue|seguimos|seguir|avanza|avanzar|avancemos|adelante|proximo|continua|continuar|listo|lista|termine|terminado|hecho|dale|next)\b/]
 ];
 export function interpretar(texto) {
   const t = sinTildes(texto);
@@ -181,6 +181,68 @@ export function useHablando() {
 
 /* ═══ Órdenes por micrófono ═══ */
 
+const PAUSA_FRASE = 800;   // ms sin palabras nuevas = empieza otra frase (Safari junta todo en un solo resultado)
+const ESPERA_ECO = 650;    // ms que se espera una palabra suelta que también está en el texto leído
+const MAX_PALABRAS = 6;    // una frase más larga es conversación (por ejemplo con el paciente), no una orden
+const REINICIO = 40;       // palabras acumuladas en un resultado: se reinicia el micrófono para no arrastrar todo
+const palabras = (t) => sinTildes(t).replace(/[^a-zñü0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+
+// Convierte los resultados del reconocedor en órdenes. Va aparte del hook para poder probarlo sin micrófono.
+// - Cada frase se mira desde la última orden o la última pausa, no el resultado entero: así una segunda orden
+//   en el mismo resultado (Safari, o Chrome sin pausa) también cuenta, y lo ya dicho no la vuelve "conversación".
+// - Eco del parlante: si lo oído (2 palabras o más) está en lo que la app lee, se descarta. Si es UNA palabra
+//   que también aparece en el texto («listo», «sigue»…), se espera un instante: si la frase crece, era eco;
+//   si no, era la persona. Antes se descartaba siempre, y por eso «listo» o «siguiente» fallaban mientras leía.
+export function procesadorOrdenes(emitir, { hablando = estaHablando, leido = textoLeido, reloj = () => Date.now(), diferir = setTimeout, cancelar = clearTimeout } = {}) {
+  const frases = new Map(); // índice del resultado → { base, n, t, orden, cuando }
+  let ultima = { orden: '', cuando: -1e9 };
+  let espera = null;
+  const disparar = (st, n, orden, texto) => {
+    const ahora = reloj();
+    cancelar(espera); espera = null;
+    st.base = n;
+    // Chrome corrige el texto provisorio («siguiente» → «sí, siguiente»): la misma orden seguida no avanza dos veces
+    if (orden === ultima.orden && ahora - ultima.cuando < 1200) return;
+    ultima = { orden, cuando: ahora };
+    emitir(orden, texto);
+  };
+  return {
+    // Devuelve el texto de la frase actual (para mostrar «Oí: …») y si conviene reiniciar el micrófono
+    resultado(i, alternativas, final) {
+      const ahora = reloj();
+      const pal = palabras(alternativas[0] || '');
+      let st = frases.get(i);
+      if (!st) { st = { base: 0, n: 0, t: ahora }; frases.set(i, st); }
+      if (st.n > 0 && pal.length > st.n && ahora - st.t > PAUSA_FRASE) st.base = Math.max(st.base, st.n);
+      st.base = Math.min(st.base, pal.length);
+      st.n = pal.length; st.t = ahora;
+      const frase = pal.slice(st.base);
+      const texto = frase.join(' ');
+      const salida = { texto, reiniciar: pal.length > REINICIO };
+      if (!frase.length || frase.length > MAX_PALABRAS) return salida;
+      let orden = null;
+      for (let a = 0; a < alternativas.length && !orden; a++) orden = interpretar(palabras(alternativas[a]).slice(st.base).join(' '));
+      if (!orden) return salida;
+      if (orden !== 'callar' && hablando()) {
+        const l = ' ' + palabras(leido()).join(' ') + ' ';
+        if (l.includes(' ' + texto + ' ')) {
+          if (frase.length >= 2) return salida; // eco seguro
+          if (!final) {
+            // Palabra suelta que también se está leyendo: se espera a ver si la frase sigue
+            cancelar(espera);
+            const base = st.base, n = st.n;
+            espera = diferir(() => { espera = null; if (st.base === base && st.n === n) disparar(st, n, orden, texto); }, ESPERA_ECO);
+            return salida;
+          }
+        }
+      }
+      disparar(st, pal.length, orden, texto);
+      return salida;
+    },
+    soltar() { cancelar(espera); espera = null; }
+  };
+}
+
 // estado: 'apagado' | 'iniciando' | 'escuchando' | 'pausado' | 'denegado' | 'sin-micro' | 'error' | 'no-disponible'
 // encender() y apagar() se llaman desde el toque del botón: Safari solo deja abrir el micrófono dentro de un gesto.
 export function useVoz(onOrden) {
@@ -192,34 +254,28 @@ export function useVoz(onOrden) {
   const fallos = useRef(0);      // errores seguidos (red): se reintenta con espera creciente
   const funciono = useRef(false); // alguna vez arrancó: un "not-allowed" posterior es una pausa, no un rechazo
   const espera = useRef(null);
+  const ultimoOido = useRef('');
 
   const crear = () => {
     const rec = new Reconocedor();
     rec.lang = 'es-CL'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 3;
-    const usados = new Set(); // resultado ya convertido en orden (para no avanzar dos veces)
-    rec.onstart = () => { if (r.current !== rec) return; funciono.current = true; setEstado('escuchando'); };
+    // Un procesador por sesión del micrófono: los índices de resultado parten de cero en cada una
+    const proc = procesadorOrdenes((orden, texto) => { if (r.current === rec) cb.current(orden, texto); });
+    rec.onstart = () => { if (r.current !== rec) return; rec.inicio = Date.now(); funciono.current = true; fallos.current = 0; setEstado('escuchando'); };
     rec.onresult = (ev) => {
       if (r.current !== rec) return;
       fallos.current = 0;
+      let reiniciar = false, mostrar = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) {
-        if (usados.has(i)) continue;
         const res = ev.results[i];
-        const texto = res[0].transcript.trim();
-        if (!texto) continue;
-        setOido(texto);
-        // Se miran también las alternativas: "siguiente" a veces llega como segunda opción
-        let orden = null;
-        for (let a = 0; a < res.length && !orden; a++) orden = interpretar(res[a].transcript);
-        if (!orden) continue;
-        // Eco: si lo que oyó es parte de lo que la app está leyendo, es el parlante y no la persona.
-        // "silencio" siempre pasa.
-        const t = sinTildes(texto);
-        if (orden !== 'callar' && estaHablando() && t.length > 2 && textoLeido().includes(t)) continue;
-        // Una frase larga es conversación (por ejemplo con el paciente), no una orden
-        if (t.split(/\s+/).length > 6) continue;
-        usados.add(i);
-        cb.current(orden, texto);
+        const alts = []; for (let a = 0; a < res.length; a++) alts.push(res[a].transcript || '');
+        const sal = proc.resultado(i, alts, res.isFinal);
+        if (sal.texto) mostrar = sal.texto;
+        reiniciar = reiniciar || sal.reiniciar;
       }
+      // Solo se vuelve a dibujar si cambió lo que se oyó (los resultados provisorios llegan varias veces por segundo)
+      if (mostrar && mostrar !== ultimoOido.current) { ultimoOido.current = mostrar; setOido(mostrar); }
+      if (reiniciar) { try { rec.abort(); } catch (e) {} } // onend lo vuelve a abrir
     };
     rec.onerror = (e) => {
       if (r.current !== rec) return;
@@ -230,16 +286,22 @@ export function useVoz(onOrden) {
       else if (err === 'network') { fallos.current++; if (fallos.current > 4) { quiere.current = false; setEstado('error'); } }
       // 'no-speech' y 'aborted' son normales: se reinicia en onend
     };
-    // El navegador corta la escucha tras un silencio o cada cierto tiempo: se reinicia mientras se quiera
+    // El navegador corta la escucha tras un silencio o cada cierto tiempo: se reinicia mientras se quiera.
+    // Sin fallos se reabre casi de inmediato (antes 250 ms: una orden dicha justo ahí se perdía).
     rec.onend = () => {
       if (r.current !== rec) return;
+      proc.soltar();
       if (!quiere.current) { r.current = null; return; }
       clearTimeout(espera.current);
-      espera.current = setTimeout(() => {
+      const abrir = () => {
         if (!quiere.current || r.current !== rec) return;
         try { const n = crear(); r.current = n; n.start(); }
         catch (e) { setEstado('pausado'); quiere.current = false; }
-      }, Math.min(250 * 2 ** fallos.current, 4000));
+      };
+      // Si la sesión duró menos de un segundo, algo la está cortando: se espera un poco para no girar en vacío
+      const breve = !rec.inicio || Date.now() - rec.inicio < 1000;
+      const ms = fallos.current ? Math.min(250 * 2 ** fallos.current, 4000) : breve ? 300 : 0;
+      if (ms) espera.current = setTimeout(abrir, ms); else abrir();
     };
     return rec;
   };
@@ -256,7 +318,7 @@ export function useVoz(onOrden) {
     quiere.current = false; clearTimeout(espera.current);
     const rec = r.current; r.current = null;
     try { if (rec) rec.abort(); } catch (e) {}
-    setOido(''); setEstado(Reconocedor ? 'apagado' : 'no-disponible');
+    ultimoOido.current = ''; setOido(''); setEstado(Reconocedor ? 'apagado' : 'no-disponible');
   };
   useEffect(() => () => { quiere.current = false; clearTimeout(espera.current); try { if (r.current) r.current.abort(); } catch (e) {} r.current = null; }, []);
 

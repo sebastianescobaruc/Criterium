@@ -18,8 +18,80 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" />
+    <!-- Pantalla de carga: va aquí (no en React) para que se vea apenas abre la app, antes de que cargue el código.
+         Colores con los mismos valores de los tokens de index.css, que todavía no están cargados. -->
+    <style>
+      #carga{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 16px;text-align:center;
+        background:radial-gradient(60% 45% at 50% 42%,#E3EFF1 0%,#F2F6F7 70%);transition:opacity .45s ease,visibility .45s;
+        font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Helvetica Neue',Arial,sans-serif}
+      #carga.fuera{opacity:0;visibility:hidden;pointer-events:none}
+      #carga.fuera .c-ficha{transform:scale(1.06);transition:transform .45s ease}
+      .c-ficha{position:relative;width:104px;height:104px}
+      .c-ficha svg{display:block;width:100%;height:100%;overflow:visible}
+      .c-tile{transform-box:view-box;transform-origin:219.5px 218.5px;animation:c-tile .55s cubic-bezier(.2,.8,.2,1) both}
+      .c-barrido{stroke-dasharray:360;stroke-dashoffset:360;animation:c-barrido .95s cubic-bezier(.55,.05,.25,1) .25s forwards}
+      .c-muela{animation:c-muela .7s cubic-bezier(.25,1.35,.45,1) .75s both}
+      .c-sonda{transform-box:view-box;transform-origin:213px 225px;opacity:0;
+        animation:c-sonda .95s cubic-bezier(.55,.05,.25,1) .25s forwards,c-giro 2.8s linear 1.2s infinite}
+      .c-halo{position:absolute;inset:0;border-radius:24%;border:2px solid #5CCFC0;opacity:0;animation:c-halo 1.1s ease-out 1.2s}
+      .c-marca{font-size:34px;font-weight:700;letter-spacing:-.025em;line-height:1;display:flex}
+      .c-marca span{display:inline-block;animation:c-letra .5s cubic-bezier(.2,.8,.2,1) both}
+      .c-lema{margin:0;font-size:13.5px;color:#5C727D;letter-spacing:.01em;animation:c-letra .6s ease 1.55s both}
+      @keyframes c-tile{from{opacity:0;transform:scale(.72) rotate(-8deg)}to{opacity:1;transform:none}}
+      @keyframes c-barrido{to{stroke-dashoffset:55}}
+      @keyframes c-muela{from{transform:translateY(118px)}to{transform:none}}
+      @keyframes c-sonda{0%{opacity:0;transform:rotate(-40deg)}12%{opacity:1}100%{opacity:1;transform:rotate(-345deg)}}
+      @keyframes c-giro{from{transform:rotate(-345deg)}to{transform:rotate(-705deg)}}
+      @keyframes c-halo{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.55)}}
+      @keyframes c-letra{from{opacity:0;transform:translateY(10px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+      @media (prefers-reduced-motion:reduce){#carga *{animation:none!important}.c-barrido{stroke-dashoffset:55}.c-sonda{opacity:0}}
+    </style>
   </head>
   <body>
+    <div id="carga" role="status" aria-label="Cargando Criterium">
+      <div class="c-ficha">
+        <svg viewBox="61 60 317 317" aria-hidden="true">
+          <defs>
+            <!-- La C se dibuja como una sonda que recorre el diente: un trazo circular revela la C blanca y después el tramo verde azulado -->
+            <mask id="c-mascara" maskUnits="userSpaceOnUse" x="61" y="60" width="317" height="317">
+              <circle class="c-barrido" cx="213" cy="225" r="94.5" fill="none" stroke="#fff" stroke-width="48" pathLength="360"
+                transform="rotate(-40 213 225) translate(213 225) scale(1 -1) translate(-213 -225)" />
+            </mask>
+            <!-- La muela sube desde abajo, como una erupción: lo que queda bajo la línea no se ve -->
+            <clipPath id="c-encia"><rect x="61" y="60" width="317" height="236" /></clipPath>
+          </defs>
+          <g class="c-tile">
+            <path d="M101 60H338A40 40 0 0 1 378 100V337A40 40 0 0 1 338 377H101A40 40 0 0 1 61 337V100A40 40 0 0 1 101 60Z" fill="#1B3949" />
+            <g mask="url(#c-mascara)">
+              <path d="M301.1 151.1A115 115 0 1 0 270.5 324.6L250.0 289.1A74 74 0 1 1 269.7 177.4Z" fill="#FFFFFF" />
+              <path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" fill="#346F7D" />
+            </g>
+            <g clip-path="url(#c-encia)">
+              <path class="c-muela" d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF" />
+            </g>
+            <g class="c-sonda"><circle cx="307.5" cy="225" r="13" fill="#5CCFC0" opacity=".28" /><circle cx="307.5" cy="225" r="7.5" fill="#5CCFC0" /></g>
+          </g>
+        </svg>
+        <div class="c-halo"></div>
+      </div>
+      <div class="c-marca" aria-hidden="true"><span style="color:#0F2530;animation-delay:1.050s">C</span><span style="color:#0F2530;animation-delay:1.095s">r</span><span style="color:#0F2530;animation-delay:1.140s">i</span><span style="color:#0F2530;animation-delay:1.185s">t</span><span style="color:#0F2530;animation-delay:1.230s">e</span><span style="color:#0F2530;animation-delay:1.275s">r</span><span style="color:#2F6A78;animation-delay:1.320s">i</span><span style="color:#2F6A78;animation-delay:1.365s">u</span><span style="color:#2F6A78;animation-delay:1.410s">m</span></div>
+      <p class="c-lema">Procedimientos clínicos basados en la evidencia</p>
+    </div>
+    <script>
+      // La app llama a criteriumListo() cuando sabe si hay sesión. La pantalla espera a que termine la entrada (1,7 s)
+      (function () {
+        var t0 = Date.now(), quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.criteriumListo = function () {
+          var el = document.getElementById('carga');
+          if (!el || el.dataset.sale) return;
+          el.dataset.sale = '1';
+          setTimeout(function () {
+            el.classList.add('fuera');
+            setTimeout(function () { el.remove(); }, 500);
+          }, quieto ? 0 : Math.max(0, 1700 - (Date.now() - t0)));
+        };
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
