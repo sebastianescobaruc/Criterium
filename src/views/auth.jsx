@@ -149,7 +149,7 @@ function FormRegistro({ onCambiar }) {
     <form onSubmit={enviar} className="mt-6 flex flex-col gap-4 tarjeta p-6">
       <h2 className="m-0 text-[18px] font-bold text-deep">Crear cuenta</h2>
       <p className="m-0 text-[13.5px] leading-relaxed text-ink2">
-        Los aportes van firmados: un comentario sobre un paso clínico tiene que tener un responsable detrás.
+        Los aportes van firmados: un comentario sobre un paso clínico tiene que tener un responsable detrás. Después de crear la cuenta te preguntamos dónde estudias y qué te interesa, para armar tu perfil profesional.
       </p>
 
       <Field label="Nombre y apellido" id="reg-nombre" error={intento ? errores.nombre : ''}>
@@ -165,24 +165,6 @@ function FormRegistro({ onCambiar }) {
       <Field label="Contraseña" id="reg-pass" error={intento ? errores.pass : ''}>
         <input id="reg-pass" type="password" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })} placeholder="Al menos 6 caracteres" autoComplete="new-password"
           className={cx(inputCls, intento && errores.pass && inputErr)} />
-      </Field>
-
-      <Field label="Qué eres" id="reg-rol" hint="Especialistas y docentes pueden entrar al modo revisor.">
-        <select id="reg-rol" value={f.rol} onChange={(e) => setF({ ...f, rol: e.target.value })} className={inputCls}>
-          {ROLES.map((r) => <option key={r}>{r}</option>)}
-        </select>
-      </Field>
-
-      <Field label="Facultad o lugar de trabajo" id="reg-inst">
-        <input id="reg-inst" value={f.institucion} onChange={(e) => setF({ ...f, institucion: e.target.value })} placeholder="Facultad o lugar de trabajo" autoComplete="organization"
-          className={inputCls} />
-      </Field>
-
-      <Field label="Área (opcional)" id="reg-area">
-        <select id="reg-area" value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} className={inputCls}>
-          <option value="">Sin área</option>
-          {AREAS.map((a) => <option key={a}>{a}</option>)}
-        </select>
       </Field>
 
       {error && <div className="rounded-rs bg-badsoft px-3.5 py-2.5 text-[13px] font-semibold text-bad">{error}</div>}

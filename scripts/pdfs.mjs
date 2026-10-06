@@ -18,7 +18,7 @@ const MAX_PAGINAS = 2;
 
 // Lo que se anota a mano en el box. Sin nombre de paciente ni número de ficha (Ley 21.719).
 const CAMPOS = {
-  'cementado-pmma': ['Pieza', 'Material y lote del bloque', 'Vía (convencional / adhesiva)', 'Cemento'],
+  'cementado-pmma': ['Pieza', 'Material y lote del bloque', 'Cemento de resina y lote', 'Fecha de recambio'],
   'resina-clase-i': ['Pieza', 'Profundidad de la lesión', 'Color', 'Adhesivo y modo'],
   'exodoncia-18': ['Pieza (1.8 / 2.8)', 'Indicación', 'Tubos de anestesia', 'Comunicación al seno (mm)'],
   'pulpectomia-premolar': ['Pieza (1.4 / 2.4)', 'Dx pulpar', 'LAD · 2/3 LAD', 'LRD V / P', 'LT V / P', 'Lima inicial V / P', 'Lima maestra V / P'],

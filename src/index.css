@@ -409,3 +409,8 @@ h1,h2,h3{letter-spacing:-.02em}
 .anim .disco{fill:var(--an-instr);stroke:var(--an-metal);stroke-width:1}
 .anim .disco-l{stroke:var(--an-metal);stroke-width:1}
 .anim .recubre{fill:none;stroke:var(--menta);stroke-width:3;stroke-linecap:round;opacity:.8}
+
+/* Bienvenida (red.jsx): título grande y bajada, una pregunta por pantalla */
+.bienvenida .titulo-bv{margin:0 0 6px;font-size:30px;font-weight:700;line-height:1.12;letter-spacing:-.025em;color:var(--deep)}
+.bienvenida .sub-bv{margin:0 0 22px;font-size:15.5px;line-height:1.5;color:var(--ink-2)}
+@media (min-width:640px){.bienvenida .titulo-bv{font-size:38px}}

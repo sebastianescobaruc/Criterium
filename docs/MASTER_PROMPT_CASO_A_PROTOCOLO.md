@@ -92,7 +92,7 @@ anim: {
 - La app valida cada receta. Una receta con errores no se dibuja.
 
 <!-- catalogo:inicio (lo escribe npm run catalogo; no lo edites a mano) -->
-### Escenas hechas a mano (50)
+### Escenas hechas a mano (49)
 
 - `molar.papel` — El diente antagonista cierra sobre el papel de articular y deja marcas azules en las cúspides.
 - `molar.dique` — El dique de goma baja con el clamp hasta el cuello del diente y lo deja aislado.
@@ -138,10 +138,9 @@ anim: {
 - `pmma.probar` — Sale el provisional anterior, se limpian los restos de cemento del muñón y la corona nueva se prueba en seco: asienta sin presión con los márgenes en contacto.
 - `pmma.oclusion` — Con la corona puesta sin cemento, el papel de articular marca el contacto alto y la fresa lo ajusta.
 - `pmma.pulir` — El pulidor trabaja solo la zona que se ajustó; el resto del provisional no se toca.
-- `pmma.cemento` — Fuera de la boca, el cemento de óxido de zinc sin eugenol se carga en una capa fina sobre la cara interna de la corona, sin llenarla.
 - `pmma.arenar` — Fuera de la boca: ácido fosfórico 60 segundos en la cara interna, lavado y secado; arenado con óxido de aluminio de 50 micrones, limpieza en ultrasonido y una capa fina de primer con MMA fotopolimerizada.
 - `pmma.adhesivo` — Con el diente aislado se graba el esmalte 30 segundos y la dentina 15, se frota el adhesivo 20 segundos, se evapora el disolvente 5 segundos y la corona se cementa con resina.
-- `pmma.asentar` — El dedo asienta la corona con presión firme y sostenida y una vibración suave; el exceso de cemento sale por los márgenes y se retira en el momento justo.
+- `pmma.asentar` — El dedo asienta la corona con presión firme y sostenida y una vibración suave; el exceso de cemento sale por los márgenes y se retira en fase gel.
 - `pmma.hilo` — La sonda recorre el margen cara por cara buscando cemento; el hilo dental pasa por el contacto en vaivén y sale hacia vestibular, limpio.
 - `pmma.sellar` — Se repulen las zonas fresadas con fresa de acrílico, discos y pasta; después se aplica un recubrimiento de superficie en la cara vestibular y se fotopolimeriza.
 

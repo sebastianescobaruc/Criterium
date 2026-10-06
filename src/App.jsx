@@ -5,27 +5,29 @@ import { casosIniciales } from './seeds.js';
 import { Ctx } from './ctx.js';
 import { Ic, Avatar, Lightbox, Logo, useToasts, cx } from './ui.jsx';
 import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
-import { Mapa } from './views/mapa.jsx';
-import { Agenda, Calificaciones, Evaluaciones } from './views/agenda.jsx';
 import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.jsx';
 import { Revision } from './views/revision.jsx';
-import { Asistente } from './views/trabajo.jsx';
 import { Herramientas } from './views/herramientas.jsx';
-import { Feed, Postular, Contacto, PerfilModal, PerfilPublico } from './views/comunidad.jsx';
+import { Postular, Contacto, PerfilModal } from './views/comunidad.jsx';
+import { Feed, PerfilPublico, Bienvenida, Moderacion } from './views/red.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
-import { useEsDocente, useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS } from './db.js';
+import { useEsDocente, useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS, useEsAdmin, useColaModeracion } from './db.js';
 import AuthGate from './views/auth.jsx';
 import Migracion from './views/migracion.jsx';
 
-const VISTAS = ['inicio', 'biblioteca', 'mapa', 'agenda', 'calificaciones', 'evaluaciones', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto', 'perfil'];
+const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion'];
+// Secciones guardadas para más adelante (el código sigue en views/): no aparecen en el menú y go() las manda al inicio
+const OCULTAS = ['mapa', 'agenda', 'calificaciones', 'evaluaciones', 'asistente'];
 const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
-  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil' };
+  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil', moderacion: 'Filtro de publicación' };
 
-const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['agenda', 'clock', 'Mi agenda'], ['calificaciones', 'stamp', 'Calificaciones'], ['herramientas', 'tool', 'Herramientas']];
+const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['herramientas', 'tool', 'Herramientas']];
 // Portal docente: solo para quien está en /docentes (se agrega a mano en la consola de Firebase)
-const NAV_DOCENTE = [['evaluaciones', 'check', 'Evaluaciones'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión de casos'], ['asistente', 'bot', 'Asistente']];
-const VISTAS_DOCENTE = ['evaluaciones', 'casos', 'caso', 'editor', 'revision', 'asistente'];
-const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['mapa', 'red', 'Mapa de protocolos'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
+const NAV_DOCENTE = [['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión de casos']];
+const VISTAS_DOCENTE = ['casos', 'caso', 'editor', 'revision'];
+// Equipo Criterium: el filtro de lo que se publica (admins/{uid}, agregado a mano en la consola)
+const NAV_EQUIPO = [['moderacion', 'stamp', 'Filtro de publicación']];
+const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
 
 function lsGet(k, d) { try { const x = localStorage.getItem(k); return x ? JSON.parse(x) : d; } catch (e) { return d; } }
@@ -53,6 +55,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
   /* ── Datos de Firestore ── */
   const [esDocente, rolListo] = useEsDocente(myUid);
+  const esAdmin = useEsAdmin(myUid);
+  const colaModeracion = useColaModeracion(esAdmin);
   const [casosPropios, casosPropiosListo] = useMisCasos(rolListo && esDocente ? myUid : null);
   const [colaRevision, colaRevisionListo] = useColaRevision(rolListo && esDocente);
   const [feedFS, setFeedFS, feedListo] = useFeedFS();
@@ -118,6 +122,9 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const setLateral = (v) => { setLateralRaw(v); lsSet('criterium-lateral', v); };
   const [foto, setFoto] = useState(null);
   const [perfilOpen, setPerfilOpen] = useState(false);
+  const [bienvenida, setBienvenida] = useState(null); // null | 'nuevo' | 'editar'
+  // La bienvenida se abre sola mientras el perfil no está completo, salvo que en esta sesión eligió «completar después»
+  const [bienvenidaDespues, setBienvenidaDespues] = useState(() => { try { return sessionStorage.getItem('criterium-bienvenida') === 'despues'; } catch (e) { return false; } });
   const perfilCallback = useRef(null);
   const [checks, setChecksRaw] = useState(() => lsGet('criterium-checks', {}));
   const setChecks = (fn) => setChecksRaw((c) => { const n = typeof fn === 'function' ? fn(c) : fn; lsSet('criterium-checks', n); return n; });
@@ -130,6 +137,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   /* ── Acciones ── */
   const go = (v, extra = {}) => {
     if (VISTAS_DOCENTE.includes(v) && !esDocente) v = 'feed'; // las secciones del portal docente no existen para estudiantes
+    if (OCULTAS.includes(v) || (v === 'moderacion' && !esAdmin)) v = 'feed';
     setView(v); setMenu(false); setBuscarMovil(false);
     if (v === 'revision' && !('revisando' in extra)) setRevisando(null);
     if ('filtroCasos' in extra) setFiltroCasos(extra.filtroCasos);
@@ -280,7 +288,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
   /* ── Conteo y badges ── */
   const mios = todos.filter((c) => c.autorUid === myUid);
-  const badge = { casos: mios.filter((c) => c.estado === 'cambios').length, revision: modoRevisor ? colaRevision.length : 0 };
+  const badge = { casos: mios.filter((c) => c.estado === 'cambios').length, revision: modoRevisor ? colaRevision.length : 0, moderacion: colaModeracion.length };
 
   /* ── Contexto ── */
   // Para compatibilidad con el código existente, 'casos' incluye todos (propios + cola de revisión)
@@ -291,7 +299,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     q, setQ, esp, setEsp, filtroCasos, setFiltroCasos, feedProto, setFeedProto, asisTab, setAsisTab, herrTab, setHerrTab,
     casos: todos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion: guardarPostulacion, mensajes, setMensajes: guardarMensaje,
     checks, setChecks, avisar, verFoto: setFoto,
-    usuario, myUid, logout, perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setPerfilOpen(true)
+    usuario, myUid, logout, perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'), esAdmin
   };
 
   /* ── Render ── */
@@ -312,6 +320,10 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
       {esDocente && <>
         <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Portal docente</div>
         {NAV_DOCENTE.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
+      </>}
+      {esAdmin && <>
+        <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Equipo Criterium</div>
+        {NAV_EQUIPO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
       </>}
       <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Biblioteca y comunidad</div>
       {NAV_BIBLIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
@@ -342,9 +354,9 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const vista = !listo ? (
     <div className="flex flex-col gap-4 pt-8"><div className="h-8 w-64 animate-pulse rounded-rs bg-soft" /><div className="h-4 w-96 max-w-full animate-pulse rounded-rs bg-soft" /><div className="h-48 animate-pulse rounded-r bg-soft" /></div>
   ) : ({
-    inicio: <Inicio />, biblioteca: <Biblioteca />, mapa: <Mapa />, agenda: <Agenda />, calificaciones: <Calificaciones />, evaluaciones: <Evaluaciones />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
-    editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, asistente: <Asistente />, herramientas: <Herramientas />,
-    feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />
+    inicio: <Inicio />, biblioteca: <Biblioteca />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
+    editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, herramientas: <Herramientas />,
+    feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />, moderacion: <Moderacion />
   })[view];
 
   return (
@@ -405,16 +417,16 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5">
-          {(esDocente ? [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['evaluaciones', 'check', 'Evaluar'], ['casos', 'folder', 'Casos']]
-            : [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['agenda', 'clock', 'Agenda'], ['calificaciones', 'stamp', 'Notas']]).map(([v, i, t]) => (
-            <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
+          {(esDocente ? [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisar']]
+            : [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['herramientas', 'tool', 'Herramientas'], ['perfil', 'userCheck', 'Perfil']]).map(([v, i, t]) => (
+            <button key={v} type="button" onClick={() => (v === 'perfil' ? verPerfil(myUid) : go(v))} aria-current={activo(view, v) ? 'page' : undefined}
               className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-ink' : 'text-ink3')}>
               {activo(view, v) && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-menta" aria-hidden="true" />}
               <Ic n={i} s={21} sw={activo(view, v) ? 2.2 : 1.7} className={activo(view, v) ? 'text-acento' : ''} />{t}
               {badge[v] > 0 && <span className={cx('absolute left-1/2 top-1.5 ml-2 min-w-[16px] rounded-full px-1 text-[10px] font-bold leading-4 text-onc', v === 'casos' ? 'bg-warn' : 'bg-acento')}>{badge[v]}</span>}
             </button>
           ))}
-          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['asistente', 'herramientas', 'inicio', 'postular', 'contacto'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
+          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['herramientas', 'inicio', 'postular', 'contacto', 'moderacion'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
         </div>
       </nav>
 
@@ -432,6 +444,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
       )}
 
       {perfilOpen && <PerfilModal open={perfilOpen} onClose={() => setPerfilOpen(false)} />}
+      {(bienvenida || (perfil && perfil.onboarding !== true && !bienvenidaDespues)) && <Bienvenida editar={bienvenida === 'editar'} cerrar={() => { setBienvenida(null); setBienvenidaDespues(true); }} />}
       <Lightbox foto={foto} onClose={() => setFoto(null)} />
       {toasts}
     </Ctx.Provider>

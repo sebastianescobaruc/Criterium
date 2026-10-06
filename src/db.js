@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc,
-  query, where, orderBy, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment
 } from 'firebase/firestore';
 import {
   ref, uploadBytes, getDownloadURL, deleteObject
@@ -330,12 +330,81 @@ export async function responderPostFS(postId, respuesta) {
   await updateDoc(doc(db, 'feed', postId), { respuestas: arrayUnion(respuesta) });
 }
 
-/** Perfil público: solo datos profesionales, nunca el correo. */
-export const PERFIL_PUBLICO = ['nombre', 'rol', 'institucion', 'area', 'descripcion'];
+/** Perfil público: solo datos profesionales, nunca el correo.
+    rol (etapa: estudiante, egresado, especialista, docente), institucion, anio (año que cursa o de egreso),
+    intereses (especialidades) y temas (listas cortas), descripcion y onboarding (terminó la bienvenida).
+    tipo 'oficial' y verificado los pone solo el equipo Criterium desde la consola: nadie se los pone a sí mismo. */
+export const PERFIL_PUBLICO = ['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio'];
+export const PERFIL_LISTAS = ['intereses', 'temas'];
 export async function guardarPerfilPublicoFS(uid, p) {
   const datos = {};
   PERFIL_PUBLICO.forEach((k) => { datos[k] = (p && typeof p[k] === 'string') ? p[k] : ''; });
+  PERFIL_LISTAS.forEach((k) => { datos[k] = (p && Array.isArray(p[k])) ? p[k].filter((x) => typeof x === 'string').slice(0, 12) : []; });
+  datos.onboarding = !!(p && p.onboarding);
   await setDoc(doc(db, 'perfiles', uid), { ...datos, actualizado: new Date().toISOString() }, { merge: true });
+}
+
+/** Personas de la comunidad (para «A quién seguir»). La comunidad es chica: se leen hasta 200 perfiles. */
+export function usePerfiles(activo = true) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!activo) return;
+    return onSnapshot(query(collection(db, 'perfiles'), limit(200)), (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), uid: d.id }))), () => setLista([]));
+  }, [activo]);
+  return lista;
+}
+
+/* ═══════ Filtro de publicación (equipo Criterium) ═══════
+   Los casos clínicos, borradores y protocolos no van directo al feed: entran a pendientes/{id} con estado 'revision'.
+   Los ven solo su autor y el equipo (admins/{uid}, agregado a mano en la consola). Al aprobarse, el equipo copia la
+   publicación al feed con el mismo id; si se rechaza, queda con el motivo y el autor lo ve en su perfil. */
+export const MODERADOS = ['caso', 'borrador', 'protocolo'];
+export function useEsAdmin(uid) {
+  const [es, setEs] = useState(false);
+  useEffect(() => {
+    if (!uid) { setEs(false); return; }
+    return onSnapshot(doc(db, 'admins', uid), (s) => setEs(s.exists()), () => setEs(false));
+  }, [uid]);
+  return es;
+}
+/** Publica: lo simple va al feed; lo que necesita filtro, a pendientes. Devuelve 'feed' o 'revision'. */
+export async function publicarFS(post) {
+  if (MODERADOS.includes(post.tipo)) {
+    await addDoc(collection(db, 'pendientes'), { ...post, estado: 'revision' });
+    return 'revision';
+  }
+  await addDoc(collection(db, 'feed'), { ...post, estado: 'publicado' });
+  return 'feed';
+}
+export function useMisPendientes(uid) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!uid) { setLista([]); return; }
+    return onSnapshot(query(collection(db, 'pendientes'), where('autorUid', '==', uid)),
+      (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((p) => p.estado !== 'aprobado').sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))), () => setLista([]));
+  }, [uid]);
+  return lista;
+}
+export function useColaModeracion(activo) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!activo) { setLista([]); return; }
+    return onSnapshot(query(collection(db, 'pendientes'), where('estado', '==', 'revision')),
+      (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''))), () => setLista([]));
+  }, [activo]);
+  return lista;
+}
+export async function aprobarFS(p, admin) {
+  const { id, estado, ...resto } = p;
+  const moderacion = { por: admin, fecha: new Date().toISOString() };
+  await setDoc(doc(db, 'feed', id), { ...resto, estado: 'publicado', moderacion });
+  await updateDoc(doc(db, 'pendientes', id), { estado: 'aprobado', moderacion });
+}
+export async function rechazarFS(id, motivo, admin) {
+  await updateDoc(doc(db, 'pendientes', id), { estado: 'rechazado', moderacion: { por: admin, fecha: new Date().toISOString(), motivo } });
+}
+export async function borrarPendienteFS(id) {
+  await deleteDoc(doc(db, 'pendientes', id));
 }
 
 export function usePerfilPublico(uid) {

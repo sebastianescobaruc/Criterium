@@ -1,9 +1,9 @@
 // Contenido original de la biblioteca Criterium (portado sin cambios del borrador anterior).
 export const PROTOS = [
-    { id:'cementado-pmma', corto:'Cementado PMMA', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.4',
+    { id:'cementado-pmma', corto:'Cementado PMMA', esp:'Rehabilitación oral', estadoTxt:'Borrador de estudiante v0.5',
       t:'Cementado de corona provisional de PMMA fresado CAD/CAM',
-      s:'Corona unitaria sobre diente natural, de 6 a 24 meses. Dos vías: convencional y adhesiva. Solo la sesión de cementado.',
-      extraTxt:'1 paso en disputa', n:'', abre:true,
+      s:'Corona unitaria sobre diente natural, de 6 a 24 meses, cementada por vía adhesiva con cemento de resina. Solo la sesión de cementado.',
+      extraTxt:'Busca revisores', n:'', abre:true,
       k:'cementar cemento provisional pmma cadcam corona temporal eugenol adhesivo arenado primer mma resina superbond ferula larga duracion' },
     { id:'resina-clase-i', corto:'Resina clase I', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.2',
       t:'Restauración de resina compuesta clase I oclusal',
@@ -35,30 +35,30 @@ export const PROTOS = [
 export const DATOS = {
     'cementado-pmma': {
       esp:'Rehabilitación oral',
-      pdf:'protocolo-cementado-pmma-v0.4.pdf',
+      pdf:'protocolo-cementado-pmma-v0.5.pdf',
+      // Camino a la publicación: lo redactó un estudiante y espera a los expertos (mínimo 5) y al filtro final
+      flujo:{ autor:'un estudiante de Odontología', revisores:0, minimo:5 },
       titulo:'Cementado de corona provisional de PMMA fresado CAD/CAM sobre diente natural',
-      bandera:'BORRADOR · DIEZ FUENTES REALES VERIFICADAS · SIN REVISIÓN DE ESPECIALISTA',
-      tags:['Provisional de larga duración','6–24 meses','v0.4 · borrador','Dos vías de cementación','1 paso en disputa'],
-      alcance:'la sesión de cementado de una corona unitaria de PMMA fresado sobre diente natural, con permanencia prevista entre 6 y 24 meses. Cubre las dos vías: la convencional con óxido de zinc y la adhesiva con cemento de resina. No cubre el diseño, el fresado ni la prueba previa del provisional, y no aplica sobre pilar de implante.',
+      bandera:'BORRADOR DE ESTUDIANTE · NUEVE FUENTES REALES VERIFICADAS · ESPERA REVISIÓN DE EXPERTOS',
+      tags:['Provisional de larga duración','6–24 meses','v0.5 · borrador de estudiante','Vía adhesiva'],
+      alcance:'la sesión de cementado de una corona unitaria de PMMA fresado sobre diente natural, con permanencia prevista entre 6 y 24 meses. Cubre solo la vía adhesiva, con cemento de resina. No cubre el diseño, el fresado ni la prueba previa del provisional, y no aplica sobre pilar de implante.',
       bandeja:[
         { fase:'Antes de sentar al paciente', items:['Registro del bloque: material, marca y lote','Sonda periodontal milimetrada','Radiografía periapical basal del pilar','Radiómetro para comprobar la lámpara'] },
         { fase:'Prueba y ajuste', items:['Papel de articular y pinza','Fresas de pulido para acrílico','Discos y puntas de silicona','Hilo dental','Sonda de exploración'] },
-        { fase:'Vía convencional', items:['Cemento de óxido de zinc sin eugenol','Loseta y espátula de cemento','Rollos de algodón para aislamiento relativo'] },
-        { fase:'Vía adhesiva', items:['Arenador con óxido de aluminio de 50 µm y manómetro','Ácido ortofosfórico al 37 %','Baño ultrasónico y alcohol de 96 %','Primer con MMA','Cemento de resina y su adhesivo','Microbrushes y pinceles desechables','Dique de goma, o hilo retractor y aspiración','Cinta de teflón o matriz para proximal','Lámpara de fotopolimerización','Gel de glicerina'] },
+        { fase:'Cementación adhesiva', items:['Arenador con óxido de aluminio de 50 µm y manómetro','Ácido ortofosfórico al 37 %','Baño ultrasónico y alcohol de 96 %','Primer con MMA','Cemento de resina y su adhesivo','Microbrushes y pinceles desechables','Dique de goma, o hilo retractor y aspiración','Cinta de teflón o matriz para proximal','Lámpara de fotopolimerización','Gel de glicerina'] },
         { fase:'Acabado y cierre', items:['Hilo dental y superfloss','Papel de articular de 40 µm','Pasta de pulido para resina','Recubrimiento de superficie fotopolimerizable','Ficha clínica y agenda de controles'] }
       ],
       evidencia:[
         { n:'01', grado:'Grado D · documentación de fabricante', txt:'PMMA fresado reticulado: 135 MPa y permanencia máxima indicada de 12 meses.' },
-        { n:'03', grado:'Grado B · revisión sistemática con metaanálisis', txt:'Férula de 2 mm o más: +165 N de resistencia a la fractura. En clínica el efecto es más débil.' },
-        { n:'06', grado:'Grado B · in vitro comparativo', txt:'Rugosidad del PMMA fresado ya bajo el umbral de 0,2 µm.' },
-        { n:'07', grado:'Grado C · metaanálisis in vitro', txt:'En disputa: eugenol y adhesión a dentina a 14 días.' },
-        { n:'08', grado:'Grado C · in vitro', txt:'PMMA CAD/CAM sin acondicionar: casi no hay unión. El primer con MMA la levanta.' },
-        { n:'09', grado:'Sin evidencia', txt:'Fotopolimerizar o no el adhesivo del muñón: depende del sistema de cemento.' },
-        { n:'11', grado:'Grado C · población distinta', txt:'Cemento residual y enfermedad periimplantaria.' },
-        { n:'12', grado:'Grado C · in vitro', txt:'El recubrimiento de resina mejora la estabilidad de color del PMMA fresado.' },
-        { n:'13', grado:'Sin evidencia', txt:'Indicaciones al paciente: práctica habitual.' }
+        { n:'02', grado:'Grado B · revisión sistemática con metaanálisis', txt:'Férula de 2 mm o más: +165 N de resistencia a la fractura. En clínica el efecto es más débil.' },
+        { n:'05', grado:'Grado B · in vitro comparativo', txt:'Rugosidad del PMMA fresado ya bajo el umbral de 0,2 µm.' },
+        { n:'06', grado:'Grado C · in vitro', txt:'PMMA CAD/CAM sin acondicionar: casi no hay unión. El primer con MMA la levanta.' },
+        { n:'07', grado:'Sin evidencia', txt:'Fotopolimerizar o no el adhesivo del muñón: depende del sistema de cemento.' },
+        { n:'09', grado:'Grado C · población distinta', txt:'Cemento residual y enfermedad periimplantaria.' },
+        { n:'10', grado:'Grado C · in vitro', txt:'El recubrimiento de resina mejora la estabilidad de color del PMMA fresado.' },
+        { n:'11', grado:'Sin evidencia', txt:'Indicaciones al paciente: práctica habitual.' }
       ],
-      nota:'Borrador v0.4. Fusiona la versión convencional publicada antes con la vía adhesiva de larga duración, y generaliza el alcance a cualquier corona unitaria de PMMA fresado. Las diez fuentes están verificadas y con su referencia completa; lo que falta en todas es el localizador de párrafo, y en la documentación de fabricante, el documento exacto. Dos cifras no tienen fuente y se publican como extrapolación declarada: los 50 µm y los 1–2 bar del arenado. Ninguna versión de este documento debe usarse en un paciente hasta que el panel de expertos lo revise.',
+      nota:'Borrador v0.5, hecho por un estudiante. Solo la vía adhesiva: la vía convencional con óxido de zinc se eliminó. Generaliza el alcance a cualquier corona unitaria de PMMA fresado. Las fuentes están verificadas y con su referencia completa; lo que falta en todas es el localizador de párrafo, y en la documentación de fabricante, el documento exacto. Dos cifras no tienen fuente y se publican como extrapolación declarada: los 50 µm y los 1–2 bar del arenado. Ninguna versión de este documento debe usarse en un paciente hasta que el panel de expertos lo revise.',
       pasos:[
         { corto:'Confirma de qué material es la corona', hacer:'Confirma con el laboratorio el material exacto antes de tocar la corona.',
           listo:'Terminaste cuando tienes anotado en la ficha el material, la marca del bloque y el lote.',
@@ -68,21 +68,6 @@ export const DATOS = {
               { grado:'Grado D · documentación de fabricante', cita:'Ivoclar Vivadent. Telio CAD: bloques de PMMA reticulado para provisionales de larga duración. Documentación de producto.', url:'https://www.ivoclar.com/en_li/products/digital-processes/telio-cad', loc:'Resistencia flexural 135 MPa · permanencia máxima 12 meses en coronas · localizador pendiente' }
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Asumir que todo provisional fresado es PMMA. Los bloques de composite CAD se fresan igual y se ven parecidos, pero se acondicionan al revés.','Empezar a arenar sin saber qué material es. El arenado sobre un composite CAD no es el error grave; el grave es el fluorhídrico sobre PMMA, que no hace nada y te hace creer que grabaste.'] }
-          ] },
-        { corto:'Elige la vía de cementación antes de preparar nada', hacer:'Elige la vía ahora: cementa con óxido de zinc sin eugenol.',
-          cond:'→ si el provisional durará menos de 12 meses, el muñón es alto y retentivo y la definitiva irá adherida',
-          listo:'Terminaste cuando la vía está decidida y el cemento está en la bandeja, antes de retirar el provisional anterior.',
-          porque:['Decidir con la corona ya en la mano termina en usar lo que había en el pañol. Las dos vías piden materiales distintos, y la adhesiva necesita arenado y primer que no se improvisan.','La diferencia práctica es cómo termina la corona. La vía convencional permite retirarla entera. La adhesiva retiene mucho más, pero para sacarla hay que fresarla: la corona se pierde y eso hay que asumirlo desde el principio.'],
-          sub:[
-            { titulo:'¿y si mi caso es otro?', arbol:[
-              { q:'¿El provisional dura menos de 12 meses, el muñón es alto y retentivo y la definitiva irá cementada con resina?', a:'Vía convencional con óxido de zinc sin eugenol — el caso más frecuente.' },
-              { q:'¿La definitiva se cementará con vidrio ionómero o con un cemento convencional?', a:'Vía convencional. Aquí la restricción del eugenol deja de aplicar y puedes usar óxido de zinc con eugenol.' },
-              { q:'¿La permanencia prevista pasa de 12 meses, o el muñón es corto o cónico, o el pilar está endodonciado con poste?', a:'Vía adhesiva: arenado, primer con MMA y cemento de resina. Asume que la corona se destruye al retirarla.' },
-              { q:'¿No tienes primer con MMA?', a:'Vía adhesiva con un cemento de 4-META/MMA-TBB, cuyo propio monómero penetra el acrílico. No te ahorra el arenado.' },
-              { q:'¿Quieres poder retirar la corona sin romperla para rebasarla, y el muñón tiene retención de sobra?', a:'Ionómero de vidrio modificado con resina. Ojo: no une al PMMA, toda la retención viene del tallado. Con muñón corto o cónico no es una opción.' },
-              { q:'¿Es sobre un pilar de implante?', a:'Fuera del alcance de este protocolo.' }
-            ] },
-            { titulo:'dónde se equivoca la gente', parrafos:['Elegir ionómero modificado con resina en un muñón corto pensando que el cemento compensa la falta de retención. No la compensa: ese cemento no se une al acrílico.','Dejar la decisión para el momento del cementado. Si eliges la vía adhesiva a esa altura, la corona ya se probó en boca y está contaminada con saliva, y el arenador no está montado.'] }
           ] },
         { anim:'pmma.ferula', corto:'Mide la férula si el pilar está endodonciado', hacer:'Mide con sonda milimetrada la dentina sana que queda por debajo del margen de la corona, en todo el perímetro.',
           cond:'→ solo si el pilar está endodonciado y llevará poste',
@@ -97,7 +82,7 @@ export const DATOS = {
           ] },
         { anim:'pmma.probar', corto:'Retira el provisional anterior y prueba en seco', hacer:'Retira el provisional anterior, elimina todo resto de cemento del muñón y prueba la corona en boca antes de preparar nada.',
           listo:'Terminaste cuando asienta por completo sin presión, los márgenes contactan la preparación en todo el perímetro y el punto de contacto pasa hilo dental con resistencia leve.',
-          porque:['Una corona que no asienta antes del cemento no va a asentar después. La película de cemento agrega espesor: si ya había interferencia en seco, al cementar queda alta y con el margen abierto.','Un margen abierto en un provisional de larga duración deja expuesta la dentina durante meses. Ahí es donde aparecen la sensibilidad y la caries recurrente que después obligan a rehacer.','Si el provisional anterior estaba cementado con óxido de zinc con eugenol y vas por la vía adhesiva, el eugenol que queda en la dentina inhibe la polimerización del cemento de resina. No basta con lavar: hay que limpiar mecánicamente, con piedra pómez sin flúor o con clorhexidina al 2 %. Nada de pastas de profilaxis con glicerina o aceites.'],
+          porque:['Una corona que no asienta antes del cemento no va a asentar después. La película de cemento agrega espesor: si ya había interferencia en seco, al cementar queda alta y con el margen abierto.','Un margen abierto en un provisional de larga duración deja expuesta la dentina durante meses. Ahí es donde aparecen la sensibilidad y la caries recurrente que después obligan a rehacer.','Si el provisional anterior estaba cementado con óxido de zinc con eugenol, el eugenol que queda en la dentina inhibe la polimerización del cemento de resina. No basta con lavar: hay que limpiar mecánicamente, con piedra pómez sin flúor o con clorhexidina al 2 %. Nada de pastas de profilaxis con glicerina o aceites.'],
           sub:[{ titulo:'dónde se equivoca la gente', parrafos:['Probar el asentamiento empujando fuerte con el dedo. La presión enmascara la interferencia: la corona entra, pero rebota apenas se suelta. Si tienes que forzarla, no asienta.','No revisar el punto de contacto. Un provisional sin contacto proximal deja migrar al diente vecino en semanas, y la corona definitiva ya no calza.','Probar la corona en boca y después cementarla por vía adhesiva sin descontaminar la cara interna. La saliva deja una película que el agua no saca.'] }] },
         { anim:'pmma.oclusion', corto:'Ajusta la oclusión sin cementar', hacer:'Ajusta la oclusión con el provisional todavía sin cementar.',
           listo:'Terminaste cuando el papel de articular marca contactos del mismo grosor que en los dientes vecinos, en máxima intercuspidación y en lateralidades.',
@@ -109,18 +94,8 @@ export const DATOS = {
             { grado:'Grado B · estudio in vitro comparativo', cita:'Burduroglu HD, Kanpalta B, Şentürk H, Keleş ZH, Sismanoglu S. Surface roughness and bacterial adhesion of CAD/CAM and conventional provisional restorative materials. Materials. 2026.', url:'https://doi.org/10.3390/ma19163421', loc:'Telio CAD 0,136 ± 0,011 µm · Vita CAD-Temp 0,144 ± 0,005 µm · localizador pendiente' },
             { grado:'Grado B · umbral de referencia', cita:'Bollen CM, Lambrechts P, Quirynen M. Comparison of surface roughness of oral hard materials to the threshold surface roughness for bacterial plaque retention. Dent Mater. 1997.', url:'https://doi.org/10.1016/S0109-5641(97)80038-3', loc:'Umbral de 0,2 µm · localizador pendiente' }
           ] }] },
-        { anim:'pmma.cemento', corto:'Vía convencional: cementa sin eugenol', marca:'en disputa',
-          disputa:'La evidencia de 2023 contradice la práctica establecida. Pendiente de resolución por el panel de expertos.',
-          hacer:'Carga el cemento de óxido de zinc sin eugenol en una capa fina sobre la cara interna, sin llenar la cofia.',
-          cond:'→ vía convencional, cuando la definitiva se cementará con un cemento resinoso',
-          listo:'Terminaste cuando el cemento está mezclado según el fabricante y cargado en una capa fina en la cara interna, sin llenar la cofia.',
-          porque:['El eugenol residual queda en la dentina e interfiere con la polimerización de los cementos resinosos. Si vas a cementar la definitiva con resina, un provisional con eugenol te puede costar la retención de la corona final.','Se carga una capa fina y no se llena la cofia porque el exceso tiene que salir por algún lado: si llenas, sale todo por el margen hacia el surco.'],
-          sub:[
-            { titulo:'dónde no hay acuerdo', parrafos:['Lo que se enseña: el eugenol residual interfiere con la polimerización de los cementos resinosos, así que hay que evitarlo si la definitiva va adherida.','Lo que dice la evidencia más reciente: una revisión sistemática con metaanálisis de 2023 concluye que los materiales temporales con eugenol no tienen efecto adverso sobre la adhesión a dentina pasados 14 días.','Por qué Criterium no cambia la recomendación todavía: ese metaanálisis reúne solo estudios in vitro. La regla del validador impide que una revisión otorgue un grado superior al de los estudios que resume, así que su techo es grado C. Un grado C no basta para desplazar una práctica establecida.','El paso queda marcado en disputa hasta que lo resuelva el panel.'],
-              fuentes:[{ grado:'Grado C · metaanálisis de estudios in vitro', cita:'da Rosa LS, Ribeiro JF, Pinto LT, Gonçalves LS, Rocha RO, Soares FZM. No adverse effect of eugenol-based temporary materials on bonding to dentin after 14 days: a systematic review and meta-analysis of in vitro studies. Int J Adhes Adhes. 2023.', loc:'DOI 10.1016/j.ijadhadh.2023.103398 · localizador de párrafo pendiente' }] }
-          ] },
-        { anim:'pmma.arenar', corto:'Vía adhesiva: arena la cara interna y prímala con MMA', hacer:'Descontamina la cara interna con ácido ortofosfórico al 37 % durante 60 segundos, lava y seca. Después arena con óxido de aluminio de 50 µm a 1–2 bar, limpia en ultrasonido y aplica una capa fina de primer con MMA.',
-          cond:'→ vía adhesiva, fuera de la boca',
+        { anim:'pmma.arenar', corto:'Arena la cara interna y prímala con MMA', hacer:'Descontamina la cara interna con ácido ortofosfórico al 37 % durante 60 segundos, lava y seca. Después arena con óxido de aluminio de 50 µm a 1–2 bar, limpia en ultrasonido y aplica una capa fina de primer con MMA.',
+          cond:'→ fuera de la boca',
           listo:'Terminaste cuando la cara interna está mate y uniforme, seca, con el primer fotopolimerizado, y la corona guardada protegida de la luz.',
           porque:['El PMMA no tiene fase vítrea, así que el ácido fluorhídrico no disuelve nada y no deja ningún patrón de grabado. El ortofosfórico tampoco graba el acrílico: sirve solo para retirar la película de saliva que el agua no saca.','La unión a un PMMA ya polimerizado se consigue por dos caminos y solo dos: la rugosidad que deja el arenado y la unión química del MMA, que hincha el acrílico, penetra en él y copolimeriza. Un adhesivo universal corriente no hace eso.','La presión del arenado es el parámetro crítico. El acrílico se erosiona mucho antes que la cerámica: si arenas a presión alta pierdes ajuste marginal en una corona que tiene que durar meses. El objetivo del arenado aquí es rugosidad, no desgaste.'],
           sub:[
@@ -130,8 +105,8 @@ export const DATOS = {
             { titulo:'ojo con esta evidencia', parrafos:['La fuente que tenemos prueba el primer, no la presión. Lo demostrado es que sin acondicionar no hay unión y que un primer con MMA la levanta.','Las cifras de 50 µm y 1–2 bar no salen de un ensayo sobre tu bloque comercial: vienen de la práctica establecida. No existe una presión normalizada por material, así que Criterium las publica como extrapolación declarada, no como dato duro.'] },
             { titulo:'dónde se equivoca la gente', parrafos:['Grabar la cara interna con ácido fluorhídrico. No hay fase vítrea que disolver: solo añade riesgo de manipulación.','Saltarse el primer con MMA y confiar en un adhesivo universal. Ese es el escenario clásico del descementado a las pocas semanas: el cemento se queda pegado al diente y la corona sale entera.','Arenar a la presión que usarías sobre circonia. Sobre circonia retiras una capa despreciable; sobre acrílico desajustas la corona.'] }
           ] },
-        { anim:'pmma.adhesivo', corto:'Vía adhesiva: acondiciona el muñón y cementa con resina', hacer:'Aísla, graba esmalte 30 segundos y dentina 15, aplica el adhesivo frotando 20 segundos, evapora el disolvente 5 segundos y cementa con resina.',
-          cond:'→ vía adhesiva, una corona a la vez',
+        { anim:'pmma.adhesivo', corto:'Acondiciona el muñón y cementa con resina', hacer:'Aísla, graba esmalte 30 segundos y dentina 15, aplica el adhesivo frotando 20 segundos, evapora el disolvente 5 segundos y cementa con resina.',
+          cond:'→ una corona a la vez',
           listo:'Terminaste cuando el margen se comprueba con sonda, el exceso se retiró en fase gel, polimerizaste 20 a 40 segundos por cara y repolimerizaste 10 segundos con glicerina en los márgenes.',
           porque:['Se empieza grabando el esmalte y el ácido llega a la dentina después, nunca al revés. Sobregrabar la dentina colapsa la malla de colágeno y la capa híbrida queda incompleta: la adhesión empeora, no mejora.','El esmalte se seca hasta que queda con aspecto de tiza; la dentina solo hasta húmeda y brillante. Desecada, el colágeno se desploma.','La glicerina tapa el oxígeno del aire. Sin ella queda una capa superficial sin polimerizar justo en el margen, que es donde menos te conviene.','Una corona a la vez. Si cementas varias juntas, en alguna el exceso fragua antes de que llegues a retirarlo.'],
           sub:[
@@ -139,14 +114,14 @@ export const DATOS = {
             { titulo:'dónde se equivoca la gente', parrafos:['Dispensar el cemento sobre el muñón en vez de sobre la cara interna de la corona. Se incorporan burbujas y el exceso sale donde no quieres.','Cementar sobre restos de cemento provisional con eugenol. Inhibe la polimerización de la resina.'] }
           ] },
         { anim:'pmma.asentar', corto:'Asienta y retira el exceso en el momento justo', hacer:'Asienta con presión digital firme y sostenida, con vibración suave, hasta el asentamiento completo, y retira el exceso en el momento justo.',
-          listo:'Terminaste cuando el margen se recorre con sonda sin escalón y el exceso salió entero: en la vía convencional cuando ya no se deforma y se quiebra, en la adhesiva en fase gel.',
-          porque:['En la vía convencional, el exceso se retira entero justo cuando pierde el brillo. Si lo sacas antes, todavía está pegajoso y arrastras cemento desde debajo del margen, dejando la zona sin sellar. Si lo dejas endurecer del todo, después tienes que rasparlo y rayas la raíz.','En la vía adhesiva el momento es la fase gel. Si el sistema lo permite, un destello de 1 a 3 segundos por cara lleva el cemento a esa consistencia y el exceso sale de una pieza.'] },
+          listo:'Terminaste cuando el margen se recorre con sonda sin escalón y el exceso salió entero, en fase gel.',
+          porque:['El momento justo es la fase gel. Si el sistema lo permite, un destello de 1 a 3 segundos por cara lleva el cemento a esa consistencia y el exceso sale de una pieza.','Si lo retiras antes, arrastras cemento desde debajo del margen y la zona queda sin sellar. Si lo dejas endurecer del todo, después tienes que rasparlo y rayas la raíz.'] },
         { anim:'pmma.hilo', corto:'Revisa el margen con sonda y pasa hilo', hacer:'Revisa el margen con sonda cara por cara y pasa hilo dental por ambos contactos en vaivén, sacándolo hacia vestibular.',
           listo:'Terminaste cuando la sonda recorre todo el margen sin encontrar cemento y el hilo sale limpio.',
           porque:['El cemento que queda bajo la encía no se reabsorbe. Se comporta como un cuerpo extraño y mantiene inflamación mientras dure el provisional. A 24 meses eso no es un detalle estético.','Un estudio endoscópico de 2025 encontró cemento residual en el 80,4 % de los implantes que ya tenían enfermedad periimplantaria: 37 de 46. De esos, 64,9 % con mucositis y 35,1 % con periimplantitis.'],
           sub:[
             { titulo:'ojo con esta evidencia', parrafos:['Ese estudio es en implantes, no en dientes naturales. El surco periimplantario y el periodonto no se comportan igual, así que la cifra no se traslada directo a tu caso.','Sirve como advertencia de la magnitud del problema, no como prueba de lo que pasa en un diente natural. Criterium lo declara en vez de esconderlo.'],
-              fuentes:[{ grado:'Grado C · transversal, población distinta', cita:'Montevecchi M, Valeriani L, Salvadori MF, Stefanini M, Zucchelli G. Excess cement and peri-implant disease: a cross-sectional clinical endoscopic study. J Periodontol. 2025;96(9):965–973.', url:'https://doi.org/10.1002/jper.24-0510', loc:'Recomienda óxido de zinc por ser más detectable y removible · localizador pendiente' }] },
+              fuentes:[{ grado:'Grado C · transversal, población distinta', cita:'Montevecchi M, Valeriani L, Salvadori MF, Stefanini M, Zucchelli G. Excess cement and peri-implant disease: a cross-sectional clinical endoscopic study. J Periodontol. 2025;96(9):965–973.', url:'https://doi.org/10.1002/jper.24-0510', loc:'Cemento residual en 37 de 46 implantes con enfermedad periimplantaria (80,4 %) · localizador pendiente' }] },
             { titulo:'dónde se equivoca la gente', parrafos:['Pasar el hilo hacia abajo y tirarlo de vuelta hacia oclusal. Eso vuelve a meter el cemento en el contacto. El hilo se saca tirando hacia vestibular o lingual.','Rascar el exceso endurecido con instrumento. Genera fragmentos que se meten más profundo en el surco en vez de salir.'] }
           ] },
         { anim:'pmma.sellar', corto:'Sella toda superficie que hayas fresado', hacer:'Repule con fresa de acrílico, discos y pasta, y aplica un recubrimiento de superficie fotopolimerizable sobre la cara vestibular.',
@@ -162,7 +137,7 @@ export const DATOS = {
           ] },
         { corto:'Indicaciones, ficha y controles', marca:'sin evidencia',
           hacer:'Da las indicaciones al paciente, registra en ficha y deja agendado el control.',
-          listo:'Terminaste cuando el paciente puede repetirte la indicación con sus palabras y la ficha tiene material y lote del bloque, vía de cementación, cemento y lote, y la fecha de recambio.',
+          listo:'Terminaste cuando el paciente puede repetirte la indicación con sus palabras y la ficha tiene material y lote del bloque, cemento y lote, y la fecha de recambio.',
           sinEv:'Sin evidencia — práctica habitual, sin respaldo de alto nivel',
           porque:['Las indicaciones que se dan son evitar alimentos pegajosos, no usar hilo en esa zona por 24 horas, y contar que el café, el té, el vino tinto y el tabaco pigmentan el acrílico mucho más que el esmalte. Se enseñan y se repiten en clínica, pero no encontramos evidencia que las respalde con un nivel aceptable. Criterium no las borra ni las disfraza: las publica marcadas.','Decirlo es parte del objetivo. Un estudiante tiene que poder distinguir lo que está fundamentado de lo que solo se hereda por costumbre.','Lo que sí depende de ti es la fecha. Si la permanencia prevista pasa de los 12 meses que indica el fabricante, la fecha de recambio se anota hoy, no dentro de dos años.'] }
       ]

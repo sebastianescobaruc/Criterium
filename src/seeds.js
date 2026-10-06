@@ -36,11 +36,10 @@ export function casosIniciales() {
       diagnostico: 'Pilar 2.1 endodonciado con poste de fibra, tallado para corona de disilicato. Provisional de PMMA fresado mientras termina el tratamiento periodontal (8 meses estimados).',
       procedimiento: 'Prueba en seco, ajuste oclusal y pulido de la zona ajustada. Cementado convencional con óxido de zinc con eugenol, el único disponible en el pañol.',
       pasos: {
-        0: { estado: 'hecho' }, 1: { estado: 'hecho' },
-        2: { estado: 'hecho' }, 3: { estado: 'hecho' }, 4: { estado: 'hecho' }, 5: { estado: 'hecho' },
-        6: { estado: 'modificado', nota: 'Solo había cemento con eugenol en el pañol.' },
-        7: { estado: 'noaplica' }, 8: { estado: 'noaplica' },
-        9: { estado: 'hecho' }, 10: { estado: 'hecho' }, 11: { estado: 'hecho' }, 12: { estado: 'hecho' }
+        0: { estado: 'hecho' }, 1: { estado: 'hecho' }, 2: { estado: 'hecho' }, 3: { estado: 'hecho' }, 4: { estado: 'hecho' },
+        5: { estado: 'modificado', nota: 'No se arenó ni se primó: se cementó con óxido de zinc con eugenol, el único cemento disponible en el pañol.' },
+        6: { estado: 'modificado', nota: 'Cementado convencional con óxido de zinc con eugenol en vez de cemento de resina.' },
+        7: { estado: 'hecho' }, 8: { estado: 'hecho' }, 9: { estado: 'hecho' }, 10: { estado: 'hecho' }
       },
       evidencia: '', consentimiento: true, fotos: [],
       sesiones: [{ id: 's1', fecha: isoDia(-2), txt: 'Cementado del provisional.', proximo: isoDia(88) }],
@@ -80,8 +79,8 @@ export function casosIniciales() {
       procedimiento: 'Vía adhesiva: descontaminación, arenado a 1,5 bar, primer con MMA y cemento de resina dual. Recubrimiento de superficie en vestibular.',
       pasos: {
         0: { estado: 'hecho' }, 1: { estado: 'hecho' }, 2: { estado: 'hecho' }, 3: { estado: 'hecho' },
-        4: { estado: 'hecho' }, 5: { estado: 'hecho' }, 6: { estado: 'noaplica' }, 7: { estado: 'hecho' },
-        8: { estado: 'hecho' }, 9: { estado: 'hecho' }, 10: { estado: 'hecho' }, 11: { estado: 'hecho' }, 12: { estado: 'hecho' }
+        4: { estado: 'hecho' }, 5: { estado: 'hecho' }, 6: { estado: 'hecho' }, 7: { estado: 'hecho' },
+        8: { estado: 'hecho' }, 9: { estado: 'hecho' }, 10: { estado: 'hecho' }
       },
       evidencia: '', consentimiento: true, fotos: [],
       sesiones: [

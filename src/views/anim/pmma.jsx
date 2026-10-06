@@ -1,5 +1,5 @@
 // Muñón preparado y corona provisional de PMMA en corte: raíz, encía, hueso, el muñón con su línea de terminación
-// y la corona. Para los pasos fuera de la boca, la corona sola, invertida. Cementado de provisional de PMMA.
+// y la corona. Para los pasos fuera de la boca, la corona sola, invertida. Cementado adhesivo de provisional de PMMA.
 import React from 'react';
 import { Op, Tr, ve, Fresa, Explorador, Jeringa, Triple, Microbrush, Lampara, Papel, Gotas, Aire, Luz, Rotulo, Dique, Dedo, SondaPerio, Disco } from './base.jsx';
 
@@ -103,21 +103,6 @@ export const ESCENAS_PMMA = {
       </>
     )
   },
-  // Vía convencional: óxido de zinc sin eugenol en capa fina en la cara interna, sin llenar la cofia
-  'pmma.cemento': {
-    d: 7, quieto: 0.8, alt: 'Fuera de la boca, el cemento de óxido de zinc sin eugenol se carga en una capa fina sobre la cara interna de la corona, sin llenarla.',
-    C: ({ d }) => (
-      <>
-        <Invertida>
-          <path className="cem" d={C.borde} pathLength="1" strokeDasharray="1 1" strokeDashoffset="1"><animate attributeName="stroke-dashoffset" dur={d + 's'} repeatCount="indefinite" values="1;1;0;0;1" keyTimes="0;0.14;0.6;0.96;1" /></path>
-        </Invertida>
-        <g><Tr d={d} p={[[0, 220, -30], [0.12, 128, 40], [0.26, 134, 92], [0.4, 166, 94], [0.54, 172, 40], [0.62, 220, -30]]} /><Microbrush /></g>
-        <Rotulo x={222} y={40} d={d} p={ve(0.04, 0.62)}>óxido de zinc sin eugenol</Rotulo>
-        <Rotulo x={222} y={53} d={d} p={ve(0.12, 0.62)} tono="acento">capa fina en la cara interna</Rotulo>
-        <Rotulo x={222} y={40} d={d} p={ve(0.66, 0.95)} tono="mal">sin llenar la cofia</Rotulo>
-      </>
-    )
-  },
   // Vía adhesiva, fuera de la boca: ácido 60 s, arenado 50 µm a 1–2 bar, ultrasonido y primer con MMA
   'pmma.arenar': {
     d: 11, quieto: 0.9, alt: 'Fuera de la boca: ácido fosfórico 60 segundos en la cara interna, lavado y secado; arenado con óxido de aluminio de 50 micrones, limpieza en ultrasonido y una capa fina de primer con MMA fotopolimerizada.',
@@ -175,7 +160,7 @@ export const ESCENAS_PMMA = {
   },
   // Asienta con presión digital firme, con vibración suave, y retira el exceso en el momento justo
   'pmma.asentar': {
-    d: 9, quieto: 0.5, alt: 'El dedo asienta la corona con presión firme y sostenida y una vibración suave; el exceso de cemento sale por los márgenes y se retira en el momento justo.',
+    d: 9, quieto: 0.5, alt: 'El dedo asienta la corona con presión firme y sostenida y una vibración suave; el exceso de cemento sale por los márgenes y se retira en fase gel.',
     C: ({ d }) => (
       <>
         <Base>
@@ -186,9 +171,8 @@ export const ESCENAS_PMMA = {
         <g><Tr d={d} p={[[0, 80, 0], [0.6, 80, 0], [0.64, 116, 112], [0.7, 112, 116], [0.72, 230, 0], [0.74, 186, 112], [0.8, 190, 116], [0.84, 230, -20]]} /><Explorador /></g>
         <Rotulo x={222} y={30} d={d} p={ve(0.06, 0.56)} tono="acento">presión firme y sostenida</Rotulo>
         <Rotulo x={222} y={43} d={d} p={ve(0.2, 0.56)}>con vibración suave</Rotulo>
-        <Rotulo x={222} y={30} d={d} p={ve(0.6, 0.94)}>retira el exceso a tiempo:</Rotulo>
-        <Rotulo x={222} y={43} d={d} p={ve(0.62, 0.94)}>convencional, cuando se quiebra</Rotulo>
-        <Rotulo x={222} y={56} d={d} p={ve(0.64, 0.94)}>adhesiva, en fase gel</Rotulo>
+        <Rotulo x={222} y={30} d={d} p={ve(0.6, 0.94)}>retira el exceso</Rotulo>
+        <Rotulo x={222} y={43} d={d} p={ve(0.62, 0.94)} tono="acento">en fase gel</Rotulo>
       </>
     )
   },

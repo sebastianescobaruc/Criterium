@@ -431,7 +431,7 @@ export function Postular() {
   const ic = (k) => cx(inputCls, intento && e[k] && inputErr);
   return (
     <div className="flex flex-col gap-7">
-      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Ocho áreas. El revisor puntúa los casos clínicos que registran los usuarios y los aprueba, pide cambios o los deniega. La validación de los protocolos es otra cosa: la hace un juicio de expertos, al menos 5 especialistas por protocolo.</PageHead>
+      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Dos trabajos, ambos remotos y en tus tiempos libres. Como revisor de casos, puntúas los casos clínicos que registran los usuarios y los apruebas, pides cambios o los deniegas. Como revisor experto de protocolos, corriges y comentas paso a paso los borradores (por ejemplo, los que redactan los estudiantes): con un mínimo de 5 revisores, el borrador pasa por un filtro final que incorpora las correcciones y comentarios que lo mejoran, y se publica.</PageHead>
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {AREAS.map((a) => {
           const mia = postulacion && postulacion.area === a;

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
 import { Ic, Btn, Aviso, Seg, cx } from '../ui.jsx';
-import { Paso, Flecha } from './protocolos.jsx';
+import { Paso, Flecha, FlujoPublicacion } from './protocolos.jsx';
 import { PantallaLibre, Orbe } from './libre.jsx';
 import { TEXTO_BANDEJA, TEXTO_PRUEBA, textoPaso, textoPorque, textoCierre } from '../lectura.js';
 import { useVoz, estadoMicrofono, pedirMicrofono, desbloquearAudio, vozDisponible, lecturaDisponible, useHablando, hablar, callar, useVoces, vozElegida, elegirVoz, velocidad, elegirVelocidad, VELOCIDADES } from '../voz.js';
@@ -412,6 +412,7 @@ function Bandeja({ d, mapa, empezar, onPdf, bajando }) {
         </div>
       </div>
       <Aviso className="aparece !rounded-[20px] !text-[12px]" >{d.bandera}</Aviso>
+      <FlujoPublicacion d={d} compacto />
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {d.bandeja.map((b, i) => (
           <div key={b.fase} className="aparece suave p-5" style={{ '--d': 200 + i * 140 + 'ms' }}>

@@ -47,9 +47,11 @@ export async function registrar(email, password, datosExtra) {
   const perfilDoc = {
     nombre: datosExtra.nombre,
     email: email,
+    // El resto del perfil profesional (etapa, institución, año, intereses) lo completa la bienvenida
     rol: datosExtra.rol || 'Estudiante de pregrado',
     institucion: datosExtra.institucion || '',
     area: datosExtra.area || '',
+    onboarding: false,
     creadoEn: serverTimestamp()
   };
   await setDoc(doc(db, 'usuarios', user.uid), perfilDoc);

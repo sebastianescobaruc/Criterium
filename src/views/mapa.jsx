@@ -120,7 +120,8 @@ function useAncho(ref) {
    Nivel 1: las especialidades en un anillo, unidas por arcos según cuánto se conectan sus protocolos.
    Nivel 2: los protocolos de una especialidad, entrelazados cuando comparten técnica o uno deriva al otro,
    con las especialidades vecinas alrededor para saltar a ellas. Mismo lenguaje visual que el mapa del inicio. */
-export function Mapa() {
+// El mapa por especialidades. En el inicio va incrustado (sin título de página: h2 en vez de h1).
+export function Mapa({ incrustado = false }) {
   const { abrirProto, go } = useApp();
   const [esp, setEsp] = useState(null);
   const { protos, lazos } = useMemo(lazosProtocolos, []);
@@ -134,9 +135,8 @@ export function Mapa() {
           <button type="button" onClick={() => setEsp(null)} className={cx('uppercase tracking-[.16em]', esp ? 'text-acento hover:underline' : 'text-rotulo')}>Especialidades</button>
           {esp && <><span className="text-ink3">›</span><span className="text-rotulo">{esp}</span></>}
         </nav>
-        <h1 className="m-0 max-w-[26ch] text-[26px] font-extrabold leading-[1.12] tracking-[-.025em] text-deep sm:text-[32px]">
-          {esp ? 'Cómo se entrelazan sus protocolos.' : 'Elige una especialidad.'}
-        </h1>
+        {React.createElement(incrustado ? 'h2' : 'h1', { className: 'm-0 max-w-[26ch] text-[26px] font-extrabold leading-[1.12] tracking-[-.025em] text-deep sm:text-[32px]' },
+          esp ? 'Cómo se entrelazan sus protocolos.' : 'Elige una especialidad.')}
         <p className="m-0 mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink2">
           {esp ? 'Las líneas unen protocolos que comparten técnicas o materiales; la flecha marca cuando uno lleva al otro. Alrededor, las especialidades con las que se conecta.'
             : 'Cada punto es una especialidad. Los arcos muestran cuánto se conectan sus protocolos entre sí.'}

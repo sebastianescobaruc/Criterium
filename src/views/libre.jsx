@@ -5,7 +5,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
 import { Ic, cx } from '../ui.jsx';
-import { fichaDe, Sub, Escuchar } from './protocolos.jsx';
+import { fichaDe, Sub, Escuchar, FlujoPublicacion } from './protocolos.jsx';
 import { ComentariosPaso, useNComentarios } from './comentarios.jsx';
 import { Animacion } from './animaciones.jsx';
 import { vozDisponible, lecturaDisponible } from '../voz.js';
@@ -308,6 +308,7 @@ function BandejaLibre({ d, onPdf, bajando }) {
         ))}
       </div>
       <p className="m-0 mt-6 px-1 text-[12.5px] leading-normal text-ink3">{d.bandera}</p>
+      {d.flujo && <div className="mt-3"><FlujoPublicacion d={d} compacto /></div>}
       {onPdf && (
         <button type="button" onClick={onPdf} disabled={bajando} className="mt-3 inline-flex items-center gap-1.5 px-1 text-[14px] font-semibold text-acento hover:underline disabled:opacity-60">
           <Ic n="download" s={15} />{bajando ? 'Preparando…' : 'Descargar el PDF de box'}

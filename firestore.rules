@@ -6,6 +6,11 @@ service cloud.firestore {
     function soy(uid) { return conSesion() && request.auth.uid == uid; }
     function cambia() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
+    // Equipo Criterium: existe /admins/{uid}. Solo se agrega a mano desde la consola. Es el filtro de publicación.
+    function esAdmin() {
+      return conSesion() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     // Docente verificado: existe /docentes/{uid}. Solo se agrega a mano desde la consola.
     // El portal docente (Mis casos, Revisión de casos, Asistente) y todo lo de casos exige este rol.
     function esDocente() {
@@ -166,9 +171,14 @@ service cloud.firestore {
       allow read: if conSesion();
 
       // Crear: nadie se pone la marca de verificado a sí mismo, y si trae autorUid tiene que ser el propio.
-      allow create: if conSesion()
+      // Directo al feed solo van publicaciones y preguntas; casos, borradores y protocolos entran por /pendientes
+      // y los copia al feed el equipo Criterium al aprobarlos (con el mismo id).
+      allow create: if (conSesion()
         && request.resource.data.autor.get('verificado', false) == false
-        && request.resource.data.get('autorUid', request.auth.uid) == request.auth.uid;
+        && request.resource.data.autor.get('oficial', false) == false
+        && request.resource.data.get('autorUid', request.auth.uid) == request.auth.uid
+        && request.resource.data.get('tipo', 'publicacion') in ['publicacion', 'pregunta'])
+        || esAdmin();
 
       // Actualizar: cualquiera con sesión puede dar "me pasó lo mismo" o agregar respuestas,
       // sin editar el texto ni borrar respuestas de otros.
@@ -180,7 +190,8 @@ service cloud.firestore {
         && request.resource.data.respuestas[0:resource.data.respuestas.size()] == resource.data.respuestas
         && respuestasNuevasValidas();
 
-      allow delete: if false;
+      // Borrar: el autor lo suyo, o el equipo Criterium
+      allow delete: if soy(resource.data.get('autorUid', '')) || esAdmin();
 
       function likeValido() {
         let antes = resource.data.get('likedBy', []).toSet();
@@ -202,9 +213,33 @@ service cloud.firestore {
     match /perfiles/{uid} {
       allow read: if conSesion();
       allow write: if soy(uid)
-        && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'actualizado'])
+        && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio', 'intereses', 'temas', 'onboarding', 'actualizado'])
+        && request.resource.data.get('intereses', []).size() <= 12
+        && request.resource.data.get('temas', []).size() <= 12
         && request.resource.data.nombre is string && request.resource.data.nombre.size() <= 80
         && request.resource.data.get('descripcion', '').size() <= 300;
+    }
+
+    // Equipo Criterium: cada uno lee solo el suyo (para saber si es admin); nadie lo escribe desde la app.
+    match /admins/{uid} {
+      allow read: if soy(uid);
+      allow write: if false;
+    }
+
+    // Filtro de publicación: casos clínicos, borradores y protocolos esperan aquí antes del feed.
+    // Los ven su autor y el equipo Criterium; el equipo aprueba (lo copia al feed) o rechaza con un motivo.
+    match /pendientes/{id} {
+      allow read: if conSesion() && (soy(resource.data.autorUid) || esAdmin());
+      allow create: if conSesion()
+        && request.resource.data.autorUid == request.auth.uid
+        && request.resource.data.autor.uid == request.auth.uid
+        && request.resource.data.autor.get('verificado', false) == false
+        && request.resource.data.autor.get('oficial', false) == false
+        && request.resource.data.estado == 'revision'
+        && request.resource.data.tipo in ['caso', 'borrador', 'protocolo']
+        && request.resource.data.txt is string && request.resource.data.txt.size() <= 10000;
+      allow update: if esAdmin();
+      allow delete: if (soy(resource.data.autorUid) && resource.data.estado != 'aprobado') || esAdmin();
     }
 
     // Seguimientos: el documento se llama {de}_{a}. Cada uno maneja solo a quién sigue.

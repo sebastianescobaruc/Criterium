@@ -272,7 +272,6 @@ export function Biblioteca() {
         <p className="rotulo m-0 mb-2.5">Biblioteca viva de protocolos</p>
         <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
         <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">Todos los protocolos, con su estado a la vista. Nada aparece como validado hasta que un especialista lo firma.</p>
-        <Btn icon="red" className="mt-3" onClick={() => go('mapa')}>Ver el mapa de protocolos</Btn>
       </header>
       <div className="flex flex-col gap-3">
         <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento">
@@ -402,6 +401,62 @@ async function bajarPdf(archivo, avisar) {
 }
 
 const reducido = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+
+// Camino de un borrador hasta publicarse (d.flujo): lo redacta alguien de la comunidad, lo revisan al menos 5 expertos
+// (cada uno corrige y comenta paso a paso, de forma remota y en su tiempo libre) y pasa por un filtro final donde se
+// incorporan las correcciones y comentarios que lo mejoran. Mientras falten revisores, se muestra «se buscan revisores».
+export function FlujoPublicacion({ d, compacto = false }) {
+  const { go } = useApp();
+  const f = d.flujo;
+  if (!f) return null;
+  const faltan = Math.max(0, f.minimo - f.revisores);
+  const etapas = [
+    { t: 'Borrador', s: 'Lo redactó ' + f.autor + ' con el master prompt de Criterium.', ok: true },
+    { t: 'Revisión de expertos', s: f.revisores + ' de ' + f.minimo + ' revisores. Cada experto corrige y comenta paso a paso.', actual: true },
+    { t: 'Filtro final', s: 'Se incorporan las correcciones y los comentarios que mejoran el protocolo.' },
+    { t: 'Publicado', s: 'Recién ahí el protocolo queda como versión revisada por expertos.' }
+  ];
+  if (compacto) return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-rs bg-warnsoft px-4 py-3 text-[12.5px] font-semibold text-warn">
+      <span>Borrador de estudiante · faltan {faltan} de {f.minimo} revisores expertos para publicarlo.</span>
+      <button type="button" onClick={() => go('postular')} className="underline">Se buscan revisores</button>
+    </div>
+  );
+  return (
+    <section className="mb-6 overflow-hidden rounded-[22px] border border-cardline bg-card shadow-sh" aria-label="Camino a la publicación">
+      <div className="px-5 pb-2 pt-5 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2"><Pill tono="warn">Borrador de estudiante</Pill><Pill>Falta la aprobación de los revisores</Pill></div>
+        <h2 className="m-0 mt-3 text-[18px] font-bold text-deep">Camino a la publicación</h2>
+      </div>
+      <ol className="m-0 grid list-none gap-0 p-0 px-5 pb-5 sm:grid-cols-4 sm:px-6">
+        {etapas.map((e, k) => (
+          <li key={e.t} className="relative flex gap-3 py-2.5 sm:flex-col sm:gap-2 sm:pr-4">
+            <span className={cx('z-[1] grid h-7 w-7 flex-none place-items-center rounded-full text-[12px] font-bold', e.ok ? 'bg-acento text-onc' : e.actual ? 'bg-warnsoft text-warn ring-2 ring-warn' : 'bg-soft text-ink3')}>
+              {e.ok ? <Ic n="check" s={14} sw={2.6} /> : k + 1}
+            </span>
+            {k < etapas.length - 1 && <span aria-hidden="true" className="absolute left-[13px] top-10 h-[calc(100%-26px)] w-0.5 bg-line sm:left-9 sm:top-[22px] sm:h-0.5 sm:w-[calc(100%-36px)]" />}
+            <div className="min-w-0">
+              <b className={cx('block text-[13.5px]', e.actual ? 'text-warn' : e.ok ? 'text-ink' : 'text-ink3')}>{e.t}</b>
+              <span className="block text-[12.5px] leading-snug text-ink3">{e.s}</span>
+              {e.actual && (
+                <span className="mt-1.5 flex gap-1" aria-label={f.revisores + ' de ' + f.minimo + ' revisores'}>
+                  {Array.from({ length: f.minimo }, (_, i) => <span key={i} className={cx('h-1.5 w-5 rounded-full', i < f.revisores ? 'bg-acento' : 'bg-cardline')} />)}
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      <div className="flex flex-col gap-3 border-t border-line2 bg-soft px-5 py-4 sm:flex-row sm:items-center sm:px-6">
+        <div className="min-w-0 flex-1">
+          <b className="block text-[14.5px] text-deep">Se buscan revisores · {d.esp}</b>
+          <span className="block text-[13px] leading-snug text-ink2">Trabajo remoto, en cualquier momento libre. Revisas el protocolo paso a paso, corriges y comentas. Con un mínimo de {f.minimo} revisores pasa al filtro final y se publica.</span>
+        </div>
+        <Btn v="primary" sm onClick={() => go('postular')}>Postular como revisor</Btn>
+      </div>
+    </section>
+  );
+}
 
 // «Escuchar»: lee en voz alta el «¿Por qué?» completo. Solo se activa al tocarlo; tocar de nuevo lo detiene.
 // Si cambias de paso mientras lee, se calla.
@@ -658,6 +713,7 @@ function VistaProtocolo() {
           <Btn sm v="primary" icon="sparkle" onClick={() => setModo('guiado')}>Modo guiado · paso a paso</Btn>
         </div>
         <Aviso className="mb-5 !text-[12px]">{d.bandera}</Aviso>
+        <FlujoPublicacion d={d} />
         <header className="border-b border-line pb-5">
           <p className="rotulo m-0 mb-3">{d.esp} · Protocolo</p>
           <h1 className="m-0 mb-3.5 text-[27px] font-extrabold leading-[1.12] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{d.titulo}</h1>
