@@ -210,7 +210,7 @@ export function perio(st) {
   else if (cig > 0) subir('B', 'Fuma ' + cig + ' cigarrillos al día (menos de 10) → modificador que lleva a grado B como mínimo.');
   if (hba !== null && hba >= 7) subir('C', 'HbA1c de ' + hba + ' % (7 o más) → modificador que lleva a grado C.');
   else if (hba !== null && hba > 0) subir('B', 'HbA1c de ' + hba + ' % (menor de 7) → modificador que lleva a grado B como mínimo.');
-  return { listo: true, dx: 'Periodontitis estadio ' + romano + ', ' + extension + ', grado ' + grado, estadio: romano, grado, porque, porqueG };
+  return { listo: true, dx: 'Periodontitis estadio ' + romano + ', ' + extension + ', grado ' + grado, estadio: romano, estadioN: est, grado, extension, porque, porqueG };
 }
 
 /* ───────── periodontograma ───────── */
@@ -236,7 +236,7 @@ export function nicSitio(x) {
 export function resumenPeriodontograma(chart) {
   const todos = [...ARCADAS_PERIO.sup, ...ARCADAS_PERIO.inf];
   const presentes = todos.filter((d) => !(chart[d] && chart[d].aus));
-  let sondados = 0, sangran = 0, placa = 0, ps4 = 0, ps6 = 0, psMax = null, nicMax = null, nicMaxDiente = '';
+  let sondados = 0, sangran = 0, placa = 0, ps4 = 0, ps6 = 0, psMax = null, nicMax = null, nicMaxDiente = '', sumaPs = 0, sumaNic = 0;
   let furcaAvanzada = false, movilidad2 = false;
   presentes.forEach((d) => {
     const t = chart[d] || {};
@@ -253,13 +253,16 @@ export function resumenPeriodontograma(chart) {
       if (ps >= 6) ps6++;
       if (psMax === null || ps > psMax) psMax = ps;
       const nic = nicSitio(x);
+      sumaPs += ps; sumaNic += nic;
       if (k[1] !== 'c' && (nicMax === null || nic > nicMax)) { nicMax = nic; nicMaxDiente = d; }
     });
   });
   const pct = (n) => (sondados ? Math.round((n / sondados) * 100) : 0);
   return {
     presentes: presentes.length, ausentes: todos.length - presentes.length, sondados,
-    sangrado: pct(sangran), placa: pct(placa), ps4, ps6, psMax, nicMax, nicMaxDiente, furcaAvanzada, movilidad2
+    sangrado: pct(sangran), placa: pct(placa), ps4, ps6, psMax, nicMax, nicMaxDiente, furcaAvanzada, movilidad2,
+    // Promedios por sitio sondado (como los resume PerioTools)
+    psMedia: sondados ? Math.round((sumaPs / sondados) * 10) / 10 : null, nicMedia: sondados ? Math.round((sumaNic / sondados) * 10) / 10 : null
   };
 }
 
@@ -288,6 +291,8 @@ export function endo(st) {
   }
   return {
     listo: true, lt: mm(lt), permeabilidad: mm(lt + 1), dosTercios: mm(dosTercios), cateterismo: mm(lad - 2),
+    // Los mismos valores en número, para dibujar el conducto a escala
+    num: { lrd, lad, lt, pasaje: lt + 1, dosTercios, cateterismo: lad - 2, escalones: fase2.map((x, i) => ({ lima: x.lima, prof: lt - (i + 1) })) },
     irrigante: necro ? 'Hipoclorito de sodio al 2,25 %' : 'Hipoclorito de sodio al 2,5–5,25 %',
     gates: st.eAmplio === 'si' ? 'Secuencia 3-2-1, conducto amplio' : 'Secuencia 1-2-1, conducto fino o medio',
     medicacion: mm(lt - 1) + ' a ' + mm(lt - 2), fase1, fase2,
@@ -312,6 +317,7 @@ export function anestesia(st) {
   const f1 = (n) => (Math.floor(n * 10) / 10).toString().replace('.', ',');
   return {
     listo: true, maxMg: Math.round(maxMg) + ' mg', maxTubos: f1(maxTubos), usadoMg: Math.round(usadoMg) + ' mg',
+    num: { maxTubos, usados, quedan: quedanMg / porTubo }, // para el medidor
     quedanTubos: f1(quedanMg / porTubo), pasado: usadoMg > maxMg,
     porque: [
       peso + ' kg × 7 mg/kg = ' + Math.round(porPeso) + ' mg.' + (porPeso > 500 ? ' Pasa el techo absoluto de 500 mg, así que manda el techo.' : ''),
@@ -354,6 +360,7 @@ export function anestesiaNino(st) {
   if (a.sinVaso) avisos.push('Sin vasoconstrictor la AAPD pide usar dosis más bajas que el máximo de la tabla.');
   return {
     listo: true, anest: a.t, maxMg: maxMg + ' mg', maxTubos: f1(maxMg / a.mgTubo), usadoMg: usadoMg + ' mg',
+    num: { maxTubos: maxMg / a.mgTubo, usados, quedan: quedanMg / a.mgTubo }, // para el medidor
     quedanTubos: f1(quedanMg / a.mgTubo), pasado: usadoMg > maxMg, porque, avisos
   };
 }
@@ -472,4 +479,62 @@ export function casoMarkdown(c) {
   });
   L.push('> Exportado desde Criterium. Las fotos no se incluyen en este archivo.');
   return L.join('\n');
+}
+
+/* ───────── agenda, evaluación y solicitudes ───────── */
+// Fecha local AAAA-MM-DD (hoyISO usa UTC: en Chile, de noche, daría el día siguiente)
+export function fechaLocal(d = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+// Suma días hábiles (lunes a viernes). No descuenta feriados: el plazo real puede correrse un día.
+export function sumarDiasHabiles(isoDia, n) {
+  const d = new Date(isoDia + 'T12:00:00');
+  let quedan = n;
+  while (quedan > 0) { d.setDate(d.getDate() + 1); const s = d.getDay(); if (s !== 0 && s !== 6) quedan--; }
+  return fechaLocal(d);
+}
+export const PLAZO_SOLICITUD = 10; // días hábiles para publicar un protocolo pedido
+
+// Escala de notas chilena: 1,0 a 7,0 con un decimal; se aprueba con 4,0
+export const NOTA_MIN = 1, NOTA_MAX = 7, NOTA_APRUEBA = 4;
+export function leerNota(txt) {
+  const n = parseFloat(String(txt ?? '').replace(',', '.'));
+  if (isNaN(n)) return null;
+  return Math.round(n * 10) / 10;
+}
+export const notaValida = (n) => n !== null && n >= NOTA_MIN && n <= NOTA_MAX;
+export const notaTxt = (n) => (n === null || n === undefined ? '—' : n.toFixed(1).replace('.', ','));
+export function promedioNotas(lista) {
+  const ns = lista.map((x) => x && x.nota).filter((n) => typeof n === 'number');
+  return ns.length ? Math.round((ns.reduce((a, b) => a + b, 0) / ns.length) * 10) / 10 : null;
+}
+// Instalaciones y horario de la clínica (como en un software de agenda dental: cada cita ocupa un box)
+export const BOXES = ['Box 1', 'Box 2', 'Box 3', 'Box 4', 'Box 5', 'Box 6'];
+export const DURACIONES = [30, 45, 60, 90, 120];
+export const HORARIO = { desde: 8, hasta: 20 }; // horas
+export const aMinutos = (hhmm) => { const [h, m] = String(hhmm || '0:0').split(':').map(Number); return h * 60 + m; };
+export const deMinutos = (min) => String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+// Dos citas propias en el mismo box que se pisan
+export function choques(c, otras) {
+  const ini = aMinutos(c.hora), fin = ini + (c.duracion || 60);
+  return otras.filter((o) => o.id !== c.id && o.estado !== 'cancelada' && o.fecha === c.fecha && o.box === c.box
+    && aMinutos(o.hora) < fin && ini < aMinutos(o.hora) + (o.duracion || 60));
+}
+// Validación de una cita antes de guardarla (lo mismo exigen las reglas de Firestore)
+export function chequeoCita(c) {
+  const e = {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(c.fecha || '')) e.fecha = 'Elige la fecha.';
+  if (!/^\d{2}:\d{2}$/.test(c.hora || '')) e.hora = 'Elige la hora.';
+  if (!c.protocoloId) e.protocoloId = 'Elige el protocolo que vas a realizar.';
+  if (!c.docenteUid) e.docenteUid = 'Elige el docente que te va a evaluar.';
+  if (!BOXES.includes(c.box)) e.box = 'Elige el box.';
+  if (!DURACIONES.includes(Number(c.duracion))) e.duracion = 'Elige la duración.';
+  const inicio = aMinutos(c.hora);
+  if (!e.hora && (inicio < HORARIO.desde * 60 || inicio + Number(c.duracion || 0) > HORARIO.hasta * 60)) e.hora = 'La clínica atiende de ' + HORARIO.desde + ':00 a ' + HORARIO.hasta + ':00.';
+  const ini = (c.paciente || '').trim();
+  if (!/^[A-ZÁÉÍÓÚÑ]{2,4}$/i.test(ini)) e.paciente = 'Solo las iniciales del paciente: 2 a 4 letras, sin nombre ni RUT.';
+  const dErr = c.pieza ? validarDientes(c.pieza) : '';
+  if (dErr) e.pieza = dErr;
+  return e;
 }

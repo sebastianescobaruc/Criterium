@@ -4,6 +4,7 @@
 
 /* Paleta final (presentación para tutores): azul petróleo profundo #0F2530, verde azulado #2F6A78, menta #5CCFC0 para lo que se destaca, sobre #F2F6F7. Una sola tipografía: la del sistema. */
 :root{
+  color-scheme:light;
   --bg:#F2F6F7;--card:#FFFFFF;--soft:#E9F1F3;
   --ink:#132630;--ink-2:#3B5260;--ink-3:#5C727D;
   --line:#DCE7EA;--line-2:#EAF1F3;
@@ -21,46 +22,6 @@
   --sh:0 1px 2px rgba(15,37,48,.04),0 6px 22px -8px rgba(15,37,48,.09);
   --sh-lg:0 2px 6px rgba(15,37,48,.05),0 18px 44px -14px rgba(15,37,48,.18);
   --card-line:rgba(15,37,48,.06);--dot:rgba(15,37,48,.05);--glow:rgba(92,207,192,.08);--input:#F5F9FA;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-  color-scheme:dark;
-  --bg:#0B171D;--card:#13232B;--soft:#1A2E37;
-  --ink:#E6EEF1;--ink-2:#B6C6CD;--ink-3:#88A0AA;
-  --line:#233841;--line-2:#1A2C35;
-  --deep:#E6EEF1;--acento:#7FB3BF;--acento-soft:#173640;--acento-deep:#A9D6DC;
-  --ok:#9CCBB0;--ok-soft:#1E3A2E;--warn:#E3C58F;--warn-soft:#3D3120;--bad:#E3A3A0;--bad-soft:#43262A;
-  --estado-borrador:#E3C58F;--estado-borrador-bg:#3D3120;
-  --estado-validado:#9CCBB0;--estado-validado-bg:#1E3A2E;
-  --estado-planificado:#C9D3D8;--estado-planificado-bg:#26363F;
-  --panel:#1E3742;--panel-2:#284551;--panel-ink:#F2F7F8;--panel-ink-2:#BED0D6;
-  --menta:#6FD8CA;--menta-soft:#173A38;--menta-ink:#0B171D;--rotulo:#79C9C0;
-  --nav:#08131A;--nav-ink:#BED0D6;--nav-ink-3:#78919C;--nav-line:rgba(255,255,255,.06);--nav-act:rgba(111,216,202,.12);
-  --onc:#0B171D;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#13232B;--toast:#DCE5E8;--toast-ink:#0B171D;
-  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#6FD8CA,#5FA9B9);
-  --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
-  --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
-  --card-line:rgba(255,255,255,.05);--dot:rgba(143,202,214,.05);--glow:rgba(111,216,202,.06);--input:#0F1E25;
-  }
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0B171D;--card:#13232B;--soft:#1A2E37;
-  --ink:#E6EEF1;--ink-2:#B6C6CD;--ink-3:#88A0AA;
-  --line:#233841;--line-2:#1A2C35;
-  --deep:#E6EEF1;--acento:#7FB3BF;--acento-soft:#173640;--acento-deep:#A9D6DC;
-  --ok:#9CCBB0;--ok-soft:#1E3A2E;--warn:#E3C58F;--warn-soft:#3D3120;--bad:#E3A3A0;--bad-soft:#43262A;
-  --estado-borrador:#E3C58F;--estado-borrador-bg:#3D3120;
-  --estado-validado:#9CCBB0;--estado-validado-bg:#1E3A2E;
-  --estado-planificado:#C9D3D8;--estado-planificado-bg:#26363F;
-  --panel:#1E3742;--panel-2:#284551;--panel-ink:#F2F7F8;--panel-ink-2:#BED0D6;
-  --menta:#6FD8CA;--menta-soft:#173A38;--menta-ink:#0B171D;--rotulo:#79C9C0;
-  --nav:#08131A;--nav-ink:#BED0D6;--nav-ink-3:#78919C;--nav-line:rgba(255,255,255,.06);--nav-act:rgba(111,216,202,.12);
-  --onc:#0B171D;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#13232B;--toast:#DCE5E8;--toast-ink:#0B171D;
-  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#6FD8CA,#5FA9B9);
-  --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
-  --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
-  --card-line:rgba(255,255,255,.05);--dot:rgba(143,202,214,.05);--glow:rgba(111,216,202,.06);--input:#0F1E25;
 }
 html,body{background:var(--bg)}
 
@@ -163,11 +124,136 @@ h1,h2,h3{letter-spacing:-.02em}
 /* Desplegable con altura animada (nivel 2, «¿Por qué?») */
 .despliega{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.2,.8,.2,1)}
 .despliega.abierto{grid-template-rows:1fr}
-/* Cuenta regresiva del «¿Por qué?» en modo guiado: la barra se llena en --t */
-@keyframes cuenta{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.cuenta{transform-origin:left;animation:cuenta var(--t,5s) linear both}
-@media (prefers-reduced-motion: reduce){.cuenta{display:none}}
 /* Micrófono escuchando: ondas */
 @keyframes onda{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.1);opacity:0}}
 .onda::before,.onda::after{content:"";position:absolute;inset:0;border-radius:9999px;background:var(--menta);animation:onda 1.8s ease-out infinite;z-index:-1}
 .onda::after{animation-delay:.9s}
+
+/* ═══ Mapa de protocolos (views/mapa.jsx) ═══ */
+.mapa{background:radial-gradient(circle at 50% 45%,var(--glow),transparent 60%),radial-gradient(var(--dot) 1px,transparent 1.2px) 0 0/18px 18px;cursor:grab}
+.mapa:active{cursor:grabbing}
+.mapa .nodo{transition:opacity .3s}
+.mapa .nodo:focus{outline:none}
+.mapa .nodo:focus-visible .burbuja-proto,.mapa .nodo:focus-visible .burbuja-tema{stroke:var(--deep);stroke-width:3}
+.mapa .tenue{opacity:.14}
+.mapa path{transition:opacity .3s}
+.burbuja-proto{fill:color-mix(in srgb,var(--c) 22%,var(--card));stroke:var(--c);stroke-width:2.5;filter:drop-shadow(0 6px 14px color-mix(in srgb,var(--c) 30%,transparent))}
+.burbuja-tema{fill:color-mix(in srgb,var(--c) 12%,var(--card));stroke:var(--c);stroke-width:1.4;stroke-dasharray:3 3}
+.burbuja-paso{fill:var(--c);stroke:var(--card);stroke-width:1.5}
+.burbuja-paso.habitual{fill:var(--card);stroke:var(--c);stroke-width:1.6;stroke-dasharray:2 2}
+.anillo-fondo{fill:none;stroke:var(--line);stroke-width:3}
+.anillo{fill:none;stroke:var(--menta);stroke-width:3;stroke-linecap:round}
+.halo{fill:none;stroke:var(--c);stroke-width:2;opacity:.35;animation:halo 1.8s ease-out infinite}
+@keyframes halo{0%{transform:scale(.85);opacity:.5}100%{transform:scale(1.25);opacity:0}}
+.cifra{text-anchor:middle;font-size:15px;font-weight:800;fill:var(--deep);pointer-events:none}
+.etiqueta{text-anchor:middle;font-size:12.5px;font-weight:700;fill:var(--ink);pointer-events:none;paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.etiqueta-tema{text-anchor:middle;font-size:11px;font-weight:600;fill:var(--ink-3);pointer-events:none;paint-order:stroke;stroke:var(--card);stroke-width:3px;stroke-linejoin:round}
+.punto-marca{fill:var(--warn)}
+.punta{fill:var(--acento)}
+.arista-tema{stroke:var(--line);stroke-width:1.6}
+.mapa .arista-tema{stroke:color-mix(in srgb,var(--acento) 30%,var(--line))}
+.arista-deriva{stroke:var(--acento);stroke-width:2.2}
+.arista-menciona{stroke:var(--warn);stroke-width:2;stroke-dasharray:6 5}
+.arista-fuente{stroke:var(--menta);stroke-width:2.4;stroke-dasharray:1 4;stroke-linecap:round}
+.arista-paso{stroke:var(--line)}
+.respira > .burbuja-proto{animation:respira 5s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+@keyframes respira{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@media (prefers-reduced-motion: reduce){.halo,.respira > .burbuja-proto{animation:none}}
+
+/* Mapa del inicio: constelación. Solo colores de Criterium: azul petróleo, verde azulado y menta */
+.constelacion{overflow:visible;touch-action:pan-y;max-height:520px}
+.constelacion .orbita{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 6}
+.constelacion .arco{fill:none;stroke:var(--acento);stroke-opacity:.28;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:traza 1.1s cubic-bezier(.4,0,.2,1) forwards;animation-delay:var(--d,0ms);transition:stroke .3s,stroke-opacity .3s,opacity .3s}
+.constelacion .arco-deriva{stroke-opacity:.5}
+.constelacion .arco.on{stroke:var(--menta);stroke-opacity:1}
+.constelacion .off{opacity:.12}
+@keyframes traza{to{stroke-dashoffset:0}}
+.constelacion .arco-dentro{stroke-opacity:.45}
+.constelacion .arco-fuera{stroke-dasharray:.012 .02;stroke-opacity:.35;animation:none}
+.constelacion .lazo-txt{font-size:10px;font-weight:700;letter-spacing:.06em;fill:var(--rotulo)}
+.constelacion .nucleo-vecina{fill:var(--bg);stroke:var(--acento);stroke-width:1.6}
+.estrella.vecina:hover .nucleo-vecina,.estrella.vecina:focus-visible .nucleo-vecina{fill:var(--acento)}
+.constelacion .ojo{fill:var(--bg);stroke:var(--line);stroke-width:1}
+.constelacion .centro-num{text-anchor:middle;font-size:44px;font-weight:800;letter-spacing:-.04em;fill:var(--deep)}
+.constelacion .centro-txt{text-anchor:middle;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;fill:var(--rotulo)}
+.constelacion .tenue-txt{fill:var(--ink-3);font-weight:600;letter-spacing:.08em}
+.estrella{cursor:pointer;transition:opacity .3s;animation:surge .6s ease-out both;animation-delay:var(--d,0ms)}
+.estrella:focus{outline:none}
+.estrella .zona{fill:transparent}
+.estrella .nucleo{fill:var(--deep);transition:fill .25s}
+.estrella .halo-e{fill:none;stroke:var(--menta);stroke-width:1.5;opacity:0;transition:opacity .25s}
+.estrella.activa .nucleo,.estrella:focus-visible .nucleo{fill:var(--acento)}
+.estrella.activa .halo-e,.estrella:focus-visible .halo-e{opacity:1}
+.estrella .nombre-e{font-size:14px;font-weight:700;letter-spacing:-.01em;fill:var(--deep)}
+.estrella .meta-e{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;fill:var(--rotulo)}
+@keyframes surge{from{opacity:0}to{opacity:1}}
+.foco-proto{box-shadow:0 0 0 3px var(--menta),var(--sh-lg)!important;transition:box-shadow .4s}
+@media (prefers-reduced-motion: reduce){.estrella{animation:none}.constelacion .arco{animation:none;stroke-dashoffset:0}}
+
+/* ═══ Herramientas (views/herramientas.jsx): conducto a escala y medidor de anestesia ═══ */
+.conducto .raiz{fill:var(--soft);stroke:var(--line);stroke-width:1.5;stroke-linejoin:round}
+.conducto .lima-eje{stroke:var(--menta);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:4 4}
+.conducto .escalon line{stroke:var(--acento);stroke-width:2;stroke-linecap:round;opacity:.75}
+.conducto .escalon text{font-size:10.5px;font-weight:700;fill:var(--ink-3)}
+.conducto .escalon{animation:surge .5s ease-out both;animation-delay:var(--d,0ms)}
+.conducto .marca line{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3}
+.conducto .marca .guia{fill:none;stroke:var(--ink-3);stroke-width:1}
+.conducto .marca .mt{font-size:12.5px;font-weight:800;fill:var(--deep)}
+.conducto .marca .ms{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;fill:var(--rotulo)}
+.conducto .marca-lt line{stroke:var(--menta);stroke-width:3;stroke-dasharray:none;stroke-linecap:round}
+.conducto .marca-gates line{stroke:var(--acento);stroke-width:2;stroke-dasharray:none}
+.conducto .apice{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;fill:var(--ink-3)}
+.medidor .pista{fill:none;stroke:var(--soft);stroke-width:16;stroke-linecap:round}
+.medidor .usado{fill:none;stroke:var(--acento);stroke-width:16;stroke-linecap:round;transition:d .5s}
+.medidor .usado.pasado{stroke:var(--bad)}
+.medidor .cifra-m{text-anchor:middle;font-size:54px;font-weight:800;letter-spacing:-.05em;fill:var(--deep)}
+.medidor .txt-m{text-anchor:middle;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;fill:var(--rotulo)}
+.medidor .tenue-m{fill:var(--ink-3)}
+
+/* ═══ Periodontograma (views/periodontograma.jsx), estructura de PerioTools ═══ */
+.perio-tabla{border-collapse:separate;border-spacing:0;background:var(--card);border-radius:14px;box-shadow:var(--sh)}
+.perio-th{position:sticky;left:0;z-index:2;background:var(--card);padding:0 10px 0 12px;text-align:left;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rotulo);border-right:1px solid var(--line)}
+.perio-th-dibujo{vertical-align:middle;color:var(--ink-3)}
+.perio-td{width:72px;min-width:72px;padding:1.5px 0;border-right:1px solid var(--line-2)}
+.perio-td > .flex{justify-content:center;gap:1px}
+.perio-in{width:22px;height:22px;border:1px solid var(--line);border-radius:5px;background:var(--input);text-align:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);outline:none;padding:0}
+.perio-in:focus{border-color:var(--acento);box-shadow:0 0 0 2px var(--acento-soft);background:var(--card)}
+.perio-in:disabled{opacity:.25}
+.perio-in.alerta{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.perio-in.grave{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.perio-in.recesion{color:var(--bad)}
+.perio-punto{width:22px;height:20px;display:grid;place-items:center;border-radius:5px}
+.perio-punto:disabled{opacity:.25}
+.perio-punto span{width:11px;height:11px;border-radius:999px;border:1.5px solid var(--line)}
+.perio-punto span.on-sg{background:var(--bad);border-color:var(--bad)}
+.perio-punto span.on-pl{background:var(--acento);border-color:var(--acento)}
+.perio-num{width:62px;height:24px;border-radius:7px;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--deep);background:var(--soft)}
+.perio-num:hover{background:var(--acento-soft)}
+.perio-num.ausente{color:var(--ink-3);text-decoration:line-through;background:var(--line-2)}
+.perio-chip{width:46px;height:22px;border-radius:6px;border:1px solid var(--line);font-size:11.5px;font-weight:700;color:var(--ink-2);background:var(--input)}
+.perio-chip:disabled{opacity:.25}
+.perio-chip.on{background:var(--acento);border-color:var(--acento);color:var(--onc)}
+.perio-chip.alerta{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.perio-dibujo .perio-lac{stroke:var(--ink-3);stroke-width:.8;stroke-dasharray:3 3}
+.perio-dibujo .perio-guia{stroke:var(--line);stroke-width:.6}
+.perio-dibujo .perio-raiz{fill:var(--soft);stroke:var(--ink-3);stroke-width:1}
+.perio-dibujo .perio-corona{fill:var(--card);stroke:var(--ink-2);stroke-width:1.1}
+.perio-dibujo .perio-implante path,.perio-dibujo .perio-implante rect{fill:var(--line-2);stroke:var(--ink-3);stroke-width:1}
+.perio-dibujo .perio-implante line{stroke:var(--ink-3);stroke-width:.8}
+.perio-dibujo .perio-ausente{opacity:.22}
+.perio-dibujo .perio-x{stroke:var(--ink-3);stroke-width:1.4}
+.perio-dibujo .perio-saco{fill:color-mix(in srgb,var(--acento) 22%,transparent)}
+.perio-dibujo .perio-fondo{fill:none;stroke:var(--acento);stroke-width:2;stroke-linejoin:round}
+.perio-dibujo .perio-margen{fill:none;stroke:var(--bad);stroke-width:2;stroke-linejoin:round}
+.perio-dibujo .perio-furca{fill:none;stroke:var(--warn);stroke-width:1.4}
+.perio-dibujo .perio-furca.f2{fill:color-mix(in srgb,var(--warn) 45%,transparent)}
+.perio-dibujo .perio-furca.f3{fill:var(--warn)}
+
+/* ═══ Agenda (views/agenda.jsx): bloques de cita por estado ═══ */
+.cita{border-left:3px solid;transition:box-shadow .2s}
+.cita-agendada{background:var(--acento-soft);border-color:var(--acento);color:var(--acento-deep)}
+.cita-pendiente{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cita-ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.cita-mal{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.cita-cancelada{background:var(--line-2);border-color:var(--line);color:var(--ink-3);text-decoration:line-through}
+.cita-sel{box-shadow:0 0 0 2px var(--menta),var(--sh)}

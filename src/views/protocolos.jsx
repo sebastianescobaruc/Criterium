@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { PROTOS, DATOS } from '../data.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
 import { Guiado } from './guiado.jsx';
+import { SolicitudesProtocolo } from './agenda.jsx';
 
 // Cómo se recorre un protocolo: 'guiado' (un paso a la vez) o 'todo' (la lista completa). Comodidad local.
 const leerModo = () => { try { return localStorage.getItem('criterium-modo-proto') === 'todo' ? 'todo' : 'guiado'; } catch (e) { return 'guiado'; } };
@@ -87,7 +88,8 @@ function ItemPlanificado({ p }) {
   );
 }
 export function TuDia() {
-  const { casos, abrirCaso, go, nuevoCaso, modoRevisor, myUid } = useApp();
+  const { casos, abrirCaso, go, nuevoCaso, modoRevisor, myUid, esDocente } = useApp();
+  if (!esDocente) return null; // casos, controles y revisión son del portal docente
   const mios = casos.filter((c) => c.autorUid === myUid || c.autor?.id === myUid);
   const controles = [];
   mios.forEach((c) => (c.sesiones || []).forEach((s) => { if (s.proximo) controles.push({ c, s, d: diasHasta(s.proximo) }); }));
@@ -248,13 +250,25 @@ export function Biblioteca() {
     const items = res.filter((p) => p.esp === e);
     return { esp: e, items, meta: items.filter((p) => p.abre).length + ' de ' + items.length + ' disponibles' };
   }).filter((g) => g.items.length);
-  const { abrirProto } = useApp();
+  const { abrirProto, avisar, go, protoFoco } = useApp();
+  // Llegaste desde el mapa del inicio: baja hasta ese protocolo y destácalo un momento
+  const [foco, setFoco] = useState(protoFoco);
+  useEffect(() => {
+    if (!protoFoco) return;
+    const el = document.getElementById('proto-' + protoFoco);
+    if (el) el.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    const t = setTimeout(() => setFoco(null), 2600);
+    return () => clearTimeout(t);
+  }, [protoFoco]);
+  const [bajando, setBajando] = useState(''); // id del protocolo cuyo PDF se está preparando
+  const pdf = async (id) => { setBajando(id); await bajarPdf(DATOS[id].pdf, avisar); setBajando(''); };
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-[66ch]">
         <p className="rotulo m-0 mb-2.5">Biblioteca viva de protocolos</p>
         <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
         <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">Todos los protocolos, con su estado a la vista. Nada aparece como validado hasta que un especialista lo firma.</p>
+        <Btn icon="red" className="mt-3" onClick={() => go('mapa')}>Ver el mapa de protocolos</Btn>
       </header>
       <div className="flex flex-col gap-3">
         <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento">
@@ -269,17 +283,27 @@ export function Biblioteca() {
         <section key={g.esp} className="flex flex-col gap-2.5">
           <div className="flex items-baseline justify-between"><h2 className="rotulo m-0">{g.esp}</h2><span className="text-[12.5px] text-ink3">{g.meta}</span></div>
           {g.items.map((p) => (
-            <article key={p.id} className="grid items-center gap-4 tarjeta px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]">
+            <article key={p.id} id={'proto-' + p.id} className={cx('grid scroll-mt-28 items-center gap-4 tarjeta px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]', foco === p.id && 'foco-proto')}>
               <div className="min-w-0">
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5"><Pill>{p.estadoTxt}</Pill>{p.estudio && <Pill tono="acento">Estudio piloto</Pill>}{p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}{p.n && <span className="text-[11.5px] text-ink3">{p.n}</span>}</div>
                 <h3 className="m-0 mb-1 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
                 <p className="m-0 font-serif text-[14.5px] leading-normal text-ink2">{p.s}</p>
               </div>
-              {p.abre ? <Btn onClick={() => abrirProto(p.id)} className="justify-self-start !text-acentodeep">Abrir</Btn> : <span className="text-[12.5px] font-semibold text-ink3">Planificado</span>}
+              {p.abre ? (
+                <div className="flex flex-wrap items-center gap-2 justify-self-start">
+                  <Btn onClick={() => abrirProto(p.id, { libre: true })} className="!text-acentodeep">Abrir</Btn>
+                  {DATOS[p.id]?.pdf && (
+                    <Btn v="soft" icon="download" onClick={() => pdf(p.id)} disabled={bajando === p.id} title="Descargar el PDF para imprimir y llevar al box">
+                      {bajando === p.id ? 'Preparando…' : 'PDF de box'}
+                    </Btn>
+                  )}
+                </div>
+              ) : <span className="text-[12.5px] font-semibold text-ink3">Planificado</span>}
             </article>
           ))}
         </section>
       ))}
+      <SolicitudesProtocolo />
     </div>
   );
 }
@@ -377,6 +401,16 @@ function Aportes({ l }) {
   ));
 }
 
+// Descarga el PDF de box de un protocolo (archivo en public/)
+async function bajarPdf(archivo, avisar) {
+  try {
+    const r = await fetch(archivo); if (!r.ok) throw new Error();
+    await descargar(archivo, await r.blob(), avisar);
+  } catch (e) { avisar('No se pudo obtener el PDF.', 'warn'); }
+}
+
+const reducido = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+
 /* Un paso en tres niveles, como en la presentación:
    1 · siempre visible (qué hacer y cuándo terminaste), 2 · por qué, 3 · fuente, errores, disenso y lo que reportan otros. */
 export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorque, autoPorque, mapa }) {
@@ -385,19 +419,39 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
   // Una orden externa (la voz: «por qué») abre el desplegable
   useEffect(() => { if (abrirPorque) setMas(true); }, [abrirPorque]);
   const porque = s.porque || [];
-  // autoPorque (segundos, modo guiado): cuenta regresiva y el «¿Por qué?» se abre solo; tocarlo antes la cancela
-  const [falta, setFalta] = useState(autoPorque && porque.length ? autoPorque : 0);
-  useEffect(() => {
-    if (!falta || mas) return;
-    const t = setTimeout(() => { if (falta === 1) setMas(true); setFalta(falta - 1); }, 1000);
-    return () => clearTimeout(t);
-  }, [falta, mas]);
-  const contando = falta > 0 && !mas;
   const subs = s.sub || [];
   const aportes = s.aportes || [];
   const fichas = [...subs.map((x, k) => ({ k: 's' + k, t: fichaDe(x.titulo)[0], ic: fichaDe(x.titulo)[1], x })),
     ...(aportes.length ? [{ k: 'aportes', t: 'Otros casos · ' + aportes.length, ic: 'chat' }] : [])];
   const abierta = fichas.find((f) => f.k === ficha);
+  // autoPorque (segundos, modo guiado): recorrido solo. Cada tantos segundos se abre lo siguiente
+  // (el «¿Por qué?», después cada ficha: fuentes, errores, otros casos…) y la página baja para leerlo entero.
+  // Tocar el «¿Por qué?» o una ficha detiene el recorrido.
+  const etapas = [...(porque.length ? ['porque'] : []), ...fichas.map((f) => f.k)];
+  const [auto, setAuto] = useState(!!autoPorque && etapas.length > 0);
+  const [etapa, setEtapa] = useState(-1);
+  const [falta, setFalta] = useState(autoPorque || 0);
+  const refPorque = useRef(null);
+  const refFichas = useRef(null);
+  useEffect(() => {
+    if (!auto || etapa >= etapas.length - 1) return;
+    const t = setTimeout(() => {
+      if (falta > 1) { setFalta(falta - 1); return; }
+      const e = etapa + 1; const k = etapas[e];
+      if (k === 'porque') setMas(true); else setFicha(k);
+      setEtapa(e); setFalta(autoPorque);
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [auto, etapa, falta]);
+  // Al abrirse algo, la página baja lo justo para verlo entero (después de que termina de desplegarse)
+  useEffect(() => {
+    if (!auto || etapa < 0) return;
+    const el = etapas[etapa] === 'porque' ? refPorque.current : refFichas.current;
+    const t = setTimeout(() => { try { el && el.scrollIntoView({ block: 'nearest', behavior: reducido() ? 'auto' : 'smooth' }); } catch (e) {} }, 450);
+    return () => clearTimeout(t);
+  }, [etapa]);
+  const detener = () => setAuto(false);
+  const contando = auto && etapa === -1 && etapas[0] === 'porque';
   const pre = 'Terminaste cuando';
   const listo = s.listo || '';
   // animar: cada nivel entra después del anterior (modo guiado)
@@ -436,13 +490,12 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
       )}
 
       {porque.length > 0 && (
-        <div className={cx('suave overflow-hidden', nivel(1).className)} style={nivel(1).style}>
-          <button type="button" onClick={() => { setFalta(0); setMas(!mas); }} aria-expanded={mas}
+        <div ref={refPorque} className={cx('suave scroll-mb-[110px] scroll-mt-24 overflow-hidden', nivel(1).className)} style={nivel(1).style}>
+          <button type="button" onClick={() => { detener(); setMas(!mas); }} aria-expanded={mas}
             className={cx('group relative flex w-full items-center gap-3 px-5 py-4 text-left', grande ? 'sm:px-9 sm:py-5' : 'sm:px-6')}>
             <span className="rotulo flex-1">¿Por qué?</span>
             {!mas && <span className="hidden min-w-0 flex-[3] truncate text-[13px] text-ink3 sm:block">{porque[0]}</span>}
             {contando && <span className="flex-none text-[12px] font-semibold tabular-nums text-ink3" aria-live="polite">Se abre en {falta} s</span>}
-            {contando && <span aria-hidden="true" className="cuenta absolute bottom-0 left-0 h-[3px] w-full bg-menta" style={{ '--t': autoPorque + 's' }} />}
             <span className={cx('grid h-8 w-8 flex-none place-items-center rounded-full bg-card text-acento shadow-sh transition-transform duration-300 group-hover:scale-105', mas && 'rotate-180')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </span>
@@ -458,13 +511,13 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
       )}
 
       {fichas.length > 0 && (
-        <div className={cx(grande ? 'px-2 pt-1 sm:px-4' : 'rounded-[20px] border border-line px-4 py-4 sm:px-6 sm:py-5', nivel(2).className)} style={nivel(2).style}>
+        <div ref={refFichas} className={cx('scroll-mb-[110px] scroll-mt-24', grande ? 'px-2 pt-1 sm:px-4' : 'rounded-[20px] border border-line px-4 py-4 sm:px-6 sm:py-5', nivel(2).className)} style={nivel(2).style}>
           <div className="rotulo mb-3">Fuente y otros casos</div>
           <div className="flex flex-wrap gap-2" role="group" aria-label={'Más sobre el paso ' + nn(i)}>
             {fichas.map((f) => {
               const on = ficha === f.k;
               return (
-                <button key={f.k} type="button" onClick={() => setFicha(on ? null : f.k)} aria-expanded={on}
+                <button key={f.k} type="button" onClick={() => { detener(); setFicha(on ? null : f.k); }} aria-expanded={on}
                   className={cx('inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', on ? 'bg-panel text-panelink' : 'bg-soft text-ink2 hover:bg-acentosoft hover:text-acentodeep')}>
                   <Ic n={f.ic} s={14} className={on ? 'text-menta' : 'text-rotulo'} />{f.t}
                 </button>
@@ -509,34 +562,27 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
 }
 
 export function Protocolo() {
-  const { protoId, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid, verPerfil } = useApp();
+  const { protoId, protoLibre, protoTodo, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid, verPerfil, esDocente } = useApp();
   const d = DATOS[protoId] || DATOS['cementado-pmma'];
   const id = DATOS[protoId] ? protoId : 'cementado-pmma';
   const hechos = checks[id] || [];
   const toggle = (i) => setChecks((c) => { const l = c[id] || []; return { ...c, [id]: l.includes(i) ? l.filter((x) => x !== i) : [...l, i].sort((a, b) => a - b) }; });
   const reiniciar = () => setChecks((c) => ({ ...c, [id]: [] }));
   const marcar = (i) => setChecks((c) => { const l = c[id] || []; return l.includes(i) ? c : { ...c, [id]: [...l, i].sort((a, b) => a - b) }; });
-  const [modo, setModoRaw] = useState(leerModo);
-  const setModo = (m) => { setModoRaw(m); guardarModo(m); window.scrollTo({ top: 0 }); };
+  const [modo, setModoRaw] = useState(() => protoTodo ? 'todo' : protoLibre ? 'guiado' : leerModo());
+  const setModo = (m) => { setModoRaw(m); guardarModo(m); setLibreAlEntrar(false); window.scrollTo({ top: 0 }); };
+  const [libreAlEntrar, setLibreAlEntrar] = useState(protoLibre); // solo la primera vez: al volver de «Ver todo» no se reabre
   const [bajando, setBajando] = useState(false);
-  const aprobadores = useAprobadoresProtocolo(id);
+  const aprobadores = useAprobadoresProtocolo(id, esDocente);
   const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
-  const bajarPdf = async () => {
-    setBajando(true);
-    try {
-      const r = await fetch(d.pdf); if (!r.ok) throw new Error();
-      const b = await r.blob();
-      await descargar(d.pdf, b, avisar);
-    } catch (e) { avisar('No se pudo obtener el PDF.', 'warn'); }
-    setBajando(false);
-  };
+  const bajarPdfProto = async () => { setBajando(true); await bajarPdf(d.pdf, avisar); setBajando(false); };
   const lado = (
     <>
       <div className="flex flex-col gap-2">
-        <Btn v="primary" icon="plus" onClick={() => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp })}>Registrar un caso con este protocolo</Btn>
-        {d.pdf && <Btn icon="download" onClick={bajarPdf} disabled={bajando}>{bajando ? 'Preparando…' : 'Descargar el PDF de box'}</Btn>}
+        {esDocente && <Btn v="primary" icon="plus" onClick={() => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp })}>Registrar un caso con este protocolo</Btn>}
+        {d.pdf && <Btn icon="download" onClick={bajarPdfProto} disabled={bajando}>{bajando ? 'Preparando…' : 'Descargar el PDF de box'}</Btn>}
       </div>
-      {casosDeEste.length > 0 && (
+      {esDocente && casosDeEste.length > 0 && (
         <div className="tarjeta p-4">
           <h2 className="m-0 mb-2 rotulo">Tus casos con este protocolo</h2>
           {casosDeEste.map((c) => (
@@ -570,8 +616,9 @@ export function Protocolo() {
   );
   const registrar = () => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp });
   if (modo === 'guiado') {
-    return <Guiado key={id} d={d} hechos={hechos} toggle={toggle} marcar={marcar} reiniciar={reiniciar}
-      onVerTodo={() => setModo('todo')} onRegistrar={registrar} volver={() => go('biblioteca')} />;
+    return <Guiado key={id} d={d} hechos={hechos} toggle={toggle} marcar={marcar} reiniciar={reiniciar} libreInicial={libreAlEntrar}
+      onPdf={d.pdf ? bajarPdfProto : null} bajando={bajando}
+      onVerTodo={() => setModo('todo')} onRegistrar={esDocente ? registrar : null} volver={() => go('biblioteca')} />;
   }
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">

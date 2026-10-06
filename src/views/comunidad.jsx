@@ -3,6 +3,7 @@ import { AREAS, protoPorId, protosAbiertos, hace, fecha, uid } from '../logic.js
 import { useApp } from '../ctx.js';
 import { PROTOS } from '../data.js';
 import { TuDia } from './protocolos.jsx';
+import { MapaInicio } from './mapa.jsx';
 import { toggleLikeFS, responderPostFS, publicarPostFS, usePerfilPublico, usePostsDe, useSeguimientos } from '../db.js';
 import { Ic, Pill, Btn, Field, Seg, Aviso, PageHead, Avatar, Modal, Vacio, Logo, inputCls, inputErr, cx } from '../ui.jsx';
 
@@ -69,6 +70,13 @@ const PASOS_GUIA = [
   { n: 3, icon: 'stamp', t: 'Valida', d: 'Un revisor del área lo puntúa y lo aprueba, pide cambios o lo deniega. Siempre justificado.', cta: 'Ver revisión', ir: (a) => a.go('revision') },
   { n: 4, icon: 'chat', t: 'Conversa', d: 'Pregunta lo que te pasó en el box, responde a otros y sigue a tus colegas.', cta: 'Escribir', ir: () => { const el = document.getElementById('feed-txt'); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }); } } }
 ];
+// Para estudiantes: sin registrar ni validar casos (eso es del portal docente)
+const PASOS_GUIA_EST = [
+  PASOS_GUIA[0],
+  { n: 2, icon: 'check', t: 'Practica', d: 'Abre un protocolo y síguelo paso a paso, con la bandeja y la voz si quieres.', cta: 'Elegir protocolo', ir: (a) => a.go('biblioteca') },
+  { n: 3, icon: 'red', t: 'Explora', d: 'Mira en el mapa cómo se conectan los protocolos: técnicas, materiales y derivaciones.', cta: 'Ver el mapa', ir: (a) => a.go('mapa') },
+  PASOS_GUIA[3]
+];
 const leerGuia = () => { try { return localStorage.getItem('criterium-guia') === 'oculta'; } catch (e) { return false; } };
 const guardarGuia = (oculta) => { try { oculta ? localStorage.setItem('criterium-guia', 'oculta') : localStorage.removeItem('criterium-guia'); } catch (e) {} };
 
@@ -84,12 +92,12 @@ function Guia() {
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="m-0 mb-1 text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">Qué puedes hacer en Criterium</p>
-          <h2 id="guia-titulo" className="m-0 text-[19px] font-bold leading-snug text-panelink">Cuatro pasos: aprende, registra, valida y conversa.</h2>
+          <h2 id="guia-titulo" className="m-0 text-[19px] font-bold leading-snug text-panelink">{app.esDocente ? 'Cuatro pasos: aprende, registra, valida y conversa.' : 'Cuatro pasos: aprende, practica, explora y conversa.'}</h2>
         </div>
         <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full bg-panel2 p-1.5 text-panelink2 hover:text-panelink" aria-label="Ocultar la guía"><Ic n="x" s={14} /></button>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        {PASOS_GUIA.map((p, k) => (
+        {(app.esDocente ? PASOS_GUIA : PASOS_GUIA_EST).map((p, k) => (
           <button key={p.n || k} type="button" onClick={() => p.ir(app)} className="flex flex-col items-start gap-1 rounded-rs bg-panel2 p-3.5 text-left transition-[transform,background-color] hover:-translate-y-0.5">
             <b className="text-[26px] font-extrabold leading-none tabular-nums text-menta">{k + 1}</b>
             <span className="mt-1.5 text-[13.5px] font-bold text-panelink">{p.t}</span>
@@ -113,7 +121,7 @@ function TarjetaMini({ p }) {
 }
 
 function Historias() {
-  const { nuevoCaso } = useApp();
+  const { nuevoCaso, esDocente } = useApp();
   const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0)).slice(0, 10);
   
   return (
@@ -122,12 +130,12 @@ function Historias() {
         <h2 className="text-[14px] font-bold text-ink">Protocolos recientes</h2>
       </div>
       <div className="scroll-x flex items-start gap-3.5 overflow-x-auto px-4 pb-4 sm:px-0">
-        <button type="button" onClick={() => nuevoCaso()} className="flex w-[120px] sm:w-[140px] flex-none flex-col gap-2 rounded-rs bg-acentosoft p-3 shadow-sh transition-shadow hover:shadow-shlg text-left border border-acento/20">
+        {esDocente && <button type="button" onClick={() => nuevoCaso()} className="flex w-[120px] sm:w-[140px] flex-none flex-col gap-2 rounded-rs bg-acentosoft p-3 shadow-sh transition-shadow hover:shadow-shlg text-left border border-acento/20">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-acento text-onc">
             <Ic n="plus" s={16} />
           </div>
           <span className="text-[12px] font-semibold leading-tight text-acentodeep min-h-[30px]">Registrar nuevo caso</span>
-        </button>
+        </button>}
         {lista.map((p) => (
           <TarjetaMini key={p.id} p={p} />
         ))}
@@ -270,7 +278,9 @@ export function Feed() {
     <div className="feed-layout" data-derecha={derecha ? 'visible' : 'oculta'}>
       <div className="feed-centro mx-auto flex w-full min-w-0 flex-col gap-6">
         <h1 className="sr-only">Inicio</h1>
-        
+
+        <MapaInicio />
+
         <Guia />
         
         {/* Buscador Principal */}

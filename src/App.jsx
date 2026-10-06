@@ -5,31 +5,31 @@ import { casosIniciales, feedInicial } from './seeds.js';
 import { Ctx } from './ctx.js';
 import { Ic, Avatar, Lightbox, Logo, useToasts, cx } from './ui.jsx';
 import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
+import { Mapa } from './views/mapa.jsx';
+import { Agenda, Calificaciones, Evaluaciones } from './views/agenda.jsx';
 import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.jsx';
 import { Revision } from './views/revision.jsx';
-import { Asistente, Herramientas } from './views/trabajo.jsx';
+import { Asistente } from './views/trabajo.jsx';
+import { Herramientas } from './views/herramientas.jsx';
 import { Feed, Postular, Contacto, PerfilModal, PerfilPublico } from './views/comunidad.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
-import { useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS } from './db.js';
+import { useEsDocente, useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS } from './db.js';
 import AuthGate from './views/auth.jsx';
 import Migracion from './views/migracion.jsx';
 
-const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto', 'perfil'];
-const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
+const VISTAS = ['inicio', 'biblioteca', 'mapa', 'agenda', 'calificaciones', 'evaluaciones', 'proto', 'casos', 'caso', 'editor', 'revision', 'asistente', 'herramientas', 'feed', 'postular', 'contacto', 'perfil'];
+const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
   revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil' };
 
-const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión'], ['herramientas', 'tool', 'Herramientas'], ['asistente', 'bot', 'Asistente']];
-const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
+const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['agenda', 'clock', 'Mi agenda'], ['calificaciones', 'stamp', 'Calificaciones'], ['herramientas', 'tool', 'Herramientas']];
+// Portal docente: solo para quien está en /docentes (se agrega a mano en la consola de Firebase)
+const NAV_DOCENTE = [['evaluaciones', 'check', 'Evaluaciones'], ['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión de casos'], ['asistente', 'bot', 'Asistente']];
+const VISTAS_DOCENTE = ['evaluaciones', 'casos', 'caso', 'editor', 'revision', 'asistente'];
+const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['mapa', 'red', 'Mapa de protocolos'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
 
 function lsGet(k, d) { try { const x = localStorage.getItem(k); return x ? JSON.parse(x) : d; } catch (e) { return d; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-
-function temaEfectivo() {
-  const a = document.documentElement.getAttribute('data-theme');
-  if (a === 'dark' || a === 'light') return a;
-  try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch (e) { return 'light'; }
-}
 
 /* ═══════ Wrapper con Auth ═══════ */
 function AppWrapper() {
@@ -52,8 +52,9 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const [mostrarMigracion, setMostrarMigracion] = useState(true);
 
   /* ── Datos de Firestore ── */
-  const [casosPropios, casosPropiosListo] = useMisCasos(myUid);
-  const [colaRevision, colaRevisionListo] = useColaRevision();
+  const [esDocente, rolListo] = useEsDocente(myUid);
+  const [casosPropios, casosPropiosListo] = useMisCasos(rolListo && esDocente ? myUid : null);
+  const [colaRevision, colaRevisionListo] = useColaRevision(rolListo && esDocente);
   const [feedFS, setFeedFS, feedListo] = useFeedFS();
 
   // Combinar: casos propios + cola de revisión (sin duplicados)
@@ -72,7 +73,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     leerPostulacionFS(myUid).then((p) => { setPostulacion(p); setPostCargado(true); });
   }, [myUid]);
 
-  const listo = casosPropiosListo && feedListo && postCargado;
+  const listo = rolListo && casosPropiosListo && feedListo && postCargado;
 
   /* ── Perfil (viene de auth) ── */
   const perfil = perfilAuth;
@@ -92,9 +93,14 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const { siguiendo } = useSeguimientos(myUid);
 
   /* ── Navegación ── */
-  const hashIni = (() => { try { const h = (location.hash || '').slice(1); return VISTAS.includes(h) && !['proto', 'caso', 'editor', 'perfil'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
+  // Enlace directo a un protocolo (#proto/<id>): lo usan los PDF de box para llevar a las fuentes
+  const protoHash = (() => { try { const m = (location.hash || '').match(/^#proto\/([\w-]+)/); return m && PROTOS.some((p) => p.id === m[1] && p.abre) ? m[1] : null; } catch (e) { return null; } })();
+  const hashIni = (() => { try { const h = (location.hash || '').slice(1); if (protoHash) return 'proto'; return VISTAS.includes(h) && !['proto', 'caso', 'editor', 'perfil'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
   const [view, setView] = useState(hashIni);
-  const [protoId, setProtoId] = useState('cementado-pmma');
+  const [protoId, setProtoId] = useState(protoHash || 'cementado-pmma');
+  const [protoTodo, setProtoTodo] = useState(!!protoHash); // llegó por enlace: se abre con todo a la vista (fuentes incluidas)
+  const [protoFoco, setProtoFoco] = useState(null); // protocolo a destacar al llegar a la Biblioteca (desde el mapa del inicio)
+  const [protoLibre, setProtoLibre] = useState(false); // desde la Biblioteca el protocolo se abre en manos libres
   const [casoId, setCasoId] = useState(null);
   const [perfilUid, setPerfilUid] = useState(null);
   const [desde, setDesde] = useState('casos');
@@ -113,31 +119,28 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const [foto, setFoto] = useState(null);
   const [perfilOpen, setPerfilOpen] = useState(false);
   const perfilCallback = useRef(null);
-  const [tema, setTema] = useState('light');
   const [checks, setChecksRaw] = useState(() => lsGet('criterium-checks', {}));
   const setChecks = (fn) => setChecksRaw((c) => { const n = typeof fn === 'function' ? fn(c) : fn; lsSet('criterium-checks', n); return n; });
   const [modoRevisor, setModoRevisorRaw] = useState(() => lsGet('criterium-revisor', false));
   const setModoRevisor = (v) => { setModoRevisorRaw(v); lsSet('criterium-revisor', v); setRevisando(null); };
 
-  /* ── Tema ── */
-  useEffect(() => {
-    const t = lsGet('criterium-tema', null);
-    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
-    setTema(temaEfectivo());
-    let mq; try { mq = window.matchMedia('(prefers-color-scheme: dark)'); const f = () => setTema(temaEfectivo()); mq.addEventListener('change', f); return () => mq.removeEventListener('change', f); } catch (e) {}
-  }, []);
-  const toggleTema = () => { const t = temaEfectivo() === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); lsSet('criterium-tema', t); setTema(t); };
+  /* ── Tema: solo claro (el modo oscuro se eliminó). Se borra la preferencia antigua si quedó guardada. ── */
+  useEffect(() => { document.documentElement.setAttribute('data-theme', 'light'); try { localStorage.removeItem('criterium-tema'); } catch (e) {} }, []);
 
   /* ── Acciones ── */
   const go = (v, extra = {}) => {
+    if (VISTAS_DOCENTE.includes(v) && !esDocente) v = 'feed'; // las secciones del portal docente no existen para estudiantes
     setView(v); setMenu(false); setBuscarMovil(false);
     if (v === 'revision' && !('revisando' in extra)) setRevisando(null);
     if ('filtroCasos' in extra) setFiltroCasos(extra.filtroCasos);
+    setProtoFoco(extra.foco || null);
+    if (extra.foco) { setQ(''); setEsp('todas'); } // que el protocolo destacado no quede oculto por la búsqueda o el filtro
     if ('feedProto' in extra) setFeedProto(extra.feedProto); else if (v === 'feed') setFeedProto('');
-    try { history.replaceState(null, '', ['proto', 'caso', 'editor', 'perfil'].includes(v) ? '#' + (v === 'proto' ? 'biblioteca' : v === 'perfil' ? 'feed' : 'casos') : '#' + v); } catch (e) {}
-    try { window.scrollTo(0, 0); } catch (e) {}
+    if (v !== 'proto') { try { history.replaceState(null, '', ['caso', 'editor', 'perfil'].includes(v) ? '#' + (v === 'perfil' ? 'feed' : 'casos') : '#' + v); } catch (e) {} }
+    if (!extra.foco) { try { window.scrollTo(0, 0); } catch (e) {} }
   };
-  const abrirProto = (id) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; setProtoId(id); go('proto'); };
+  useEffect(() => { if (rolListo && !esDocente && VISTAS_DOCENTE.includes(view)) setView('feed'); }, [rolListo, esDocente, view]);
+  const abrirProto = (id, opc = {}) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; setProtoId(id); setProtoLibre(!!opc.libre); setProtoTodo(false); go('proto'); try { history.replaceState(null, '', '#proto/' + id); } catch (e) {} };
   const abrirCaso = (id) => { setDesde(view === 'revision' ? 'revision' : 'casos'); setCasoId(id); go('caso'); };
   const verPerfil = (uid) => { if (!uid) return; setPerfilUid(uid); go('perfil'); };
   const toggleSeguir = async (uid) => {
@@ -281,8 +284,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   // Para compatibilidad con el código existente, 'casos' incluye todos (propios + cola de revisión)
   const setCasos = () => {}; // No-op: los datos vienen de Firestore ahora
   const ctx = {
-    view, go, protoId, abrirProto, casoId, abrirCaso, desde, editando, nuevoCaso, editarCaso, guardarCaso, actualizarCaso, enviarCaso, retirarCaso, eliminarCaso, duplicarCaso,
-    revisando, setRevisando, firmarRevision, modoRevisor, setModoRevisor, quitarEjemplos,
+    view, go, protoId, protoLibre, protoTodo, protoFoco, abrirProto, casoId, abrirCaso, desde, editando, nuevoCaso, editarCaso, guardarCaso, actualizarCaso, enviarCaso, retirarCaso, eliminarCaso, duplicarCaso,
+    esDocente, revisando, setRevisando, firmarRevision, modoRevisor, setModoRevisor, quitarEjemplos,
     q, setQ, esp, setEsp, filtroCasos, setFiltroCasos, feedProto, setFeedProto, asisTab, setAsisTab, herrTab, setHerrTab,
     casos: todos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion: guardarPostulacion, mensajes, setMensajes: guardarMensaje,
     checks, setChecks, avisar, verFoto: setFoto,
@@ -304,6 +307,10 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     <nav className="flex flex-col gap-0.5">
       <div className={cx('rotulo px-3 pb-1.5 pt-1', oscuro && '!text-navink3')}>Trabajo diario</div>
       {NAV_DIARIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
+      {esDocente && <>
+        <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Portal docente</div>
+        {NAV_DOCENTE.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
+      </>}
       <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Biblioteca y comunidad</div>
       {NAV_BIBLIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
     </nav>
@@ -313,11 +320,6 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
       <Logo size={26} oscuro={oscuro} />
     </button>
   );
-  const temaBtn = (oscuro) => (
-    <button type="button" onClick={toggleTema} className={cx('flex items-center gap-2.5 rounded-full border px-3.5 py-2 text-[13px]', oscuro ? 'border-navline text-navink hover:bg-navline hover:text-panelink' : 'border-cardline bg-card text-ink2 shadow-sh hover:bg-soft')}>
-      <Ic n={tema === 'dark' ? 'sun' : 'moon'} s={15} />{tema === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-    </button>
-  );
   const perfilBtn = (compacto) => perfil ? (
     <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-2 rounded-full border border-cardline bg-card shadow-sh py-1 pl-1 pr-3 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Tu perfil">
       <Avatar nombre={perfil.nombre} size={28} />{!compacto && <span className="max-w-[140px] truncate">{perfil.nombre.split(' ')[0]}</span>}
@@ -325,7 +327,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   ) : <button type="button" onClick={() => setPerfilOpen(true)} className="whitespace-nowrap rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc hover:bg-acentodeep">Mi perfil</button>;
 
   /* Migración al primer login */
-  if (mostrarMigracion && !migrado) {
+  // La migración sube casos locales: solo tiene sentido para docentes (los estudiantes ya no registran casos)
+  if (mostrarMigracion && !migrado && rolListo && esDocente) {
     return (
       <>
         <Migracion uid={myUid} onTerminar={() => { setMigrado(true); setMostrarMigracion(false); }} />
@@ -337,7 +340,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const vista = !listo ? (
     <div className="flex flex-col gap-4 pt-8"><div className="h-8 w-64 animate-pulse rounded-rs bg-soft" /><div className="h-4 w-96 max-w-full animate-pulse rounded-rs bg-soft" /><div className="h-48 animate-pulse rounded-r bg-soft" /></div>
   ) : ({
-    inicio: <Inicio />, biblioteca: <Biblioteca />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
+    inicio: <Inicio />, biblioteca: <Biblioteca />, mapa: <Mapa />, agenda: <Agenda />, calificaciones: <Calificaciones />, evaluaciones: <Evaluaciones />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
     editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, asistente: <Asistente />, herramientas: <Herramientas />,
     feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />
   })[view];
@@ -361,7 +364,6 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
             ))}
           </div>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
-            {temaBtn(true)}
             <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-navline px-3.5 py-2 text-[13px] text-navink hover:bg-navline hover:text-panelink">
               <Ic n="back" s={15} />Cerrar sesión
             </button>
@@ -383,7 +385,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               </form>
               <div className="ml-auto flex items-center gap-2">
                 <button type="button" onClick={() => setBuscarMovil(!buscarMovil)} className="rounded-full p-2 text-ink2 hover:bg-soft md:hidden" aria-label="Buscar"><Ic n="search" /></button>
-                <button type="button" onClick={() => nuevoCaso()} className="hidden items-center gap-1.5 rounded-full border border-cardline bg-card px-3.5 py-2 shadow-sh text-[13px] font-semibold text-acentodeep hover:bg-soft sm:inline-flex"><Ic n="plus" s={15} />Nuevo caso</button>
+                {esDocente && <button type="button" onClick={() => nuevoCaso()} className="hidden items-center gap-1.5 rounded-full border border-cardline bg-card px-3.5 py-2 shadow-sh text-[13px] font-semibold text-acentodeep hover:bg-soft sm:inline-flex"><Ic n="plus" s={15} />Nuevo caso</button>}
                 {perfilBtn(false)}
               </div>
             </div>
@@ -401,7 +403,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5">
-          {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisión']].map(([v, i, t]) => (
+          {(esDocente ? [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['evaluaciones', 'check', 'Evaluar'], ['casos', 'folder', 'Casos']]
+            : [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['agenda', 'clock', 'Agenda'], ['calificaciones', 'stamp', 'Notas']]).map(([v, i, t]) => (
             <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
               className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-ink' : 'text-ink3')}>
               {activo(view, v) && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-menta" aria-hidden="true" />}
@@ -419,8 +422,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
             <div className="flex items-center justify-between">{marca()}<button type="button" onClick={() => setMenu(false)} className="rounded-full p-2 text-ink3 hover:bg-soft" aria-label="Cerrar menú"><Ic n="x" /></button></div>
             {navegacion()}
             <div className="flex flex-wrap gap-2 pt-2">
-              {temaBtn()}
-              <button type="button" onClick={() => { setMenu(false); nuevoCaso(); }} className="flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc"><Ic n="plus" s={15} />Nuevo caso</button>
+              {esDocente && <button type="button" onClick={() => { setMenu(false); nuevoCaso(); }} className="flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc"><Ic n="plus" s={15} />Nuevo caso</button>}
               <button type="button" onClick={() => { setMenu(false); logout(); }} className="flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-[13px] text-ink2 hover:bg-soft"><Ic n="back" s={15} />Cerrar sesión</button>
             </div>
           </div>

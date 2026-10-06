@@ -8,6 +8,21 @@ import {
 } from 'firebase/storage';
 import { db, storage } from './firebase.js';
 
+/* ═══════ Rol docente ═══════ */
+
+/** Docente verificado: existe /docentes/{uid}. Solo se agrega a mano desde la consola de Firebase.
+ *  Devuelve [esDocente, listo]. Las reglas de Firestore y Storage exigen el mismo documento. */
+export function useEsDocente(uid) {
+  const [es, setEs] = useState(false);
+  const [listo, setListo] = useState(false);
+  useEffect(() => {
+    if (!uid) { setEs(false); setListo(true); return; }
+    setListo(false);
+    return onSnapshot(doc(db, 'docentes', uid), (d) => { setEs(d.exists()); setListo(true); }, () => { setEs(false); setListo(true); });
+  }, [uid]);
+  return [es, listo];
+}
+
 /* ═══════ Casos ═══════ */
 
 /** Escucha los casos propios del usuario (autor) */
@@ -28,29 +43,30 @@ export function useMisCasos(uid) {
   return [casos, listo];
 }
 
-/** Escucha la cola de revisión (casos enviados, todos los autores) */
-export function useColaRevision() {
+/** Escucha la cola de revisión (casos enviados, todos los autores). Solo para docentes: activo = esDocente */
+export function useColaRevision(activo = true) {
   const [cola, setCola] = useState([]);
   const [listo, setListo] = useState(false);
 
   useEffect(() => {
+    if (!activo) { setCola([]); setListo(true); return; }
     const q = query(collection(db, 'casos'), where('estado', '==', 'enviado'), orderBy('actualizado', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setCola(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
       setListo(true);
     }, () => setListo(true));
     return unsub;
-  }, []);
+  }, [activo]);
 
   return [cola, listo];
 }
 
 /** Revisores que aprobaron casos con un protocolo (para la mención honrosa). Lee casos aprobados de cualquier autor. */
-export function useAprobadoresProtocolo(protocoloId) {
+export function useAprobadoresProtocolo(protocoloId, activo = true) {
   const [lista, setLista] = useState([]);
 
   useEffect(() => {
-    if (!protocoloId) return;
+    if (!protocoloId || !activo) { setLista([]); return; }
     const q = query(collection(db, 'casos'), where('protocoloId', '==', protocoloId), where('estado', '==', 'aprobado'));
     const unsub = onSnapshot(q, (snap) => {
       const porRevisor = new Map();
@@ -65,7 +81,7 @@ export function useAprobadoresProtocolo(protocoloId) {
       setLista([...porRevisor.values()].sort((a, b) => b.casos - a.casos));
     }, () => setLista([]));
     return unsub;
-  }, [protocoloId]);
+  }, [protocoloId, activo]);
 
   return lista;
 }
@@ -362,4 +378,66 @@ export async function seguirFS(de, a) {
 }
 export async function dejarDeSeguirFS(de, a) {
   await deleteDoc(doc(db, 'seguimientos', de + '_' + a));
+}
+
+/* ═══════ Agenda (citas), evaluación y calificaciones ═══════
+   citas/{id}: { estudianteUid, estudiante: { uid, nombre }, docenteUid, docente: { uid, nombre },
+     fecha 'AAAA-MM-DD', hora 'HH:MM', paciente (solo iniciales), pieza, protocoloId, nota (texto libre del estudiante),
+     estado: 'agendada' | 'cancelada' | 'terminada', creado, actualizado,
+     evaluacion?: { terminado: true, nota (1 a 7), comentario, pasosBien: [índices], pasosTotal, fecha, docente: { uid, nombre } } }
+   Las consultas no ordenan en el servidor (así no piden índices compuestos): se ordenan en el navegador. */
+const porFechaHora = (a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora);
+
+/** Citas del estudiante (las suyas) o del docente (las que debe evaluar). campo: 'estudianteUid' | 'docenteUid' */
+export function useCitas(uid, campo = 'estudianteUid') {
+  const [citas, setCitas] = useState([]);
+  const [listo, setListo] = useState(false);
+  useEffect(() => {
+    if (!uid) { setCitas([]); setListo(true); return; }
+    const q = query(collection(db, 'citas'), where(campo, '==', uid));
+    return onSnapshot(q, (snap) => { setCitas(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort(porFechaHora)); setListo(true); }, () => setListo(true));
+  }, [uid, campo]);
+  return [citas, listo];
+}
+export async function crearCitaFS(cita) {
+  const ahora = new Date().toISOString();
+  return addDoc(collection(db, 'citas'), { ...cita, estado: 'agendada', creado: ahora, actualizado: ahora });
+}
+export async function editarCitaFS(id, cambios) {
+  return updateDoc(doc(db, 'citas', id), { ...cambios, actualizado: new Date().toISOString() });
+}
+export async function eliminarCitaFS(id) { return deleteDoc(doc(db, 'citas', id)); }
+/** El docente marca la T de terminado y pone la nota. Solo cambia estado, evaluacion y actualizado. */
+export async function evaluarCitaFS(id, evaluacion) {
+  return updateDoc(doc(db, 'citas', id), { estado: 'terminada', evaluacion, actualizado: new Date().toISOString() });
+}
+
+/** Docentes verificados con su nombre público, para elegir quién evalúa una cita */
+export function useDocentes(activo = true) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!activo) return;
+    return onSnapshot(collection(db, 'docentes'), async (snap) => {
+      const ids = snap.docs.map((d) => d.id);
+      const perfiles = await Promise.all(ids.map((id) => getDoc(doc(db, 'perfiles', id)).then((p) => (p.exists() ? p.data() : {})).catch(() => ({}))));
+      setLista(ids.map((id, i) => ({ uid: id, nombre: perfiles[i].nombre || 'Docente', area: perfiles[i].area || '' })).sort((a, b) => a.nombre.localeCompare(b.nombre)));
+    }, () => setLista([]));
+  }, [activo]);
+  return lista;
+}
+
+/* ═══════ Solicitudes de protocolos ═══════
+   solicitudes/{id}: { uid, nombre, procedimiento, especialidad, detalle, fecha, plazo 'AAAA-MM-DD', estado: 'recibida' | 'en preparación' | 'publicada' }
+   El equipo de Criterium las ve y cambia su estado desde la consola de Firebase. */
+export function useMisSolicitudes(uid) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!uid) { setLista([]); return; }
+    const q = query(collection(db, 'solicitudes'), where('uid', '==', uid));
+    return onSnapshot(q, (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => b.fecha.localeCompare(a.fecha))), () => setLista([]));
+  }, [uid]);
+  return lista;
+}
+export async function crearSolicitudFS(s) {
+  return addDoc(collection(db, 'solicitudes'), { ...s, estado: 'recibida', fecha: new Date().toISOString() });
 }

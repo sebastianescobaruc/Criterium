@@ -2,17 +2,15 @@
 // cur: -1 = bandeja (antes de empezar), 0..N-1 = pasos, N = cierre.
 import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
-import { Ic, Btn, Aviso, cx } from '../ui.jsx';
+import { Ic, Btn, Aviso, Seg, cx } from '../ui.jsx';
 import { Paso, Flecha } from './protocolos.jsx';
-import { useVoz, vozDisponible, lecturaDisponible, useHablando, hablar, callar } from '../voz.js';
+import { TEXTO_BANDEJA, TEXTO_PRUEBA, textoPaso, textoPorque, textoCierre } from '../lectura.js';
+import { useVoz, vozDisponible, lecturaDisponible, useHablando, hablar, callar, useVoces, vozElegida, elegirVoz, velocidad, elegirVelocidad, VELOCIDADES } from '../voz.js';
 
-// Leer cada paso en voz alta al llegar: comodidad local
-const leerPref = () => { try { return localStorage.getItem('criterium-leer') === 'si'; } catch (e) { return false; } };
-const guardarLeer = (v) => { try { localStorage.setItem('criterium-leer', v ? 'si' : 'no'); } catch (e) {} };
 
 const reducido = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
 
-export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegistrar, volver }) {
+export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegistrar, volver, libreInicial, onPdf, bajando }) {
   const N = d.pasos.length;
   const [cur, setCur] = useState(() => {
     if (!hechos.length) return -1;
@@ -20,11 +18,11 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
     return f === -1 ? N : f;
   });
   const [visto, setVisto] = useState(cur); // hasta dónde llegó: el mapa no adelanta pasos que no ha visto
-  const [voz, setVoz] = useState(false);
-  const [leer, setLeer] = useState(leerPref);
+  const [leer, setLeer] = useState(false); // modo voz: lee cada paso al llegar y escucha órdenes a la vez
   const [dir, setDir] = useState(1);        // 1 avanza (entra desde la derecha), -1 retrocede
   const [listo, setListo] = useState(false); // "Terminé" confirma con ✓ antes de avanzar
   const [orden, setOrden] = useState(null);
+  const [ajustes, setAjustes] = useState(false); // panel para elegir la voz de lectura y la velocidad
   const [pq, setPq] = useState(0); // «por qué» por voz abre el desplegable del paso
   const [libre, setLibre] = useState(false); // manos libres: pantalla completa + voz + lectura
   const raiz = useRef(null);
@@ -34,9 +32,9 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   const primera = useRef(true);
 
   const leerPaso = (k) => {
-    if (k === -1) hablar('Antes de empezar, monta la bandeja. Di siguiente cuando esté lista.');
-    else if (k >= N) hablar('Protocolo terminado. Marcaste ' + hechos.length + ' de ' + N + ' pasos.');
-    else { const s = d.pasos[k]; hablar('Paso ' + (k + 1) + '. ' + s.hacer + ' ' + (s.listo || '')); }
+    if (k === -1) hablar(TEXTO_BANDEJA);
+    else if (k >= N) hablar(textoCierre(hechos.length, N));
+    else hablar(textoPaso(d.pasos[k], k));
   };
   const ir = (k, porVoz) => {
     const n = Math.max(-1, Math.min(N, k));
@@ -62,10 +60,6 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
     if (leer || leerAhora.current) leerPaso(cur); else callar();
     leerAhora.current = false;
   }, [cur]);
-  const alternarLeer = () => {
-    const v = !leer; setLeer(v); guardarLeer(v);
-    if (v) leerPaso(cur); else callar(); // el toque del botón habilita el audio en el navegador
-  };
 
   // Deslizar en el celular: izquierda avanza, derecha retrocede
   const toque = useRef(null);
@@ -98,30 +92,34 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   }, []);
 
   // Voz
-  const { estado, oido } = useVoz(voz, (o, texto) => {
+  const { estado, oido, encender, apagar } = useVoz((o, texto) => {
     setOrden({ o, texto, t: Date.now() });
     if (o === 'siguiente') siguiente(true);
     else if (o === 'anterior') anterior(true);
     else if (o === 'leer') leerPaso(cur);
-    else if (o === 'porque') setPq((n) => n + 1), hablar(cur >= 0 && cur < N ? ((d.pasos[cur].porque || [])[0] || 'Este paso no trae explicación.') : '');
+    else if (o === 'porque') setPq((n) => n + 1), hablar(cur >= 0 && cur < N ? textoPorque(d.pasos[cur]) : '');
     else if (o === 'callar') callar();
     else if (o === 'salir' && libre) salirLibre();
   });
   useEffect(() => () => callar(), []);
-  const alternarVoz = () => { if (voz) callar(); setVoz(!voz); };
+  // Modo voz: un solo botón lee y escucha a la vez. Todo se enciende dentro del toque:
+  // Safari no abre el micrófono ni deja sonar el audio fuera de un gesto.
+  const encenderVoz = () => { setLeer(true); if (vozDisponible()) encender(); leerPaso(cur); };
+  const apagarVoz = () => { setLeer(false); apagar(); callar(); };
+  const alternarModoVoz = () => { if (leer) apagarVoz(); else encenderVoz(); };
 
   // Manos libres: la app se esconde, el paso ocupa la pantalla, se escucha la voz, se lee cada paso
   // y la pantalla no se apaga. En iPhone no hay pantalla completa real: queda la capa fija que tapa todo.
   const bloqueo = useRef(null);
   const pedirBloqueo = async () => { try { if (navigator.wakeLock) bloqueo.current = await navigator.wakeLock.request('screen'); } catch (e) {} };
   const entrarLibre = () => {
-    setLibre(true); setVoz(vozDisponible()); setLeer(true);
-    leerPaso(cur); // dentro del toque: así el navegador deja sonar el audio
+    setLibre(true);
+    if (!leer) encenderVoz(); // dentro del toque: así el navegador deja sonar el audio y abrir el micrófono
     try { const el = document.documentElement; const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) { const r = f.call(el); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
     pedirBloqueo();
   };
   const salirLibre = () => {
-    setLibre(false); setVoz(false); setLeer(leerPref()); callar();
+    setLibre(false); apagarVoz();
     try { if (document.fullscreenElement) document.exitFullscreen(); else if (document.webkitFullscreenElement) document.webkitExitFullscreen(); } catch (e) {}
     try { if (bloqueo.current) bloqueo.current.release(); } catch (e) {}
     bloqueo.current = null;
@@ -144,6 +142,9 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
     };
   }, [libre]);
   useEffect(() => () => { try { if (bloqueo.current) bloqueo.current.release(); } catch (e) {} }, []);
+  // Abierto desde la Biblioteca: entra directo a manos libres. Corre justo después del toque en «Abrir»,
+  // así el navegador todavía cuenta el gesto y deja abrir la pantalla completa, el audio y el micrófono.
+  useEffect(() => { if (libreInicial) entrarLibre(); }, []);
 
   const pct = Math.round((hechos.length / N) * 100);
   const mapa = <Recorrido d={d} cur={cur} visto={visto} hechos={hechos} ir={ir} />;
@@ -159,20 +160,22 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
           <h1 className="m-0 truncate text-[18px] font-extrabold leading-tight tracking-[-.02em] text-deep sm:text-[22px]" title={d.titulo}>{d.titulo}</h1>
         </div>
         <div className="flex flex-none items-center gap-2">
-          {vozDisponible() && (
-            <button type="button" onClick={alternarVoz} aria-pressed={voz}
-              className={cx('relative inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', voz ? 'bg-panel text-panelink' : 'border border-cardline bg-card text-ink2 shadow-sh hover:bg-soft')}>
-              <span className={cx('relative grid h-5 w-5 place-items-center rounded-full', voz && estado === 'escuchando' && 'onda')}>
-                <Ic n="mic" s={16} className={voz ? 'text-menta' : 'text-acento'} />
+          {(lecturaDisponible() || vozDisponible()) && (
+            <button type="button" onClick={alternarModoVoz} aria-pressed={leer}
+              aria-label={leer ? 'Apagar el modo voz' : 'Modo voz: lee cada paso en voz alta y escucha tus órdenes'}
+              title={vozDisponible() ? 'Lee cada paso y escucha «siguiente», «anterior», «por qué», «silencio»' : 'Lee cada paso en voz alta (este navegador no reconoce la voz)'}
+              className={cx('relative inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors sm:min-w-[142px]', leer ? 'bg-panel text-panelink' : 'border border-cardline bg-card text-ink2 shadow-sh hover:bg-soft')}>
+              <span className={cx('relative grid h-5 w-5 place-items-center rounded-full', leer && !hablando && estado === 'escuchando' && 'onda')}>
+                {leer && hablando ? <span className="barras inline-flex h-4 w-4 items-end justify-center gap-[2px]"><i /><i /><i /></span>
+                  : <Ic n={vozDisponible() ? 'mic' : 'volumen'} s={16} className={leer ? 'text-menta' : 'text-acento'} />}
               </span>
-              <span className="hidden sm:inline">{voz ? 'Escuchando' : 'Voz'}</span>
+              <span className="hidden sm:inline">{!leer ? 'Voz' : hablando ? 'Leyendo' : estado === 'escuchando' ? 'Escuchando' : 'Voz encendida'}</span>
             </button>
           )}
           {lecturaDisponible() && (
-            <button type="button" onClick={alternarLeer} aria-pressed={leer} aria-label="Leer cada paso en voz alta" title="Leer cada paso en voz alta"
-              className={cx('inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', leer ? 'bg-panel text-panelink' : 'border border-cardline bg-card text-ink2 shadow-sh hover:bg-soft')}>
-              {leer && hablando ? <span className="barras inline-flex h-4 w-4 items-end justify-center gap-[2px]"><i /><i /><i /></span> : <Ic n="volumen" s={16} className={leer ? 'text-menta' : 'text-acento'} />}
-              <span className="hidden sm:inline">{leer ? 'Leyendo pasos' : 'Leer pasos'}</span>
+            <button type="button" onClick={() => setAjustes(!ajustes)} aria-pressed={ajustes} aria-label="Elegir la voz de lectura y la velocidad" title="Elegir la voz y la velocidad"
+              className={cx('grid h-9 w-9 place-items-center rounded-full transition-colors', ajustes ? 'bg-panel text-menta' : 'border border-cardline bg-card text-acento shadow-sh hover:bg-soft')}>
+              <Ic n="dots" s={18} />
             </button>
           )}
           {!libre && <button type="button" onClick={onVerTodo} aria-label="Ver todo el protocolo" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
@@ -192,8 +195,9 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
         <div className="h-1.5 rounded-full bg-[linear-gradient(90deg,var(--acento),var(--menta))] transition-[width] duration-700" style={{ width: pct + '%' }} />
       </div>
 
-      {voz && <div className="mx-auto w-full max-w-[1100px]"><PanelVoz estado={estado} oido={oido} orden={orden} libre={libre} /></div>}
-      {libre && !vozDisponible() && <p className="mx-auto m-0 w-full max-w-[1100px] text-[12.5px] text-ink3">Este navegador no reconoce la voz: cada paso se lee en voz alta y avanzas tocando «Terminé» o deslizando.</p>}
+      {ajustes && <div className="mx-auto w-full max-w-[1100px]"><AjustesVoz cerrar={() => setAjustes(false)} /></div>}
+      {leer && vozDisponible() && <div className="mx-auto w-full max-w-[1100px]"><PanelVoz estado={estado} oido={oido} orden={orden} libre={libre} encender={encender} /></div>}
+      {leer && !vozDisponible() && <p className="mx-auto m-0 w-full max-w-[1100px] text-[12.5px] text-ink3">Este navegador no reconoce la voz: cada paso se lee en voz alta y avanzas tocando «Terminé» o deslizando.</p>}
 
       <div ref={escenario} className="mx-auto w-full min-w-0 max-w-[1100px] touch-pan-y" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {/* El paso anterior queda arriba, compacto, unido por una flecha */}
@@ -210,7 +214,7 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
           )}
 
           <div key={cur} className={dir > 0 ? 'entra-der' : 'entra-izq'}>
-            {cur === -1 && <Bandeja d={d} mapa={mapa} />}
+            {cur === -1 && <Bandeja d={d} mapa={mapa} empezar={() => siguiente()} onPdf={onPdf} bajando={bajando} />}
             {s && <Paso s={s} i={cur} hecho={hechos.includes(cur)} onToggle={() => toggle(cur)} grande animar leyendo={hablando} abrirPorque={pq} autoPorque={5} mapa={mapa} />}
             {cur === N && <Cierre d={d} hechos={hechos} ir={ir} mapa={mapa} reiniciar={() => { reiniciar(); setVisto(-1); ir(-1); }} onRegistrar={onRegistrar} onVerTodo={onVerTodo} />}
           </div>
@@ -229,7 +233,7 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
               <button type="button" onClick={() => siguiente()}
                 className={cx('inline-flex flex-none items-center gap-2 rounded-full font-bold', libre ? 'h-16 px-8 text-[17px]' : 'h-11 px-5 text-[14px]', 'shadow-[0_8px_20px_-10px_var(--acento)] transition-colors active:scale-[.97]', listo ? 'confirma bg-menta text-mentaink' : 'bg-acento text-onc hover:bg-acentodeep')}>
                 {listo ? <><Ic n="check" s={17} sw={2.6} />Hecho</> : <>
-                  {cur === -1 ? 'Bandeja lista' : cur === N - 1 ? 'Terminar' : <><span className="sm:hidden">Terminé</span><span className="hidden sm:inline">Terminé este paso</span></>}
+                  {cur === -1 ? 'Empezar' : cur === N - 1 ? 'Terminar' : <><span className="sm:hidden">Terminé</span><span className="hidden sm:inline">Terminé este paso</span></>}
                   <span className="rotate-180"><Ic n="back" s={17} sw={2.2} /></span>
                 </>}
               </button>
@@ -241,18 +245,51 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
   );
 }
 
-function PanelVoz({ estado, oido, orden, libre }) {
+function PanelVoz({ estado, oido, orden, libre, encender }) {
   const NOMBRE = { siguiente: 'Siguiente paso', anterior: 'Paso anterior', leer: 'Leyendo el paso', porque: 'Leyendo el porqué', callar: 'Silencio', salir: 'Salir' };
   return (
     <div className="aparece panel flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:gap-5">
       <div className="min-w-0 flex-1">
-        {estado === 'denegado' ? <p className="m-0 text-[13.5px] text-panelink">El navegador no dio permiso para usar el micrófono. Actívalo en el candado de la barra de direcciones.</p>
-          : estado === 'error' ? <p className="m-0 text-[13.5px] text-panelink">Se cortó la escucha. Apaga y vuelve a encender la voz.</p>
-          : <p className="m-0 text-[13.5px] leading-normal text-panelink">Di <b className="text-menta">«siguiente»</b> o «sigamos» para avanzar, «anterior», «lee» para escuchar el paso, «por qué» o «silencio»{libre ? ', y «salir» para terminar' : ''}.</p>}
+        {estado === 'denegado' ? <p className="m-0 text-[13.5px] text-panelink">El navegador no dio permiso para usar el micrófono. Actívalo en el candado de la barra de direcciones (en iPhone: Ajustes › Safari › Micrófono) y vuelve a tocar «Voz».</p>
+          : estado === 'sin-micro' ? <p className="m-0 text-[13.5px] text-panelink">No se encontró un micrófono. Conecta uno o revisa que otra app no lo esté usando.</p>
+          : estado === 'error' ? <p className="m-0 text-[13.5px] text-panelink">No hay conexión con el servicio de reconocimiento de voz. Revisa internet y <button type="button" onClick={encender} className="font-bold text-menta underline">vuelve a intentar</button>.</p>
+          : estado === 'pausado' ? <p className="m-0 text-[13.5px] text-panelink">La escucha se pausó. <button type="button" onClick={encender} className="font-bold text-menta underline">Toca aquí para seguir escuchando</button>.</p>
+          : estado === 'iniciando' ? <p className="m-0 text-[13.5px] text-panelink">Encendiendo el micrófono… si el navegador pregunta, toca «Permitir».</p>
+          : <p className="m-0 text-[13.5px] leading-normal text-panelink">Di <b className="text-menta">«siguiente»</b> o «sigamos» para avanzar, «anterior», «lee» para escuchar el paso, «por qué» o «silencio»{libre ? ', y «salir» para terminar' : ''}. Puedes hablar aunque esté leyendo.</p>}
         <p className="m-0 mt-1 text-[11.5px] leading-snug text-panelink2">El navegador manda el audio a su servicio de reconocimiento (Google en Chrome, Apple en Safari). No digas nombres ni datos del paciente.</p>
       </div>
       <div className="min-w-0 rounded-rs bg-panel2 px-3.5 py-2 text-[12.5px] text-panelink2 sm:w-[260px]" aria-live="polite">
         {orden && Date.now() - orden.t < 4000 ? <><b className="text-menta">{NOMBRE[orden.o]}</b> · «{orden.texto}»</> : oido ? <>Oí: «{oido}»</> : 'Esperando una orden…'}
+      </div>
+    </div>
+  );
+}
+
+// Elegir la voz de lectura y la velocidad (se guarda en este navegador)
+function AjustesVoz({ cerrar }) {
+  const voces = useVoces();
+  const [uri, setUri] = useState(vozElegida);
+  const [vel, setVel] = useState(() => String(velocidad()));
+  const actual = voces.find((v) => v.voiceURI === uri) || voces[0];
+  const probar = () => hablar(TEXTO_PRUEBA);
+  return (
+    <div className="aparece tarjeta flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:gap-5 sm:p-5">
+      <label className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="text-[12.5px] font-semibold text-ink2">Voz de lectura</span>
+        {voces.length ? (
+          <select value={actual ? actual.voiceURI : ''} onChange={(e) => { setUri(e.target.value); elegirVoz(e.target.value); }}
+            className="min-w-0 rounded-rs border border-line bg-input px-3 py-2.5 text-[14px] text-ink">
+            {voces.map((v) => <option key={v.voiceURI} value={v.voiceURI}>{v.name} · {v.lang.replace('_', '-')}</option>)}
+          </select>
+        ) : <span className="text-[13px] text-ink3">Este navegador no trae voces en español. Instala una en los ajustes del sistema (Accesibilidad › Contenido leído).</span>}
+      </label>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[12.5px] font-semibold text-ink2">Velocidad</span>
+        <Seg opciones={VELOCIDADES} valor={vel} onChange={(v) => { setVel(v); elegirVelocidad(v); }} size="sm" />
+      </div>
+      <div className="flex gap-2">
+        <Btn v="soft" icon="volumen" onClick={probar}>Probar</Btn>
+        <Btn v="ghost" onClick={cerrar}>Listo</Btn>
       </div>
     </div>
   );
@@ -293,7 +330,7 @@ function Recorrido({ d, cur, visto, hechos, ir }) {
 }
 
 // Antes de empezar: el instrumental agrupado por fase, como un flujo de izquierda a derecha
-function Bandeja({ d, mapa }) {
+function Bandeja({ d, mapa, empezar, onPdf, bajando }) {
   return (
     <section className="flex flex-col gap-3">
       <div className="aparece panel p-6 sm:p-9">
@@ -301,6 +338,16 @@ function Bandeja({ d, mapa }) {
         <div className="text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">Antes de empezar</div>
         <h2 className="m-0 mt-2 text-[24px] font-bold leading-tight text-panelink sm:text-[30px]">Monta la bandeja.</h2>
         <p className="m-0 mt-3 max-w-[62ch] text-[15px] leading-[1.6] text-panelink2 sm:text-[16px]"><b className="text-panelink">Alcance:</b> {d.alcance}</p>
+        <div className="mt-6 flex w-full max-w-[340px] flex-col gap-2.5">
+          <button type="button" onClick={empezar} className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-menta px-7 text-[17px] font-bold text-mentaink shadow-shlg transition-transform active:scale-[.97]">
+            Empezar<span className="rotate-180"><Ic n="back" s={19} sw={2.4} /></span>
+          </button>
+          {onPdf && (
+            <button type="button" onClick={onPdf} disabled={bajando} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-panel2 px-6 text-[14.5px] font-semibold text-panelink transition-colors hover:brightness-110 disabled:opacity-60">
+              <Ic n="download" s={17} />{bajando ? 'Preparando…' : 'Descargar el PDF de box'}
+            </button>
+          )}
+        </div>
       </div>
       <Aviso className="aparece !rounded-[20px] !text-[12px]" >{d.bandera}</Aviso>
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -331,14 +378,14 @@ function Cierre({ d, hechos, ir, mapa, reiniciar, onRegistrar, onVerTodo }) {
           <h2 className="m-0 mt-2 text-[24px] font-bold leading-tight text-panelink sm:text-[30px]">Marcaste {hechos.length} de {N} pasos.</h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Btn v="primary" icon="plus" onClick={onRegistrar}>Registrar un caso con este protocolo</Btn>
+          {onRegistrar && <Btn v="primary" icon="plus" onClick={onRegistrar}>Registrar un caso con este protocolo</Btn>}
           <button type="button" onClick={reiniciar} className="rounded-full bg-panel2 px-4 py-2.5 text-[13.5px] font-semibold text-panelink hover:brightness-110">Empezar de nuevo</button>
         </div>
       </div>
       {faltan.length > 0 && (
         <div className="aparece suave p-5 sm:p-7" style={{ '--d': '300ms' }}>
           <div className="rotulo mb-2">Quedaron sin marcar</div>
-          <p className="m-0 mb-3 text-[13.5px] text-ink2">Si los omitiste o los cambiaste, anótalo con su motivo al registrar el caso.</p>
+          <p className="m-0 mb-3 text-[13.5px] text-ink2">{onRegistrar ? 'Si los omitiste o los cambiaste, anótalo con su motivo al registrar el caso.' : 'Revísalos antes de cerrar: tócalos para volver a ese paso.'}</p>
           <div className="flex flex-col gap-1.5">
             {faltan.map(({ s, i }) => (
               <button key={i} type="button" onClick={() => ir(i)} className="flex items-center gap-3 rounded-rs bg-card px-3.5 py-2.5 text-left text-[13.5px] text-ink2 shadow-sh hover:text-ink">

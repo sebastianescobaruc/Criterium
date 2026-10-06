@@ -7,21 +7,23 @@ service firebase.storage {
       function casoExiste() { return firestore.exists(rutaCaso()); }
       function caso() { return firestore.get(rutaCaso()).data; }
       function esAutor() { return caso().autorUid == request.auth.uid; }
+      // Docente verificado: existe /docentes/{uid} en Firestore. Las fotos de casos son solo del portal docente.
+      function esDocente() { return request.auth != null && firestore.exists(/databases/(default)/documents/docentes/$(request.auth.uid)); }
 
-      // Leer: el autor siempre; otros con sesión, solo si el caso no es borrador.
-      allow read: if request.auth != null && casoExiste()
+      // Leer: un docente autor siempre; otros docentes, solo si el caso no es borrador.
+      allow read: if esDocente() && casoExiste()
         && (esAutor() || caso().estado != 'borrador');
 
       // Subir o reemplazar: solo el autor. Si el caso todavía no existe
       // (la migración sube las fotos antes de crear el caso) se permite.
       // Solo imágenes de hasta 5 MB.
-      allow write: if request.auth != null
+      allow write: if esDocente()
         && (!casoExiste() || esAutor())
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
 
       // Borrar: solo el autor.
-      allow delete: if request.auth != null && (!casoExiste() || esAutor());
+      allow delete: if esDocente() && (!casoExiste() || esAutor());
     }
   }
 }

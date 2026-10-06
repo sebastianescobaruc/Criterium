@@ -6,9 +6,75 @@ service cloud.firestore {
     function soy(uid) { return conSesion() && request.auth.uid == uid; }
     function cambia() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
-    // Revisor verificado: existe /revisores/{uid}. Solo se agregan a mano desde la consola.
-    function esRevisor() {
-      return conSesion() && exists(/databases/$(database)/documents/revisores/$(request.auth.uid));
+    // Docente verificado: existe /docentes/{uid}. Solo se agrega a mano desde la consola.
+    // El portal docente (Mis casos, Revisión de casos, Asistente) y todo lo de casos exige este rol.
+    function esDocente() {
+      return conSesion() && exists(/databases/$(database)/documents/docentes/$(request.auth.uid));
+    }
+
+    // Lista de docentes. Cada uno lee solo su propio documento (para saber si es docente); nadie la escribe desde la app.
+    // Cualquiera con sesión la lee: el estudiante elige de esta lista al docente que lo evalúa.
+    match /docentes/{uid} {
+      allow read: if conSesion();
+      allow write: if false;
+    }
+
+    // Agenda: cada cita es de un estudiante y la evalúa un docente verificado.
+    // Del paciente solo van las iniciales (2 a 4 letras mayúsculas) y la pieza.
+    match /citas/{citaId} {
+      function soyEstudiante() { return soy(resource.data.estudianteUid); }
+      function soyDocente() { return soy(resource.data.docenteUid) && esDocente(); }
+      function citaValida(d) {
+        return d.fecha is string && d.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && d.hora is string && d.hora.matches('^[0-9]{2}:[0-9]{2}$')
+          && d.paciente is string && d.paciente.matches('^[A-ZÁÉÍÓÚÑ]{2,4}$')
+          && d.protocoloId is string && d.box is string && d.duracion is int
+          && d.docenteUid is string && d.docenteUid != request.auth.uid
+          && exists(/databases/$(database)/documents/docentes/$(d.docenteUid));
+      }
+      function evaluacionValida(e) {
+        return e.terminado == true && e.nota is number && e.nota >= 1 && e.nota <= 7
+          && e.docente.uid == request.auth.uid && e.pasosBien is list && e.pasosTotal is int;
+      }
+
+      // Leer: el estudiante dueño y el docente que la evalúa. Nadie más.
+      allow read: if soyEstudiante() || soyDocente();
+
+      // Crear: a nombre propio, agendada y sin evaluación.
+      allow create: if conSesion()
+        && request.resource.data.estudianteUid == request.auth.uid
+        && request.resource.data.estado == 'agendada'
+        && !('evaluacion' in request.resource.data)
+        && citaValida(request.resource.data);
+
+      // El estudiante la edita o la cancela mientras no esté evaluada.
+      allow update: if soyEstudiante()
+        && !('evaluacion' in resource.data) && !('evaluacion' in request.resource.data)
+        && request.resource.data.estudianteUid == resource.data.estudianteUid
+        && request.resource.data.estado in ['agendada', 'cancelada']
+        && citaValida(request.resource.data);
+
+      // El docente marca la T de terminado y pone la nota (1 a 7). Solo eso, y solo una vez.
+      allow update: if soyDocente()
+        && resource.data.estado == 'agendada'
+        && cambia().hasOnly(['estado', 'evaluacion', 'actualizado'])
+        && request.resource.data.estado == 'terminada'
+        && evaluacionValida(request.resource.data.evaluacion);
+
+      // Borrar: el estudiante, si no está evaluada.
+      allow delete: if soyEstudiante() && !('evaluacion' in resource.data);
+    }
+
+    // Solicitudes de protocolos: cada uno crea y ve las suyas. El equipo de Criterium las gestiona desde la consola.
+    match /solicitudes/{id} {
+      allow create: if conSesion()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.estado == 'recibida'
+        && request.resource.data.procedimiento is string
+        && request.resource.data.procedimiento.size() >= 5 && request.resource.data.procedimiento.size() <= 200
+        && request.resource.data.get('detalle', '').size() <= 1000;
+      allow read: if soy(resource.data.uid);
+      allow update, delete: if false;
     }
 
     // Perfil de usuario: solo el dueño lee y escribe.
@@ -22,32 +88,32 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Casos clínicos
+    // Casos clínicos: solo docentes. Los estudiantes no leen ni escriben casos.
     match /casos/{casoId} {
       function esAutor() { return soy(resource.data.autorUid); }
 
-      // Leer: el autor siempre; otros con sesión, solo casos que no son borrador.
-      allow read: if conSesion()
+      // Leer: un docente autor siempre; otros docentes, solo casos que no son borrador.
+      allow read: if esDocente()
         && (esAutor() || resource.data.estado != 'borrador');
 
-      // Crear: a nombre propio, como borrador o enviado, sin revisiones.
-      allow create: if conSesion()
+      // Crear: un docente, a nombre propio, como borrador o enviado, sin revisiones.
+      allow create: if esDocente()
         && request.resource.data.autorUid == request.auth.uid
         && request.resource.data.estado in ['borrador', 'enviado']
         && request.resource.data.get('revisiones', []).size() == 0;
 
       // Actualizar, camino 1: el autor edita su caso.
       // No puede tocar las revisiones, cambiar de dueño ni ponerse un veredicto.
-      allow update: if esAutor()
+      allow update: if esAutor() && esDocente()
         && request.resource.data.autorUid == resource.data.autorUid
         && request.resource.data.get('revisiones', []) == resource.data.get('revisiones', [])
         && (!('estado' in cambia())
             || request.resource.data.estado in ['borrador', 'enviado', 'cambios']);
 
-      // Actualizar, camino 2: un revisor verificado firma una revisión.
+      // Actualizar, camino 2: un docente firma una revisión (los revisores verificados también, si además son docentes).
       // No puede ser el autor (conflicto de interés), el caso tiene que estar en revisión,
       // agrega exactamente una revisión firmada con su uid y el veredicto coincide con el estado.
-      allow update: if esRevisor()
+      allow update: if esDocente()
         && !esAutor()
         && resource.data.estado == 'enviado'
         && cambia().hasOnly(['revisiones', 'historial', 'estado', 'actualizado'])
@@ -56,8 +122,8 @@ service cloud.firestore {
              resource.data.get('revisiones', []).size(),
              request.resource.data.estado);
 
-      // Eliminar: solo el autor.
-      allow delete: if esAutor();
+      // Eliminar: solo el docente autor.
+      allow delete: if esAutor() && esDocente();
 
       function revisionValida(revs, antes, estado) {
         return revs.size() == antes + 1
