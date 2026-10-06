@@ -1,0 +1,16 @@
+{
+  "name": "Criterium",
+  "short_name": "Criterium",
+  "description": "Protocolos odontológicos con la evidencia a la vista, paso a paso.",
+  "lang": "es-CL",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F6F7",
+  "theme_color": "#0F2530",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -294,7 +294,7 @@ export function CasoEditor() {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Fotos y radiografías</h2>
+          <h2 className="m-0 rotulo">Fotos y radiografías</h2>
           <SubirFotos tipoSugerido={c.fotos.length ? 'Progreso' : 'Inicial'} onAdd={(nuevas) => setC((x) => ({ ...x, fotos: [...x.fotos, ...nuevas] }))} />
           {c.fotos.length > 0 && (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -371,7 +371,7 @@ export function Galeria({ c, puedeAgregar, onAdd }) {
       {fotos.length === 0 && <p className="m-0 text-[13.5px] text-ink3">Sin fotos ni radiografías.</p>}
       {grupos.map((g) => (
         <div key={g.t}>
-          <h4 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-acentodeep">{g.t} · {g.l.length}</h4>
+          <h4 className="m-0 mb-2 rotulo">{g.t} · {g.l.length}</h4>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {g.l.map((f) => <Foto key={f.id} foto={f} onOpen={() => verFoto(f)}>{f.postEnvio && <span className="flex-none font-semibold text-warn">después del envío</span>}</Foto>)}
           </div>
@@ -468,7 +468,7 @@ export function CasoDetalle() {
 
         {ultima && (
           <section className="flex flex-col gap-3">
-            <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">{c.revisiones.length > 1 ? 'Última revisión · ' + c.revisiones.length + ' en total' : 'Revisión'}</h2>
+            <h2 className="m-0 rotulo">{c.revisiones.length > 1 ? 'Última revisión · ' + c.revisiones.length + ' en total' : 'Revisión'}</h2>
             <TarjetaRevision r={ultima} />
             {c.revisiones.length > 1 && (
               <details className="tarjeta px-4 py-3">
@@ -481,23 +481,23 @@ export function CasoDetalle() {
 
         <section className="grid gap-4 md:grid-cols-2">
           <div className="tarjeta p-5">
-            <h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2>
+            <h2 className="m-0 mb-2 rotulo">Diagnóstico</h2>
             <p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico || <span className="text-ink3">Sin completar.</span>}</p>
           </div>
           <div className="tarjeta p-5">
-            <h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Procedimiento</h2>
+            <h2 className="m-0 mb-2 rotulo">Procedimiento</h2>
             <p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento || <span className="text-ink3">Sin completar.</span>}</p>
           </div>
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Adherencia al protocolo</h2>
+          <h2 className="m-0 rotulo">Adherencia al protocolo</h2>
           <Adherencia c={c} />
           {c.evidencia && <div className="rounded-r bg-soft p-4"><h3 className="m-0 mb-1.5 text-[12px] font-bold text-ink2">Evidencia declarada por el autor</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink">{c.evidencia}</p></div>}
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Fotos y radiografías</h2>
+          <h2 className="m-0 rotulo">Fotos y radiografías</h2>
           <Galeria c={c} puedeAgregar={mio && c.estado !== 'denegado'}
             onAdd={(nuevas) => actualizarCaso(c.id, (x) => ({ ...x, fotos: [...x.fotos, ...nuevas.map((f) => ({ ...f, postEnvio: x.estado !== 'borrador' }))] }))} />
         </section>
@@ -506,13 +506,13 @@ export function CasoDetalle() {
       <aside className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-[76px]">
         <Chequeo ch={ch} />
         <div>
-          <h2 className="m-0 mb-2.5 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Sesiones y controles</h2>
+          <h2 className="m-0 mb-2.5 rotulo">Sesiones y controles</h2>
           <Sesiones c={c} editable={mio}
             onAdd={(s) => { actualizarCaso(c.id, (x) => ({ ...x, sesiones: [...(x.sesiones || []), s] })); avisar('Sesión agregada'); }}
             onDel={(sid) => actualizarCaso(c.id, (x) => ({ ...x, sesiones: x.sesiones.filter((s) => s.id !== sid) }))} />
         </div>
         <div>
-          <h2 className="m-0 mb-2.5 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Historial</h2>
+          <h2 className="m-0 mb-2.5 rotulo">Historial</h2>
           <ol className="m-0 flex list-none flex-col gap-2 p-0">
             {[...(c.historial || [])].reverse().map((h, i) => (
               <li key={i} className="grid grid-cols-[84px_minmax(0,1fr)] gap-2 text-[12.5px]"><span className="tabular-nums text-ink3">{fechaCorta(h.fecha)}</span><span className="text-ink2">{h.txt}</span></li>

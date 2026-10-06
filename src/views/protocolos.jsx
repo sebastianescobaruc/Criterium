@@ -1,11 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PROTOS, DATOS } from '../data.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
+import { Guiado } from './guiado.jsx';
 
-const CHIPS = ['todas', 'Rehabilitación oral', 'Periodoncia', 'Endodoncia', 'Cirugía'];
+// Cómo se recorre un protocolo: 'guiado' (un paso a la vez) o 'todo' (la lista completa). Comodidad local.
+const leerModo = () => { try { return localStorage.getItem('criterium-modo-proto') === 'todo' ? 'todo' : 'guiado'; } catch (e) { return 'guiado'; } };
+const guardarModo = (m) => { try { localStorage.setItem('criterium-modo-proto', m); } catch (e) {} };
+
+// Solo las especialidades que tienen al menos un protocolo en el catálogo
+const CHIPS = ['todas', ...ORDEN_ESP.filter((e) => PROTOS.some((p) => p.esp === e))];
 
 export function filtrarProtos(q, esp) {
   const nq = norm(q.trim());
@@ -26,25 +32,60 @@ export function ChipsEsp({ className = '' }) {
   );
 }
 
+
+import { ChipEstadoProtocolo } from '../ui.jsx';
+
 function TarjetaProto({ p }) {
   const { abrirProto } = useApp();
+  const d = DATOS[p.id]; // Puede ser undefined si está planificado
+  
+  const estadoVisual = p.estadoTxt.toLowerCase().includes('borrador') ? 'borrador' 
+    : p.estadoTxt.toLowerCase().includes('planificado') ? 'planificado' 
+    : p.estadoTxt.toLowerCase().includes('disputa') ? 'disputa' : 'validado';
+
+  const pasos = d ? d.pasos.length : 0;
+  const fuentes = d ? d.evidencia.length : 0;
+
   return (
-    <article className="flex min-h-[176px] flex-col gap-2.5 tarjeta p-5 transition-shadow hover:shadow-shlg">
-      <div className="flex flex-wrap gap-1.5">
-        <Pill>{p.estadoTxt}</Pill>
-        {p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}
+    <button type="button" onClick={() => p.abre && abrirProto(p.id)} className="flex min-h-[176px] flex-col gap-4 tarjeta p-5 transition-shadow hover:shadow-shlg text-left w-full">
+      <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+        <span className="rotulo">{p.esp}</span>
+        <span className="flex flex-wrap items-center gap-1.5">{p.estudio && <Pill tono="acento">Estudio piloto</Pill>}<ChipEstadoProtocolo estado={estadoVisual} /></span>
       </div>
-      <h3 className="m-0 text-[17px] font-bold leading-[1.28] tracking-[-.015em] text-deep">{p.t}</h3>
-      <p className="m-0 flex-1 font-serif text-[14.5px] leading-normal text-ink2">{p.s}</p>
-      <div className="flex items-center justify-between gap-2.5 border-t border-line2 pt-3">
-        <span className="text-[12px] text-ink3">{p.esp}{p.n ? ' · ' + p.n : ''}</span>
-        {p.abre ? <Btn sm onClick={() => abrirProto(p.id)} className="!text-acentodeep hover:!border-acento">Abrir</Btn>
-          : <span className="text-[12px] font-semibold text-ink3">Planificado</span>}
+      
+      <div className="flex-1">
+        <h3 className="m-0 mb-2 text-[18px] font-extrabold leading-[1.28] tracking-[-.015em] text-deep">{p.t}</h3>
+        <p className="m-0 font-serif text-[14.5px] leading-normal text-ink2">{p.s}</p>
       </div>
-    </article>
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-line2 pt-4 mt-2 text-[13px] font-medium text-ink2 w-full">
+        {d ? (
+          <>
+            <div className="flex items-center gap-1.5"><Ic n="check" s={16} className="text-ink3" /> {pasos} pasos</div>
+            <div className="h-4 w-px bg-line" />
+            <div className="flex items-center gap-1.5"><Ic n="book" s={16} className="text-ink3" /> {fuentes} fuentes</div>
+            <div className="h-4 w-px bg-line" />
+            <div className="flex items-center gap-1.5"><Ic n="clock" s={16} className="text-ink3" /> {p.estadoTxt}</div>
+          </>
+        ) : (
+          <div className="flex items-center gap-1.5 text-ink3"><Ic n="clock" s={16} /> Próximamente en desarrollo</div>
+        )}
+      </div>
+    </button>
   );
 }
 
+function ItemPlanificado({ p }) {
+  return (
+    <div className="flex flex-col gap-1 border-b border-line2 py-3 last:border-0">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="m-0 text-[14.5px] font-bold text-ink2">{p.t}</h4>
+        <span className="text-[11px] font-semibold uppercase text-ink3 bg-soft px-2 py-0.5 rounded-full">{p.esp}</span>
+      </div>
+      <p className="m-0 text-[13.5px] text-ink3 leading-snug">{p.s}</p>
+    </div>
+  );
+}
 export function TuDia() {
   const { casos, abrirCaso, go, nuevoCaso, modoRevisor, myUid } = useApp();
   const mios = casos.filter((c) => c.autorUid === myUid || c.autor?.id === myUid);
@@ -58,7 +99,7 @@ export function TuDia() {
   return (
     <div className="flex flex-col gap-4 tarjeta p-5 sm:p-6">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tu día</h2>
+        <h2 className="m-0 rotulo">Tu día</h2>
         <Btn v="primary" sm icon="plus" onClick={() => nuevoCaso()}>Nuevo caso</Btn>
       </div>
       <div>
@@ -92,72 +133,114 @@ export function TuDia() {
   );
 }
 
+
+// Cómo se produce un protocolo (presentación para tutores, diapositiva 5). El tercero es el único con IA.
+const PRODUCCION = [
+  ['Pregunta operativa', 'Qué procedimiento y cuál es su alcance.'],
+  ['Búsqueda de evidencia', 'Guías > revisiones > ensayos > observacionales > laboratorio.'],
+  ['Borrador con IA', 'Cada afirmación con cita de página y párrafo.', true],
+  ['Validador y revisión humana', 'Rechaza fuentes fuera del corpus y aplica la regla del techo. Los autores resuelven conflictos.'],
+  ['Juicio de expertos', 'Puntúan cada paso; los autores corrigen. Cada corrección queda registrada.'],
+  ['Texto fijo y fechado', 'Con huella SHA-256: se lee la versión aprobada.']
+];
+
+// Las seis capas de cada protocolo (presentación para tutores, diapositiva 3)
+const CAPAS = [
+  ['Secuencia con criterio de término', '¿Qué hago y cómo sé que terminé?', 'check'],
+  ['Instrumental por fase', '¿Qué materiales voy a usar y en qué fase?', 'tool'],
+  ['Árbol de decisión', '¿Y si hay más de una opción válida?', 'sparkle'],
+  ['Disenso entre autores', '¿Dónde no se ponen de acuerdo?', 'chat'],
+  ['Errores frecuentes', '¿Dónde se equivoca la gente?', 'alert'],
+  ['Referencias con página y párrafo', 'Cada afirmación lleva al origen de su evidencia en un toque.', 'book']
+];
+
 export function Inicio() {
   const { q, setQ, esp, go } = useApp();
   const res = filtrarProtos(q, esp);
   return (
-    <div className="flex flex-col gap-11 pb-6">
-      <section className="grid items-start gap-8 pt-2 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,.8fr)] lg:gap-11 lg:pt-8">
+    <div className="flex flex-col gap-10 pb-8">
+      <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12 pt-4">
         <div className="min-w-0">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-acentosoft px-3 py-1.5 text-[12px] font-semibold text-acentodeep">
-            <span className="h-1.5 w-1.5 rounded-full bg-acento" />Odontología basada en evidencia
-          </div>
-          <h1 className="m-0 mb-4 max-w-[19ch] text-[36px] font-extrabold leading-[1.05] tracking-[-.035em] text-deep [text-wrap:balance] sm:text-[46px] xl:text-[52px]">Protocolos clínicos con la evidencia a la vista.</h1>
-          <p className="m-0 mb-6 max-w-[52ch] font-serif text-[17px] leading-relaxed text-ink2 sm:text-[19px]">Qué hacer, por qué, y dónde todavía no se sabe. Sube tus casos, compáralos con el protocolo y pásalos por un revisor que aprueba o deniega según la evidencia.</p>
+          <p className="rotulo m-0 mb-4">Biblioteca viva de protocolos</p>
+          <h1 className="m-0 mb-4 text-[36px] font-extrabold leading-[1.08] tracking-[-.03em] text-deep sm:text-[42px] xl:text-[48px] [text-wrap:balance]">
+            Protocolos clínicos con <span className="text-acento">la evidencia a la vista</span>.
+          </h1>
+          <p className="m-0 mb-8 max-w-[54ch] text-[16px] leading-relaxed text-ink2 sm:text-[18px]">
+            Qué hacer, por qué, y dónde todavía no se sabe. Registra tus casos, compáralos con el protocolo y somételos a revisión especializada.
+          </p>
           <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }}
-            className="flex max-w-[620px] items-center gap-2.5 rounded-full border border-line bg-card py-1.5 pl-5 pr-1.5 shadow-sh focus-within:border-acento">
+            className="flex max-w-[560px] items-center gap-2.5 rounded-full border border-line bg-card py-2 pl-5 pr-2 shadow-sh focus-within:border-acento focus-within:shadow-shlg transition-shadow">
             <Ic n="search" s={18} className="text-acento" sw={1.9} />
-            <input id="busqueda-hero" type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="¿Qué vas a hacer hoy?"
-              placeholder="¿Qué vas a hacer hoy? cementar un provisional…" className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
-            <button type="submit" className="flex-none rounded-full bg-acento px-5 py-2.5 text-[14px] font-semibold text-onc hover:bg-acentodeep">Buscar</button>
+            <input id="busqueda-hero" type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar en biblioteca"
+              placeholder="Ej: cementar carilla, exodoncia..." className="min-w-0 flex-1 bg-transparent py-2 text-[15px] text-ink outline-none placeholder:text-ink3" />
+            <button type="submit" className="flex-none rounded-full bg-acento px-6 py-2.5 text-[14px] font-semibold text-onc hover:bg-acentodeep transition-colors">Buscar</button>
           </form>
-          <ChipsEsp className="mt-3.5" />
+          <ChipsEsp className="mt-5" />
         </div>
-        <TuDia />
+        <div className="hidden lg:block">
+          <TuDia />
+        </div>
       </section>
 
       <section>
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <h2 className="m-0 text-[15px] font-bold text-ink">Protocolos <span className="font-medium text-ink3">· {res.length === 1 ? '1 protocolo' : res.length + ' protocolos'}</span></h2>
-          <button type="button" onClick={() => go('biblioteca')} className="text-[13px] font-semibold text-acentodeep hover:underline">Ver la biblioteca completa →</button>
-        </div>
-        {res.length === 0 ? <p className="m-0 text-[14px] text-ink2">Nada coincide con “{q}”. Prueba con otra palabra o quita el filtro de área.</p> : (
-          <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">{res.map((p) => <TarjetaProto key={p.id} p={p} />)}</div>
-        )}
-      </section>
-
-      <section className="grid items-center gap-6 rounded-[26px] bg-band px-6 py-8 sm:px-10 sm:py-10 md:grid-cols-[minmax(0,1.3fr)_auto]">
-        <div>
-          <h2 className="m-0 mb-3 text-[26px] font-extrabold leading-[1.1] tracking-[-.03em] text-white [text-wrap:balance] sm:text-[32px]">Ningún protocolo está validado todavía.</h2>
-          <p className="m-0 max-w-[60ch] font-serif text-[16px] leading-relaxed text-[#D5E3E8] sm:text-[17px]">Las ocho plazas de revisor están abiertas y cada una cubre un área distinta. Ningún protocolo se publica como validado sin la firma de un especialista del área que corresponde.</p>
-        </div>
-        <button type="button" onClick={() => go('postular')} className="justify-self-start rounded-full bg-[#F6F8F9] px-6 py-3 text-[14.5px] font-bold text-[#1B3949] hover:bg-white">Ver las ocho plazas</button>
-      </section>
-
-      <section>
-        <h2 className="m-0 mb-4 text-[15px] font-bold text-ink">Cómo se valida</h2>
-        <div className="grid gap-3.5 md:grid-cols-3">
-          {[
-            ['El grado va en el paso, no en la bibliografía', 'Cada paso lleva el grado de lo que lo respalda y la referencia completa, con el localizador del párrafo que se cita.'],
-            ['La regla del techo', 'Una revisión no otorga un grado superior al de los estudios que resume. Un metaanálisis de estudios in vitro tiene techo de grado C, y un grado C no basta para desplazar una práctica establecida.'],
-            ['La disputa y el vacío se declaran', 'Cuando la evidencia reciente contradice lo que se enseña, el paso queda en disputa hasta que lo resuelva el panel. Cuando no hay respaldo, el paso dice “sin evidencia”.']
-          ].map(([t, d]) => (
-            <div key={t} className="tarjeta p-5">
-              <h3 className="m-0 mb-2 text-[16.5px] font-bold leading-tight text-deep">{t}</h3>
-              <p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink2">{d}</p>
+        <p className="rotulo m-0 mb-2">Cómo está hecho cada protocolo</p>
+        <h2 className="m-0 mb-5 text-[24px] font-extrabold leading-tight tracking-[-.025em] text-deep sm:text-[28px]">Cada paso dice qué hacer, cuándo terminaste y en qué evidencia se apoya.</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CAPAS.map(([t, d, ic], k) => (
+            <div key={t} className="suave grid grid-cols-[38px_minmax(0,1fr)_auto] items-start gap-3 p-5">
+              <b className="text-[34px] font-extrabold leading-none tabular-nums text-menta">{k + 1}</b>
+              <div><h3 className="m-0 mb-1 text-[15.5px] font-bold leading-snug text-deep">{t}</h3><p className="m-0 text-[13.5px] leading-snug text-ink2">{d}</p></div>
+              <Ic n={ic} s={19} className="text-rotulo" />
             </div>
           ))}
         </div>
       </section>
 
-      <footer className="grid gap-6 border-t border-line pt-6 md:grid-cols-[minmax(0,1.2fr)_minmax(280px,.8fr)]">
-        <p className="m-0 max-w-[64ch] text-[13.5px] leading-relaxed text-ink2">Criterium lo desarrollan dos estudiantes de quinto año de Odontología. Si algo está mal en un protocolo, queremos saberlo.</p>
-        <Aviso><b>Este sitio está en desarrollo.</b> Los protocolos son borradores sin revisión de especialista y no deben usarse como estándar de atención.</Aviso>
-      </footer>
+      <section>
+        <p className="rotulo m-0 mb-2">Cómo se produce un protocolo</p>
+        <h2 className="m-0 mb-5 text-[24px] font-extrabold leading-tight tracking-[-.025em] text-deep sm:text-[28px]">La IA trabaja en la producción, no en la entrega.</h2>
+        <ol className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          {PRODUCCION.map(([t, d, ia], k) => (
+            <li key={t} className={cx('aparece relative flex flex-col gap-1.5 rounded-[20px] p-5', ia ? 'panel' : 'suave')} style={{ '--d': k * 90 + 'ms' }}>
+              <span className={cx('grid h-9 w-9 place-items-center rounded-full text-[14px] font-extrabold', ia ? 'bg-menta text-mentaink' : 'bg-card text-deep shadow-sh')}>{k + 1}</span>
+              <h3 className={cx('m-0 mt-1 text-[15px] font-bold leading-snug', ia ? 'text-panelink' : 'text-deep')}>{t}</h3>
+              <p className={cx('m-0 text-[13px] leading-snug', ia ? 'text-panelink2' : 'text-ink2')}>{d}</p>
+              {ia && <span className="mt-1 self-start rounded-full bg-menta px-2.5 py-0.5 text-[11px] font-bold text-mentaink">Solo aquí entra la IA</span>}
+            </li>
+          ))}
+        </ol>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="suave p-5"><h3 className="m-0 mb-1 text-[15px] font-bold text-deep">Regla del techo</h3><p className="m-0 text-[13.5px] leading-snug text-ink2">Una revisión no puede recibir un grado mayor que el de los estudios que resume. Por ejemplo, un metaanálisis de estudios in vitro no llega a grado A.</p></div>
+          <div className="panel p-5"><h3 className="m-0 mb-1 text-[15px] font-bold text-panelink">Lo que Criterium no es</h3><p className="m-0 text-[13.5px] leading-snug text-panelink2">No reemplaza al docente. No decide el tratamiento de un paciente. No genera indicaciones nuevas en el momento: el estudiante lee un texto fijo y fechado.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-5 flex items-end justify-between gap-4 border-b border-cardline pb-3">
+          <h2 className="m-0 text-[18px] font-bold text-deep">Protocolos recomendados</h2>
+          <button type="button" onClick={() => go('biblioteca')} className="text-[13px] font-semibold text-acentodeep hover:underline">Ver biblioteca →</button>
+        </div>
+        {res.length === 0 ? (
+          <div className="text-center py-10 rounded-rs border border-dashed border-line bg-soft">
+             <p className="m-0 text-[14px] text-ink3">Nada coincide con “{q}”. Prueba con otra palabra.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+             {res.map((p) => <TarjetaProto key={p.id} p={p} />)}
+          </div>
+        )}
+      </section>
+      
+      <section className="grid items-center gap-6 rounded-[26px] bg-band px-6 py-8 sm:px-10 sm:py-10 md:grid-cols-[minmax(0,1.3fr)_auto]">
+        <div>
+          <h2 className="m-0 mb-3 text-[26px] font-extrabold leading-[1.1] tracking-[-.03em] text-white [text-wrap:balance] sm:text-[32px]">Ningún protocolo está validado todavía.</h2>
+          <p className="m-0 max-w-[62ch] font-serif text-[16px] leading-relaxed text-[#D5E3E8] sm:text-[17px]">Cada protocolo pasará por un juicio de expertos: al menos 5 especialistas del área puntúan cada paso de 1 a 5 en pertinencia, claridad y respaldo de la evidencia, en hasta dos rondas. Un paso queda aprobado si el 80 % o más le pone 4 o 5. Si no hay acuerdo, se publica marcado «sin acuerdo experto» o se elimina.</p>
+        </div>
+        <button type="button" onClick={() => go('postular')} className="justify-self-start rounded-full bg-[#F6F8F9] px-6 py-3 text-[14.5px] font-bold text-[#1B3949] hover:bg-white">Revisar casos clínicos</button>
+      </section>
     </div>
   );
 }
-
 export function Biblioteca() {
   const { q, setQ, esp } = useApp();
   const res = filtrarProtos(q, esp);
@@ -169,6 +252,7 @@ export function Biblioteca() {
   return (
     <div className="flex flex-col gap-6">
       <header className="max-w-[66ch]">
+        <p className="rotulo m-0 mb-2.5">Biblioteca viva de protocolos</p>
         <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
         <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">Todos los protocolos, con su estado a la vista. Nada aparece como validado hasta que un especialista lo firma.</p>
       </header>
@@ -183,11 +267,11 @@ export function Biblioteca() {
       {grupos.length === 0 && <p className="m-0 text-[14px] text-ink2">Nada coincide con “{q}”.</p>}
       {grupos.map((g) => (
         <section key={g.esp} className="flex flex-col gap-2.5">
-          <div className="flex items-baseline justify-between"><h2 className="m-0 text-[14px] font-bold text-ink">{g.esp}</h2><span className="text-[12.5px] text-ink3">{g.meta}</span></div>
+          <div className="flex items-baseline justify-between"><h2 className="rotulo m-0">{g.esp}</h2><span className="text-[12.5px] text-ink3">{g.meta}</span></div>
           {g.items.map((p) => (
             <article key={p.id} className="grid items-center gap-4 tarjeta px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0">
-                <div className="mb-1.5 flex flex-wrap items-center gap-1.5"><Pill>{p.estadoTxt}</Pill>{p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}{p.n && <span className="text-[11.5px] text-ink3">{p.n}</span>}</div>
+                <div className="mb-1.5 flex flex-wrap items-center gap-1.5"><Pill>{p.estadoTxt}</Pill>{p.estudio && <Pill tono="acento">Estudio piloto</Pill>}{p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}{p.n && <span className="text-[11.5px] text-ink3">{p.n}</span>}</div>
                 <h3 className="m-0 mb-1 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
                 <p className="m-0 font-serif text-[14.5px] leading-normal text-ink2">{p.s}</p>
               </div>
@@ -200,70 +284,200 @@ export function Biblioteca() {
   );
 }
 
-function Sub({ x }) {
+// Nombre corto de cada ficha del nivel 3, a partir del título que trae el contenido en data.js
+const FICHA = {
+  'ver fuentes': ['Fuentes', 'book'],
+  'dónde se equivoca la gente': ['Errores', 'alert'],
+  'dónde no hay acuerdo': ['Disenso', 'chat'],
+  '¿y si mi caso es otro?': ['¿Y si mi caso es otro?', 'tool'],
+  'ojo con esta evidencia': ['Ojo con la evidencia', 'alert']
+};
+const fichaDe = (t) => FICHA[t] || [t.charAt(0).toUpperCase() + t.slice(1), 'sparkle'];
+
+// Enlaces de una fuente: url propia (verificada) o el DOI y PMID escritos en loc. Nunca se arma un enlace inventado.
+export function enlacesFuente(f) {
+  const txt = f.loc || '';
+  const doi = (txt.match(/DOI\s+(10\.\d{4,9}\/[^\s·]+)/i) || [])[1];
+  const pmid = (txt.match(/PMID\s+(\d+)/i) || [])[1];
+  return {
+    directo: f.url || (doi ? 'https://doi.org/' + doi : null),
+    pubmed: pmid ? 'https://pubmed.ncbi.nlm.nih.gov/' + pmid + '/' : null
+  };
+}
+
+function Fuente({ f }) {
+  const e = enlacesFuente(f);
+  const lnk = 'inline-flex items-center gap-1 text-[12px] font-semibold text-acento hover:underline';
   return (
-    <details className="mt-2 rounded-rs bg-soft px-3.5 py-3">
-      <summary className="text-[12.5px] font-semibold text-acentodeep">{x.titulo}</summary>
-      <div className="pt-2.5">
-        {(x.parrafos || []).map((t, i) => <p key={i} className="m-0 mb-2.5 font-serif text-[14.5px] leading-[1.65] text-ink2">{t}</p>)}
-        {(x.arbol || []).map((r, i) => (
-          <div key={i} className="grid grid-cols-[16px_minmax(0,1fr)] gap-2.5 border-t border-line py-2.5">
-            <span className="text-acento">→</span>
-            <div><div className="mb-0.5 text-[13px] font-semibold text-ink">{r.q}</div><div className="text-[13px] leading-normal text-ink2">{r.a}</div></div>
-          </div>
-        ))}
-        {(x.fuentes || []).map((f, i) => (
-          <div key={i} className="mt-2 rounded-rs border border-cardline bg-card shadow-sh px-3.5 py-3">
-            <Pill tono="acento" className="mb-1.5">{f.grado}</Pill>
-            <div className="text-[13px] leading-normal text-ink">{f.cita}</div>
-            <div className="mt-1 text-[11.5px] leading-normal text-ink3">{f.loc}</div>
-          </div>
-        ))}
+    <div className="mt-2 rounded-rs bg-soft px-3.5 py-3">
+      <Pill tono="acento" className="mb-1.5">{f.grado}</Pill>
+      {e.directo ? (
+        <a href={e.directo} target="_blank" rel="noopener noreferrer" className="group block text-[13px] leading-normal text-ink">
+          <span className="underline decoration-acento/40 underline-offset-2 group-hover:decoration-acento">{f.cita}</span>
+          <Ic n="ext" s={13} className="ml-1 inline align-[-2px] text-acento" />
+        </a>
+      ) : <div className="text-[13px] leading-normal text-ink">{f.cita}</div>}
+      <div className="mt-1 text-[11.5px] leading-normal text-ink3">{f.loc}</div>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+        {e.directo && <a href={e.directo} target="_blank" rel="noopener noreferrer" className={lnk}><Ic n="ext" s={12} />{/^https:\/\/doi\.org/.test(e.directo) ? 'Abrir el artículo' : 'Abrir la fuente'}</a>}
+        {e.pubmed && <a href={e.pubmed} target="_blank" rel="noopener noreferrer" className={lnk}><Ic n="ext" s={12} />PubMed</a>}
       </div>
-    </details>
+    </div>
   );
 }
 
-function Paso({ s, i, hecho, onToggle }) {
+// Flecha que se dibuja sola (trazo animado). vertical en móvil, horizontal desde sm.
+export function Flecha({ vertical, rotulo, className = '' }) {
   return (
-    <section id={'paso-' + (i + 1)} className={cx('grid grid-cols-[40px_minmax(0,1fr)] gap-3.5 rounded-r border bg-card p-4 shadow-sh transition-opacity sm:grid-cols-[46px_minmax(0,1fr)] sm:gap-4 sm:p-6', hecho ? 'border-acento' : 'border-line')}>
-      <button type="button" onClick={onToggle} aria-pressed={hecho} aria-label={(hecho ? 'Desmarcar' : 'Marcar hecho') + ' el paso ' + nn(i)}
-        className={cx('grid h-9 w-9 place-items-center rounded-[11px] text-[14px] font-extrabold tabular-nums transition-colors', hecho ? 'bg-acento text-onc' : 'bg-soft text-ink2 hover:bg-acentosoft')}>
-        {hecho ? <Ic n="check" s={18} sw={2.4} /> : nn(i)}
-      </button>
-      <div className="min-w-0">
-        {s.disputa && (
-          <div className="mb-3 rounded-rs bg-warnsoft px-3.5 py-2.5">
-            <b className="mb-0.5 block text-[11.5px] uppercase tracking-[.04em] text-warn">{s.marca || 'En disputa'}</b>
-            <span className="text-[13px] leading-normal text-warn">{s.disputa}</span>
-          </div>
-        )}
-        <p className={cx('m-0 mb-1.5 text-[16.5px] font-semibold leading-snug text-ink sm:text-[17.5px]', hecho && 'text-ink2')}>{s.hacer}</p>
-        {s.cond && <p className="m-0 mb-2.5 text-[13.5px] leading-normal text-acentodeep">{s.cond}</p>}
-        <p className="m-0 mt-2.5 grid grid-cols-[18px_minmax(0,1fr)] gap-2 rounded-rs bg-oksoft px-3.5 py-2.5 text-[13.5px] leading-normal text-ink2"><span className="font-bold text-ok">✓</span><span>{s.listo}</span></p>
-        {s.sinEv && <p className="m-0 mt-2.5 rounded-rs border border-dashed border-line px-3 py-2 text-[12.5px] leading-normal text-ink3">◻ {s.sinEv}</p>}
-        <details className="mt-3">
-          <summary className="inline-flex items-center gap-1.5 rounded-full bg-acentosoft px-3.5 py-1.5 text-[12.5px] font-semibold text-acentodeep">¿por qué?</summary>
-          <div className="pt-3">
-            {(s.porque || []).map((t, k) => <p key={k} className="m-0 mb-3 font-serif text-[15px] leading-[1.65] text-ink2">{t}</p>)}
-            {(s.sub || []).map((x, k) => <Sub key={k} x={x} />)}
-          </div>
-        </details>
-        {s.aportes && s.aportes.length > 0 && (
-          <details className="mt-2.5">
-            <summary className="py-1.5 text-[12.5px] font-semibold text-ink3">{s.aportes.length} aporte{s.aportes.length > 1 ? 's' : ''} de la comunidad</summary>
-            {s.aportes.map((c, k) => (
-              <div key={k} className="grid grid-cols-[32px_minmax(0,1fr)] gap-3 border-t border-line2 py-3">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-acentosoft text-[11px] font-bold text-acentodeep">{c.av}</div>
-                <div>
-                  <div className="text-[13.5px] leading-normal text-ink2"><b className="text-ink">{c.quien}</b> {c.marca && <span className="text-ok">{c.marca}</span>} {c.txt}</div>
-                  <div className="mt-1 flex flex-wrap gap-3 text-[11.5px] text-ink3"><span>{c.rol}</span><span>hace {c.cuando}</span><span>♡ {c.likes}</span></div>
-                </div>
-              </div>
-            ))}
-          </details>
-        )}
+    <div className={cx('flex flex-none items-center justify-center text-rotulo', vertical ? 'h-9 flex-col' : 'w-full', className)} aria-hidden="true">
+      <svg className="flecha" width={vertical ? 16 : 52} height={vertical ? 36 : 16} viewBox={vertical ? '0 0 16 36' : '0 0 52 16'} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {vertical ? <><path d="M8 1v32" style={{ '--len': 34 }} /><path d="M3 28l5 5 5-5" style={{ '--len': 16, animationDelay: '.35s' }} /></>
+          : <><path d="M1 8h48" style={{ '--len': 50 }} /><path d="M44 3l5 5-5 5" style={{ '--len': 16, animationDelay: '.35s' }} /></>}
+      </svg>
+      {rotulo && <span className="text-[10.5px] font-bold uppercase tracking-[.12em]">{rotulo}</span>}
+    </div>
+  );
+}
+
+// Árbol de decisión dibujado como diagrama: pregunta → (sí) → qué hacer
+export function Arbol({ l }) {
+  return (
+    <div className="flex flex-col gap-6 sm:gap-3">
+      {l.map((r, i) => (
+        <div key={i} className="aparece grid items-center gap-1 sm:grid-cols-[minmax(0,1fr)_64px_minmax(0,1fr)] sm:gap-0" style={{ '--d': i * 160 + 'ms' }}>
+          <div className="rounded-rs border border-line bg-card px-4 py-3 text-[13.5px] font-semibold leading-snug text-ink shadow-sh">{r.q}</div>
+          <Flecha vertical rotulo="sí" className="sm:hidden" />
+          <Flecha rotulo="sí" className="hidden sm:flex sm:flex-col" />
+          <div className="rounded-rs bg-acentosoft px-4 py-3 text-[13.5px] leading-snug text-ink">{r.a}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Sub({ x }) {
+  return (
+    <div>
+      {(x.parrafos || []).map((t, i) => <p key={i} className="m-0 mb-2.5 text-[14.5px] leading-[1.65] text-ink2">{t}</p>)}
+      {x.arbol && <Arbol l={x.arbol} />}
+      {(x.fuentes || []).map((f, i) => <Fuente key={i} f={f} />)}
+    </div>
+  );
+}
+
+function Aportes({ l }) {
+  return l.map((c, k) => (
+    <div key={k} className={cx('grid grid-cols-[32px_minmax(0,1fr)] gap-3 py-3', k > 0 && 'border-t border-line2')}>
+      <div className="grid h-8 w-8 place-items-center rounded-full bg-acentosoft text-[11px] font-bold text-acentodeep">{c.av}</div>
+      <div>
+        <div className="text-[13.5px] leading-normal text-ink2"><b className="text-ink">{c.quien}</b> {c.marca && <span className="text-ok">{c.marca}</span>} {c.txt}</div>
+        <div className="mt-1 flex flex-wrap gap-3 text-[11.5px] text-ink3"><span>{c.rol}</span><span>hace {c.cuando}</span><span>♡ {c.likes}</span></div>
       </div>
+    </div>
+  ));
+}
+
+/* Un paso en tres niveles, como en la presentación:
+   1 · siempre visible (qué hacer y cuándo terminaste), 2 · por qué, 3 · fuente, errores, disenso y lo que reportan otros. */
+export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorque, autoPorque, mapa }) {
+  const [ficha, setFicha] = useState(null);
+  const [mas, setMas] = useState(false); // nivel 2 desplegable: cerrado de partida
+  // Una orden externa (la voz: «por qué») abre el desplegable
+  useEffect(() => { if (abrirPorque) setMas(true); }, [abrirPorque]);
+  const porque = s.porque || [];
+  // autoPorque (segundos, modo guiado): cuenta regresiva y el «¿Por qué?» se abre solo; tocarlo antes la cancela
+  const [falta, setFalta] = useState(autoPorque && porque.length ? autoPorque : 0);
+  useEffect(() => {
+    if (!falta || mas) return;
+    const t = setTimeout(() => { if (falta === 1) setMas(true); setFalta(falta - 1); }, 1000);
+    return () => clearTimeout(t);
+  }, [falta, mas]);
+  const contando = falta > 0 && !mas;
+  const subs = s.sub || [];
+  const aportes = s.aportes || [];
+  const fichas = [...subs.map((x, k) => ({ k: 's' + k, t: fichaDe(x.titulo)[0], ic: fichaDe(x.titulo)[1], x })),
+    ...(aportes.length ? [{ k: 'aportes', t: 'Otros casos · ' + aportes.length, ic: 'chat' }] : [])];
+  const abierta = fichas.find((f) => f.k === ficha);
+  const pre = 'Terminaste cuando';
+  const listo = s.listo || '';
+  // animar: cada nivel entra después del anterior (modo guiado)
+  const nivel = (k) => animar ? { className: 'aparece', style: { '--d': 120 + k * 170 + 'ms' } } : { className: '', style: undefined };
+  return (
+    <section id={'paso-' + (i + 1)} className={cx('flex scroll-mt-24 flex-col', grande ? 'gap-3' : 'tarjeta gap-2 p-2 sm:gap-2.5 sm:p-2.5')}>
+      <div className={cx('panel transition-shadow duration-300', grande ? 'relative overflow-hidden p-6 shadow-shlg sm:p-10 [&>*:not(.marca-agua)]:relative' : 'p-5 sm:p-6', hecho && 'shadow-[inset_0_0_0_2px_var(--menta)]', nivel(0).className)} style={nivel(0).style}>
+        {mapa && <div className="-mx-2 mb-5 sm:mb-7">{mapa}</div>}
+        {grande && <span aria-hidden="true" className="marca-agua pointer-events-none absolute -right-3 -top-8 select-none text-[150px] font-extrabold leading-none tracking-[-.06em] text-menta sm:-top-12 sm:text-[230px]">{nn(i)}</span>}
+        <div className="mb-2.5 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">
+              <span>Paso {nn(i)}{s.corto && <span className="font-semibold normal-case tracking-normal text-panelink2"> · {s.corto}</span>}</span>
+              {leyendo && <span className="barras inline-flex h-3 items-end gap-[3px]" aria-label="Leyendo en voz alta"><i /><i /><i /><i /></span>}
+            </div>
+            {s.marca && s.marca !== '✓' && <span className="mt-2 inline-flex rounded-full bg-warnsoft px-2.5 py-[3px] text-[11px] font-bold text-warn">{s.marca}</span>}
+          </div>
+          <button type="button" onClick={onToggle} aria-pressed={hecho} aria-label={(hecho ? 'Desmarcar' : 'Marcar hecho') + ' el paso ' + nn(i)}
+            className={cx('flex flex-none items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold transition-colors', hecho ? 'bg-menta text-mentaink' : 'bg-panel2 text-panelink2 hover:text-panelink')}>
+            <Ic n="check" s={15} sw={2.4} />{hecho ? 'Hecho' : 'Marcar'}
+          </button>
+        </div>
+        <p className={cx('m-0 font-bold leading-snug text-panelink [text-wrap:pretty]', grande ? 'text-[22px] sm:text-[30px] sm:leading-[1.2] xl:text-[34px]' : 'text-[18px] sm:text-[20px]')}>{s.hacer}</p>
+        {s.cond && <p className="m-0 mt-2 text-[13.5px] leading-normal text-panelink2">{s.cond}</p>}
+        <p className={cx('m-0 leading-[1.6] text-panelink', grande ? 'mt-5 text-[16px] sm:text-[18px]' : 'mt-3.5 text-[15px]')}>
+          {listo.startsWith(pre) ? <><b className="font-bold text-menta">{pre}</b>{listo.slice(pre.length)}</> : listo}
+        </p>
+        {s.sinEv && <p className="m-0 mt-3.5 rounded-rs border border-dashed border-navline px-3 py-2 text-[12.5px] leading-normal text-panelink2">◻ {s.sinEv}</p>}
+      </div>
+
+      {s.disputa && (
+        <div className={cx('rounded-[20px] bg-warnsoft px-5 py-4', nivel(1).className)} style={nivel(1).style}>
+          <div className="mb-1 text-[11.5px] font-bold uppercase tracking-[.13em] text-warn">En disputa</div>
+          <p className="m-0 text-[13.5px] leading-normal text-warn">{s.disputa}</p>
+        </div>
+      )}
+
+      {porque.length > 0 && (
+        <div className={cx('suave overflow-hidden', nivel(1).className)} style={nivel(1).style}>
+          <button type="button" onClick={() => { setFalta(0); setMas(!mas); }} aria-expanded={mas}
+            className={cx('group relative flex w-full items-center gap-3 px-5 py-4 text-left', grande ? 'sm:px-9 sm:py-5' : 'sm:px-6')}>
+            <span className="rotulo flex-1">¿Por qué?</span>
+            {!mas && <span className="hidden min-w-0 flex-[3] truncate text-[13px] text-ink3 sm:block">{porque[0]}</span>}
+            {contando && <span className="flex-none text-[12px] font-semibold tabular-nums text-ink3" aria-live="polite">Se abre en {falta} s</span>}
+            {contando && <span aria-hidden="true" className="cuenta absolute bottom-0 left-0 h-[3px] w-full bg-menta" style={{ '--t': autoPorque + 's' }} />}
+            <span className={cx('grid h-8 w-8 flex-none place-items-center rounded-full bg-card text-acento shadow-sh transition-transform duration-300 group-hover:scale-105', mas && 'rotate-180')}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </span>
+          </button>
+          <div className={cx('despliega', mas && 'abierto')}>
+            <div className={cx('min-h-0', grande ? 'px-5 sm:px-9' : 'px-5 sm:px-6')}>
+              <div className={cx('pb-4', grande && 'sm:pb-7')}>
+                {porque.map((t, k) => <p key={k} className={cx('m-0 mb-2 leading-[1.6] text-ink', grande ? 'text-[15.5px] sm:text-[17px]' : 'text-[15px]', mas && 'aparece')} style={mas ? { '--d': k * 90 + 'ms' } : undefined}>{t}</p>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fichas.length > 0 && (
+        <div className={cx(grande ? 'px-2 pt-1 sm:px-4' : 'rounded-[20px] border border-line px-4 py-4 sm:px-6 sm:py-5', nivel(2).className)} style={nivel(2).style}>
+          <div className="rotulo mb-3">Fuente y otros casos</div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={'Más sobre el paso ' + nn(i)}>
+            {fichas.map((f) => {
+              const on = ficha === f.k;
+              return (
+                <button key={f.k} type="button" onClick={() => setFicha(on ? null : f.k)} aria-expanded={on}
+                  className={cx('inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', on ? 'bg-panel text-panelink' : 'bg-soft text-ink2 hover:bg-acentosoft hover:text-acentodeep')}>
+                  <Ic n={f.ic} s={14} className={on ? 'text-menta' : 'text-rotulo'} />{f.t}
+                </button>
+              );
+            })}
+          </div>
+          {abierta && (
+            <div className="mt-4 border-t border-line pt-4">
+              {abierta.x ? <Sub x={abierta.x} /> : <Aportes l={aportes} />}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -273,10 +487,10 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
   return (
     <div className="tarjeta p-4">
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-[.05em] text-ink3">Modo box</span>
+        <span className="rotulo">Modo box</span>
         <b className="text-[13px] tabular-nums text-acentodeep">{n} de {tot}</b>
       </div>
-      <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-soft"><div className="h-1.5 rounded-full bg-acento transition-all" style={{ width: Math.round(n / tot * 100) + '%' }} /></div>
+      <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-soft"><div className="h-1.5 rounded-full bg-[linear-gradient(90deg,var(--acento),var(--menta))] transition-all" style={{ width: Math.round(n / tot * 100) + '%' }} /></div>
       <div className="flex flex-col gap-px">
         {d.pasos.map((s, i) => {
           const on = hechos.includes(i);
@@ -301,6 +515,9 @@ export function Protocolo() {
   const hechos = checks[id] || [];
   const toggle = (i) => setChecks((c) => { const l = c[id] || []; return { ...c, [id]: l.includes(i) ? l.filter((x) => x !== i) : [...l, i].sort((a, b) => a - b) }; });
   const reiniciar = () => setChecks((c) => ({ ...c, [id]: [] }));
+  const marcar = (i) => setChecks((c) => { const l = c[id] || []; return l.includes(i) ? c : { ...c, [id]: [...l, i].sort((a, b) => a - b) }; });
+  const [modo, setModoRaw] = useState(leerModo);
+  const setModo = (m) => { setModoRaw(m); guardarModo(m); window.scrollTo({ top: 0 }); };
   const [bajando, setBajando] = useState(false);
   const aprobadores = useAprobadoresProtocolo(id);
   const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
@@ -321,7 +538,7 @@ export function Protocolo() {
       </div>
       {casosDeEste.length > 0 && (
         <div className="tarjeta p-4">
-          <h2 className="m-0 mb-2 text-[11px] font-bold uppercase tracking-[.05em] text-ink3">Tus casos con este protocolo</h2>
+          <h2 className="m-0 mb-2 rotulo">Tus casos con este protocolo</h2>
           {casosDeEste.map((c) => (
             <button key={c.id} type="button" onClick={() => abrirCaso(c.id)} className="flex w-full items-center justify-between gap-2 border-t border-line2 py-2 text-left text-[13px] text-ink2 first:border-0 hover:text-ink">
               <span className="min-w-0 truncate">{c.dientes} · {c.titulo}</span><EstadoPill estado={c.estado} />
@@ -331,7 +548,7 @@ export function Protocolo() {
       )}
       <div className="hidden xl:block"><ModoBox d={d} hechos={hechos} toggle={toggle} reiniciar={reiniciar} /></div>
       <div>
-        <h2 className="m-0 mb-2.5 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Estado de la evidencia</h2>
+        <h2 className="m-0 mb-2.5 rotulo">Estado de la evidencia</h2>
         <div className="tarjeta px-4 py-1.5">
           {d.evidencia.map((e) => (
             <div key={e.n} className="grid grid-cols-[26px_minmax(0,1fr)] gap-2 border-b border-line2 py-2.5 last:border-0">
@@ -342,7 +559,7 @@ export function Protocolo() {
         </div>
       </div>
       <div>
-        <h2 className="m-0 mb-2.5 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Reglas del validador</h2>
+        <h2 className="m-0 mb-2.5 rotulo">Reglas del validador</h2>
         <div className="flex flex-col gap-2 rounded-r bg-soft p-4 font-serif text-[13.5px] leading-relaxed text-ink2">
           <p className="m-0">Una revisión no otorga un grado superior al de los estudios que resume.</p>
           <p className="m-0">Un grado C no desplaza una práctica establecida: el paso queda en disputa.</p>
@@ -351,13 +568,21 @@ export function Protocolo() {
       </div>
     </>
   );
+  const registrar = () => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp });
+  if (modo === 'guiado') {
+    return <Guiado key={id} d={d} hechos={hechos} toggle={toggle} marcar={marcar} reiniciar={reiniciar}
+      onVerTodo={() => setModo('todo')} onRegistrar={registrar} volver={() => go('biblioteca')} />;
+  }
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0">
-        <button type="button" onClick={() => go('biblioteca')} className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Biblioteca</button>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <button type="button" onClick={() => go('biblioteca')} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Biblioteca</button>
+          <Btn sm v="primary" icon="sparkle" onClick={() => setModo('guiado')}>Modo guiado · paso a paso</Btn>
+        </div>
         <Aviso className="mb-5 !text-[12px]">{d.bandera}</Aviso>
         <header className="border-b border-line pb-5">
-          <p className="m-0 mb-3 text-[12px] font-semibold text-acentodeep">{d.esp} · Criterium</p>
+          <p className="rotulo m-0 mb-3">{d.esp} · Protocolo</p>
           <h1 className="m-0 mb-3.5 text-[27px] font-extrabold leading-[1.12] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{d.titulo}</h1>
           <div className="mb-4 flex flex-wrap gap-1.5">{d.tags.map((t) => <Pill key={t}>{t}</Pill>)}</div>
           {aprobadores.length > 0 && (
@@ -387,7 +612,7 @@ export function Protocolo() {
           <div className="grid gap-5 px-5 pb-5 pt-1 sm:grid-cols-2 lg:grid-cols-3">
             {d.bandeja.map((b) => (
               <div key={b.fase}>
-                <h4 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-acentodeep">{b.fase}</h4>
+                <h4 className="rotulo m-0 mb-2">{b.fase}</h4>
                 <ul className="m-0 pl-4 text-[13.5px] leading-[1.65] text-ink2">{b.items.map((x) => <li key={x}>{x}</li>)}</ul>
               </div>
             ))}

@@ -72,92 +72,69 @@ const PASOS_GUIA = [
 const leerGuia = () => { try { return localStorage.getItem('criterium-guia') === 'oculta'; } catch (e) { return false; } };
 const guardarGuia = (oculta) => { try { oculta ? localStorage.setItem('criterium-guia', 'oculta') : localStorage.removeItem('criterium-guia'); } catch (e) {} };
 
+
 function Guia() {
   const app = useApp();
   const [oculta, setOculta] = useState(leerGuia);
   const cambiar = (v) => { setOculta(v); guardarGuia(v); };
-  if (oculta) {
-    return (
-      <button type="button" onClick={() => cambiar(false)} className="inline-flex items-center gap-1.5 self-start text-[13px] font-semibold text-acento hover:text-acentodeep">
-        <Ic n="sparkle" s={15} />¿Qué se puede hacer en Criterium?
-      </button>
-    );
-  }
+  if (oculta) return null;
+  
   return (
-    <section aria-labelledby="guia-titulo" className="-mx-4 overflow-hidden border-y border-cardline bg-card shadow-sh sm:mx-0 sm:rounded-r sm:border-x">
-      {/* Encabezado de marca: degradado y el ícono del logo (sin cambios) como marca de agua. */}
-      <div className="banda-marca relative overflow-hidden px-4 pb-5 pt-5 sm:px-6">
-        <Logo size={150} texto={false} className="pointer-events-none absolute -bottom-16 right-12 opacity-[.14]" />
-        <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.09) 1px,transparent 1.3px)', backgroundSize: '16px 16px' }} />
-        <div className="relative flex items-start justify-between gap-3">
-          <div>
-            <p className="m-0 text-[11px] font-semibold uppercase tracking-[.1em] text-white/70">Bienvenido a Criterium</p>
-            <h2 id="guia-titulo" className="m-0 mt-1 text-[20px] font-semibold tracking-[-.02em] text-white">Qué puedes hacer aquí</h2>
-            <p className="m-0 mt-1 text-[13px] text-white/75">Un ciclo de cuatro pasos. Toca uno para ir directo.</p>
-          </div>
-          <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full bg-white/10 p-1.5 text-white/80 backdrop-blur hover:bg-white/20 hover:text-white" aria-label="Ocultar la guía"><Ic n="x" s={16} /></button>
+    <section aria-labelledby="guia-titulo" className="panel mb-2 p-5 sm:p-6">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="m-0 mb-1 text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">Qué puedes hacer en Criterium</p>
+          <h2 id="guia-titulo" className="m-0 text-[19px] font-bold leading-snug text-panelink">Cuatro pasos: aprende, registra, valida y conversa.</h2>
         </div>
+        <button type="button" onClick={() => cambiar(true)} className="flex-none rounded-full bg-panel2 p-1.5 text-panelink2 hover:text-panelink" aria-label="Ocultar la guía"><Ic n="x" s={14} /></button>
       </div>
-      <div className="px-4 pb-5 pt-4 sm:px-6">
-
-      {/* Móvil: línea vertical. Desde sm: cuatro columnas unidas por una línea horizontal. */}
-      <ol className="relative m-0 grid list-none gap-0 p-0 sm:grid-cols-4 sm:gap-3">
-        <span aria-hidden="true" className="absolute bottom-8 left-[24px] top-8 w-0 border-l-2 border-dashed border-line sm:bottom-auto sm:left-[12.5%] sm:right-[12.5%] sm:top-[29px] sm:h-0 sm:w-auto sm:border-l-0 sm:border-t-2" />
-        {PASOS_GUIA.map((p) => (
-          <li key={p.n} className="relative">
-            <button type="button" onClick={() => p.ir(app)} className="group grid w-full grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-rs px-1 py-2.5 text-left transition-colors hover:bg-[color-mix(in_srgb,var(--soft)_60%,transparent)] sm:flex sm:flex-col sm:items-center sm:px-2 sm:text-center">
-              <span className="relative z-10 grid h-10 w-10 place-items-center rounded-full bg-card text-acento shadow-sh ring-2 ring-acento ring-offset-2 ring-offset-card transition-colors group-hover:bg-acento group-hover:text-onc">
-                <Ic n={p.icon} s={18} sw={1.9} />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[11px] font-semibold uppercase tracking-[.06em] text-ink3">Paso {p.n}</span>
-                <span className="block text-[15px] font-semibold leading-tight text-deep">{p.t}</span>
-                <span className="mt-1 block text-[12.5px] leading-snug text-ink2">{p.d}</span>
-                <span className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] font-semibold text-acento group-hover:underline">{p.cta} →</span>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ol>
-
-      <div className="mt-4 flex flex-col gap-2 rounded-rs border border-cardline bg-[color-mix(in_srgb,var(--soft)_65%,transparent)] px-3.5 py-3 text-[12.5px] leading-snug text-ink2 sm:flex-row sm:items-center sm:justify-between">
-        <span className="inline-flex items-start gap-2"><Ic n="sparkle" s={15} className="mt-px text-acento" />Lo que se aprueba y se resuelve aquí vuelve a mejorar los protocolos.</span>
-        <button type="button" onClick={() => app.go('herramientas')} className="inline-flex flex-none items-center gap-1.5 self-start font-semibold text-acento hover:underline sm:self-auto"><Ic n="tool" s={14} />También: calculadoras clínicas</button>
-      </div>
-      </div>
-    </section>
-  );
-}
-
-function Historias() {
-  const { abrirProto, nuevoCaso } = useApp();
-  const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0));
-  const circulo = (contenido, activo) => (
-    <span className="block rounded-full p-[2.5px]" style={{ background: activo ? 'var(--ring)' : 'var(--line)' }}>
-      <span className="block rounded-full bg-card p-[3px]">
-        <span className="grid h-[58px] w-[58px] place-items-center rounded-full bg-soft">{contenido}</span>
-      </span>
-    </span>
-  );
-  return (
-    <section aria-label="Protocolos" className="-mx-4 sm:mx-0">
-      <div className="scroll-x flex items-start gap-3.5 overflow-x-auto px-4 pb-1 sm:px-0">
-        <button type="button" onClick={() => nuevoCaso()} className="flex w-[74px] flex-none flex-col items-center gap-1.5">
-          {circulo(<Ic n="plus" s={22} className="text-acento" sw={2} />, false)}
-          <span className="w-full text-center text-[11px] leading-tight text-ink2">Nuevo caso</span>
-        </button>
-        {lista.map((p) => (
-          <button key={p.id} type="button" onClick={() => abrirProto(p.id)} disabled={!p.abre} title={p.t + (p.abre ? '' : ' · planificado')}
-            className={cx('flex w-[74px] flex-none flex-col items-center gap-1.5', !p.abre && 'cursor-default opacity-55')}>
-            {circulo(<span className="text-[22px] font-semibold leading-none tracking-[-.02em] text-deep">{p.t.charAt(0)}</span>, p.abre)}
-            <span className="line-clamp-2 w-full text-center text-[11px] leading-tight text-ink2">{p.t}</span>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {PASOS_GUIA.map((p, k) => (
+          <button key={p.n || k} type="button" onClick={() => p.ir(app)} className="flex flex-col items-start gap-1 rounded-rs bg-panel2 p-3.5 text-left transition-[transform,background-color] hover:-translate-y-0.5">
+            <b className="text-[26px] font-extrabold leading-none tabular-nums text-menta">{k + 1}</b>
+            <span className="mt-1.5 text-[13.5px] font-bold text-panelink">{p.t}</span>
+            <span className="text-[11.5px] leading-snug text-panelink2">{p.d}</span>
           </button>
         ))}
       </div>
     </section>
   );
 }
+function TarjetaMini({ p }) {
+  const { abrirProto } = useApp();
+  return (
+    <button type="button" onClick={() => abrirProto(p.id)} disabled={!p.abre} title={p.t + (p.abre ? '' : ' · planificado')}
+      className={cx('flex w-[120px] flex-none flex-col gap-2 rounded-rs bg-card p-3 text-left shadow-sh transition-shadow sm:w-[140px]', p.abre ? 'hover:shadow-shlg' : 'cursor-default opacity-55')}>
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-soft text-[15px] font-semibold text-deep">{p.t.charAt(0)}</span>
+      <span className="line-clamp-2 min-h-[30px] text-[12px] font-semibold leading-tight text-ink">{p.t}</span>
+      <span className="truncate text-[11px] text-ink3">{p.abre ? p.esp : 'Planificado'}</span>
+    </button>
+  );
+}
 
+function Historias() {
+  const { nuevoCaso } = useApp();
+  const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0)).slice(0, 10);
+  
+  return (
+    <section aria-label="Protocolos recientes" className="-mx-4 sm:mx-0">
+      <div className="flex items-center justify-between px-4 sm:px-0 mb-3">
+        <h2 className="text-[14px] font-bold text-ink">Protocolos recientes</h2>
+      </div>
+      <div className="scroll-x flex items-start gap-3.5 overflow-x-auto px-4 pb-4 sm:px-0">
+        <button type="button" onClick={() => nuevoCaso()} className="flex w-[120px] sm:w-[140px] flex-none flex-col gap-2 rounded-rs bg-acentosoft p-3 shadow-sh transition-shadow hover:shadow-shlg text-left border border-acento/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-acento text-onc">
+            <Ic n="plus" s={16} />
+          </div>
+          <span className="text-[12px] font-semibold leading-tight text-acentodeep min-h-[30px]">Registrar nuevo caso</span>
+        </button>
+        {lista.map((p) => (
+          <TarjetaMini key={p.id} p={p} />
+        ))}
+      </div>
+    </section>
+  );
+}
 function Post({ p }) {
   const { conPerfil, perfil, abrirProto, myUid, verPerfil, siguiendo, toggleSeguir, avisar } = useApp();
   const [resp, setResp] = useState(false);
@@ -254,8 +231,9 @@ function Post({ p }) {
   );
 }
 
+
 export function Feed() {
-  const { feed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar, perfil, myUid, siguiendo, verPerfil } = useApp();
+  const { feed, conPerfil, feedProto, setFeedProto, go, postulacion, avisar, perfil, myUid, siguiendo, verPerfil, q, setQ } = useApp();
   const [txt, setTxt] = useState('');
   const [proto, setProto] = useState(feedProto || '');
   const [filtro, setFiltro] = useState('Todo');
@@ -276,12 +254,40 @@ export function Feed() {
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
   const abiertas = feed.filter(sinResp).length;
   const fp = feedProto && protoPorId(feedProto);
+
+  /* Columna derecha: se pliega hacia el borde y deja una pestaña "Tu día" */
+  const [derecha, setDerechaRaw] = useState(() => { try { return localStorage.getItem('criterium-derecha') !== 'oculta'; } catch (e) { return true; } });
+  const btnOcultar = useRef(null);
+  const btnPestana = useRef(null);
+  const setDerecha = (v) => {
+    setDerechaRaw(v);
+    try { localStorage.setItem('criterium-derecha', v ? 'visible' : 'oculta'); } catch (e) {}
+    setTimeout(() => (v ? btnOcultar : btnPestana).current?.focus({ preventScroll: true }), v ? 500 : 800);
+  };
+
   return (
-    <div className="mx-auto grid max-w-[980px] grid-cols-[minmax(0,1fr)] items-start gap-10 xl:grid-cols-[minmax(0,600px)_300px] xl:justify-between">
-      <div className="mx-auto flex w-full min-w-0 max-w-[600px] flex-col gap-5">
+    <>
+    <div className="feed-layout" data-derecha={derecha ? 'visible' : 'oculta'}>
+      <div className="feed-centro mx-auto flex w-full min-w-0 flex-col gap-6">
         <h1 className="sr-only">Inicio</h1>
+        
         <Guia />
+        
+        {/* Buscador Principal */}
+        <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="flex w-full items-center gap-2.5 rounded-full border border-line bg-card py-2 pl-5 pr-2 shadow-sh focus-within:border-acento">
+          <Ic n="search" s={18} className="text-acento" sw={1.9} />
+          <input id="busqueda-inicio" type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="¿Qué vas a hacer hoy?"
+            placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
+          <button type="submit" className="hidden sm:block flex-none rounded-full bg-acento px-5 py-2.5 text-[14px] font-semibold text-onc hover:bg-acentodeep">Buscar</button>
+        </form>
+
+        {/* Continuar donde quedaste (TuDia) solo en movil/tablet, en desktop esta en el sidebar */}
+        <div className="xl:hidden">
+          <TuDia />
+        </div>
+
         <Historias />
+        
         <div className="-mx-4 border-y border-cardline bg-card shadow-sh px-4 py-3.5 sm:mx-0 sm:rounded-r sm:border-x">
           <div className="flex gap-3">
             <Avatar nombre={(perfil && perfil.nombre) || '?'} size={36} />
@@ -298,32 +304,58 @@ export function Feed() {
             <Btn v="primary" sm className="ml-auto" onClick={publicar}>Publicar</Btn>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Seg size="sm" valor={filtro} onChange={setFiltro} opciones={['Todo', 'Siguiendo', 'Sin responder', 'De revisores']} />
-          {fp && <button type="button" onClick={() => setFeedProto('')} className="inline-flex items-center gap-1.5 rounded-full bg-acentosoft px-3 py-1 text-[12px] font-semibold text-acentodeep">Sobre: {fp.t}<Ic n="x" s={13} /></button>}
+        
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Seg size="sm" valor={filtro} onChange={setFiltro} opciones={['Todo', 'Siguiendo', 'Sin responder', 'De revisores']} />
+            {fp && <button type="button" onClick={() => setFeedProto('')} className="inline-flex items-center gap-1.5 rounded-full bg-acentosoft px-3 py-1 text-[12px] font-semibold text-acentodeep">Sobre: {fp.t}<Ic n="x" s={13} /></button>}
+          </div>
+          
+          {abiertas > 0 && filtro !== 'De revisores' && <p className="m-0 text-[13px] leading-normal text-ink3"><b className="text-ink2">{abiertas === 1 ? 'Una pregunta sigue' : abiertas + ' preguntas siguen'} sin respuesta.</b> Cada plaza de revisor que se llena es un área menos con preguntas huérfanas.</p>}
+          
+          <div className="flex flex-col gap-5">
+            {lista.length === 0 ? (
+              <div className="text-center py-8 rounded-rs border border-dashed border-line bg-[color-mix(in_srgb,var(--soft)_40%,transparent)]">
+                <p className="m-0 text-[14px] text-ink3">
+                  {filtro === 'Siguiendo' ? (siguiendo.length ? 'Las personas que sigues todavía no publican.' : 'Todavía no sigues a nadie. Toca el nombre de alguien para ver su perfil y seguirlo.') 
+                  : 'No hay publicaciones con este filtro. Sé el primero en escribir algo.'}
+                </p>
+              </div>
+            ) : (
+              lista.map((p) => <Post key={p.id} p={p} />)
+            )}
+          </div>
         </div>
-        {abiertas > 0 && filtro !== 'De revisores' && <p className="m-0 text-[13px] leading-normal text-ink3"><b className="text-ink2">{abiertas === 1 ? 'Una pregunta sigue' : abiertas + ' preguntas siguen'} sin respuesta.</b> Cada plaza de revisor que se llena es un área menos con preguntas huérfanas.</p>}
-        {lista.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">{filtro === 'Siguiendo' ? (siguiendo.length ? 'Las personas que sigues todavía no publican.' : 'Todavía no sigues a nadie. Toca el nombre de alguien para ver su perfil y seguirlo.') : 'No hay publicaciones con este filtro.'}</p> : lista.map((p) => <Post key={p.id} p={p} />)}
       </div>
-      <aside className="hidden flex-col gap-4 xl:sticky xl:top-[76px] xl:flex">
-        {perfil && (
-          <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-3 rounded-r px-1 text-left hover:bg-soft">
-            <Avatar nombre={perfil.nombre} size={44} />
-            <div className="min-w-0"><p className="m-0 truncate text-[14px] font-semibold">{perfil.nombre}</p><p className="m-0 truncate text-[12.5px] text-ink3">{perfil.rol}</p></div>
-          </button>
-        )}
-        <TuDia />
-        <div className="flex flex-col gap-2 px-1">
+      
+      <aside className="feed-derecha hidden w-[300px] flex-col gap-4 xl:sticky xl:top-[76px] xl:flex" aria-hidden={!derecha}>
+        <div className="flex items-center gap-3" style={{ '--i': 0 }}>
+          {perfil ? (
+            <button type="button" onClick={() => verPerfil(myUid)} className="flex min-w-0 flex-1 items-center gap-3 rounded-r px-1 text-left hover:bg-soft">
+              <Avatar nombre={perfil.nombre} size={44} />
+              <div className="min-w-0"><p className="m-0 truncate text-[14px] font-semibold">{perfil.nombre}</p><p className="m-0 truncate text-[12.5px] text-ink3">{perfil.rol}</p></div>
+            </button>
+          ) : <div className="flex-1" />}
+          <button ref={btnOcultar} type="button" onClick={() => setDerecha(false)} tabIndex={derecha ? 0 : -1} className="flex-none rounded-full p-2 text-ink3 hover:bg-soft hover:text-ink" aria-label="Ocultar columna Tu día" title="Ocultar y leer a pantalla completa"><Ic n="panelder" s={18} /></button>
+        </div>
+        <div style={{ '--i': 1 }}><TuDia /></div>
+        <div className="flex flex-col gap-2 px-1" style={{ '--i': 2 }}>
           <div className="flex items-baseline justify-between"><h2 className="m-0 text-[13px] font-semibold text-ink3">Áreas sin revisor</h2><button type="button" onClick={() => go('postular')} className="text-[12.5px] font-semibold text-acentodeep hover:underline">Postular</button></div>
           {AREAS.map((a) => <div key={a} className="flex items-center justify-between gap-2 text-[13px]"><span className="text-ink2">{a}</span><span className="text-[11.5px] font-semibold text-ink3">{postulacion && postulacion.area === a ? 'Postulaste' : 'Libre'}</span></div>)}
         </div>
-        <p className="m-0 px-1 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
+        <p className="m-0 px-1 text-[11px] leading-normal text-ink3" style={{ '--i': 3 }}>Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
       </aside>
     </div>
+
+    <button ref={btnPestana} type="button" onClick={() => setDerecha(true)} tabIndex={derecha ? -1 : 0} aria-hidden={derecha}
+      className="pestana-dia" data-visible={derecha ? 'no' : 'si'} aria-label="Mostrar columna Tu día" title="Mostrar Tu día">
+      <span className="pestana-dia-borde" />
+      <Ic n="clock" s={16} />
+      <span className="[writing-mode:vertical-rl] rotate-180 text-[12.5px] font-bold tracking-[.06em]">Tu día</span>
+    </button>
+    </>
   );
 }
-
-/* ═════════ PERFIL PÚBLICO ═════════ */
 export function PerfilPublico() {
   const { perfilUid, myUid, siguiendo, toggleSeguir, editarPerfil, go } = useApp();
   const pf = usePerfilPublico(perfilUid);
@@ -389,7 +421,7 @@ export function Postular() {
   const ic = (k) => cx(inputCls, intento && e[k] && inputErr);
   return (
     <div className="flex flex-col gap-7">
-      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Ocho plazas, una por área. Ningún protocolo se publica como validado sin la firma de un especialista del área que corresponde.</PageHead>
+      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Ocho áreas. El revisor puntúa los casos clínicos que registran los usuarios y los aprueba, pide cambios o los deniega. La validación de los protocolos es otra cosa: la hace un juicio de expertos, al menos 5 especialistas por protocolo.</PageHead>
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {AREAS.map((a) => {
           const mia = postulacion && postulacion.area === a;

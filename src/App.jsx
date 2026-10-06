@@ -108,6 +108,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const [herrTab, setHerrTab] = useState('perio');
   const [menu, setMenu] = useState(false);
   const [buscarMovil, setBuscarMovil] = useState(false);
+  const [lateral, setLateralRaw] = useState(() => lsGet('criterium-lateral', true));
+  const setLateral = (v) => { setLateralRaw(v); lsSet('criterium-lateral', v); };
   const [foto, setFoto] = useState(null);
   const [perfilOpen, setPerfilOpen] = useState(false);
   const perfilCallback = useRef(null);
@@ -288,28 +290,31 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   };
 
   /* ── Render ── */
-  const navBtn = (v, icon, t) => (
+  // oscuro: la barra lateral de escritorio va en azul petróleo profundo, como la portada de la presentación
+  const navBtn = (v, icon, t, oscuro) => (
     <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
-      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors', activo(view, v) ? 'bg-card font-semibold text-ink shadow-sh ring-1 ring-cardline' : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--soft)_70%,transparent)] hover:text-ink')}>
-      <Ic n={icon} /><span className="flex-1">{t}</span>
-      {badge[v] > 0 && <span className={cx('rounded-full px-1.5 text-[11px] font-bold tabular-nums', v === 'casos' ? 'bg-warn text-onc' : 'bg-acento text-onc')}>{badge[v]}</span>}
+      className={cx('flex items-center gap-3 rounded-rs px-3 py-2.5 text-left text-[14px] transition-colors',
+        oscuro ? (activo(view, v) ? 'bg-navact font-semibold text-panelink shadow-[inset_3px_0_0_var(--menta)]' : 'text-navink hover:bg-navline hover:text-panelink')
+          : (activo(view, v) ? 'bg-card font-semibold text-ink shadow-sh ring-1 ring-cardline' : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--soft)_70%,transparent)] hover:text-ink'))}>
+      <Ic n={icon} className={oscuro && activo(view, v) ? 'text-menta' : ''} /><span className="flex-1">{t}</span>
+      {badge[v] > 0 && <span className={cx('rounded-full px-1.5 text-[11px] font-bold tabular-nums', v === 'casos' ? 'bg-warn text-onc' : oscuro ? 'bg-menta text-mentaink' : 'bg-acento text-onc')}>{badge[v]}</span>}
     </button>
   );
-  const navegacion = () => (
+  const navegacion = (oscuro) => (
     <nav className="flex flex-col gap-0.5">
-      <div className="px-3 pb-1.5 pt-1 text-[10.5px] font-bold uppercase tracking-[.07em] text-ink3">Trabajo diario</div>
-      {NAV_DIARIO.map(([v, i, t]) => navBtn(v, i, t))}
-      <div className="px-3 pb-1.5 pt-4 text-[10.5px] font-bold uppercase tracking-[.07em] text-ink3">Biblioteca y comunidad</div>
-      {NAV_BIBLIO.map(([v, i, t]) => navBtn(v, i, t))}
+      <div className={cx('rotulo px-3 pb-1.5 pt-1', oscuro && '!text-navink3')}>Trabajo diario</div>
+      {NAV_DIARIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
+      <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Biblioteca y comunidad</div>
+      {NAV_BIBLIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
     </nav>
   );
-  const marca = () => (
+  const marca = (oscuro) => (
     <button type="button" onClick={() => go('feed')} className="text-left" aria-label="Criterium, ir al inicio">
-      <Logo size={26} />
+      <Logo size={26} oscuro={oscuro} />
     </button>
   );
-  const temaBtn = () => (
-    <button type="button" onClick={toggleTema} className="flex items-center gap-2.5 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] text-ink2 shadow-sh hover:bg-soft">
+  const temaBtn = (oscuro) => (
+    <button type="button" onClick={toggleTema} className={cx('flex items-center gap-2.5 rounded-full border px-3.5 py-2 text-[13px]', oscuro ? 'border-navline text-navink hover:bg-navline hover:text-panelink' : 'border-cardline bg-card text-ink2 shadow-sh hover:bg-soft')}>
       <Ic n={tema === 'dark' ? 'sun' : 'moon'} s={15} />{tema === 'dark' ? 'Modo claro' : 'Modo oscuro'}
     </button>
   );
@@ -339,29 +344,38 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
   return (
     <Ctx.Provider value={ctx}>
-      <div className="fondo min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col gap-1 overflow-auto border-r border-cardline bg-[color-mix(in_srgb,var(--card)_78%,transparent)] px-4 pb-5 pt-7 backdrop-blur-xl lg:flex">
-          <div className="px-3 pb-5">{marca()}<div className="mt-1.5 text-[11.5px] leading-snug text-ink3">Procedimientos clínicos basados en la evidencia</div></div>
-          {navegacion()}
-          <div className="mt-6 rounded-r border border-cardline bg-[color-mix(in_srgb,var(--soft)_60%,transparent)] p-4">
-            <div className="mb-2 text-[10.5px] font-bold uppercase tracking-[.07em] text-ink3">Estado del proyecto</div>
-            {[['Protocolos validados', '0'], ['Borradores publicados', String(PROTOS.filter((p) => p.abre).length)], ['Revisores', '0 / 8'], ['Tus casos', String(mios.length)]].map(([a, b]) => (
-              <div key={a} className="flex justify-between py-0.5 text-[12.5px]"><span className="text-ink2">{a}</span><b className="tabular-nums">{b}</b></div>
+      <div className={cx('fondo min-h-screen', lateral && 'lg:grid lg:grid-cols-[256px_minmax(0,1fr)]')}>
+        <aside className={cx('sticky top-0 hidden h-screen flex-col gap-1 overflow-auto bg-nav px-4 pb-5 pt-7', lateral && 'lg:flex')}>
+          <div className="px-3 pb-5">
+            <div className="flex items-center justify-between gap-2">
+              {marca(true)}
+              <button type="button" onClick={() => setLateral(false)} className="-mr-2 rounded-full p-2 text-navink3 hover:bg-navline hover:text-panelink" aria-label="Ocultar barra lateral" title="Ocultar barra lateral"><Ic n="panel" s={18} /></button>
+            </div>
+            <div className="mt-2 text-[11.5px] leading-snug text-navink3">Biblioteca viva de protocolos</div>
+          </div>
+          {navegacion(true)}
+          <div className="mt-6 rounded-r border border-navline bg-navline p-4">
+            <div className="rotulo mb-2.5 !text-navink3">Estado del proyecto</div>
+            {[['Protocolos validados', '0'], ['Borradores publicados', String(PROTOS.filter((p) => p.abre).length)], ['Protocolos del estudio', PROTOS.filter((p) => p.estudio && p.abre).length + ' / ' + PROTOS.filter((p) => p.estudio).length], ['Tus casos', String(mios.length)]].map(([a, b]) => (
+              <div key={a} className="flex items-baseline justify-between py-0.5 text-[12.5px]"><span className="text-navink">{a}</span><b className="text-[14px] font-extrabold tabular-nums text-menta">{b}</b></div>
             ))}
           </div>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
-            {temaBtn()}
-            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] text-ink2 shadow-sh hover:bg-soft">
+            {temaBtn(true)}
+            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-navline px-3.5 py-2 text-[13px] text-navink hover:bg-navline hover:text-panelink">
               <Ic n="back" s={15} />Cerrar sesión
             </button>
-            <p className="m-0 text-[11px] leading-normal text-ink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
+            <p className="m-0 text-[11px] leading-normal text-navink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
           </div>
         </aside>
 
         <div className="min-w-0 pb-[84px] lg:pb-0">
           <div className="sticky z-30 border-b border-cardline bg-[color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-xl" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
             <div className="mx-auto flex max-w-[1320px] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-              <div className="lg:hidden">{marca()}</div>
+              {!lateral && (
+                <button type="button" onClick={() => setLateral(true)} className="hidden rounded-full p-2 text-ink2 hover:bg-soft hover:text-ink lg:inline-flex" aria-label="Mostrar barra lateral" title="Mostrar barra lateral"><Ic n="panel" s={18} /></button>
+              )}
+              <div className={cx(lateral && 'lg:hidden')}>{marca()}</div>
               <div className="hidden whitespace-nowrap text-[12.5px] text-ink3 lg:block">{RUTAS[view]}</div>
               <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-cardline bg-card px-4 shadow-sh focus-within:border-acento md:flex">
                 <Ic n="search" s={15} className="text-ink3" />
@@ -390,7 +404,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
           {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisión']].map(([v, i, t]) => (
             <button key={v} type="button" onClick={() => go(v)} aria-current={activo(view, v) ? 'page' : undefined}
               className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-ink' : 'text-ink3')}>
-              <Ic n={i} s={21} sw={activo(view, v) ? 2.2 : 1.7} />{t}
+              {activo(view, v) && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-menta" aria-hidden="true" />}
+              <Ic n={i} s={21} sw={activo(view, v) ? 2.2 : 1.7} className={activo(view, v) ? 'text-acento' : ''} />{t}
               {badge[v] > 0 && <span className={cx('absolute left-1/2 top-1.5 ml-2 min-w-[16px] rounded-full px-1 text-[10px] font-bold leading-4 text-onc', v === 'casos' ? 'bg-warn' : 'bg-acento')}>{badge[v]}</span>}
             </button>
           ))}

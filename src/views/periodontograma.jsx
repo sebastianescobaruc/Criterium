@@ -63,7 +63,7 @@ export function Periodontograma({ chart, setChart, onUsar }) {
       { campo: 'nic', t: 'NIC' }
     ];
     return [
-      <tr key={cara + '-t'}><th colSpan={dientes.length * 3 + 1} className="sticky left-0 bg-card pb-1 pt-3 text-left text-[11px] font-bold uppercase tracking-[.05em] text-ink3">{titulo}</th></tr>,
+      <tr key={cara + '-t'}><th colSpan={dientes.length * 3 + 1} className="sticky left-0 bg-card pb-1 pt-3 text-left rotulo">{titulo}</th></tr>,
       ...filas.map((f) => (
         <tr key={cara + f.campo}>
           <th scope="row" className="sticky left-0 z-10 bg-card pr-2 text-left text-[11.5px] font-semibold text-ink2">{f.t}</th>

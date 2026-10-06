@@ -117,7 +117,7 @@ export function Asistente() {
               {(resp.respuesta || []).map((t, i) => <p key={i} className="m-0 mb-3 font-serif text-[15.5px] leading-[1.7] text-ink">{t}</p>)}
               {(resp.pasos || []).length > 0 && (
                 <div className="mt-4 border-t border-line pt-3.5">
-                  <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">De dónde sale</h3>
+                  <h3 className="m-0 mb-2 rotulo">De dónde sale</h3>
                   {resp.pasos.map((c, i) => <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] gap-2.5 py-1.5 text-[13.5px] text-ink2"><b className="text-acentodeep">{c.n}</b><span>{c.corto}<span className="mt-0.5 block text-[11.5px] text-ink3">{c.protocolo}</span></span></div>)}
                 </div>
               )}
@@ -152,7 +152,7 @@ export function Asistente() {
                 </div>
               ))}
               {(bor.faltan || []).length > 0 && (
-                <div className="rounded-r border border-line bg-soft p-5"><h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Falta verificar antes de publicar</h3><ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{bor.faltan.map((f, i) => <li key={i}>{f}</li>)}</ul></div>
+                <div className="rounded-r border border-line bg-soft p-5"><h3 className="m-0 mb-2 rotulo">Falta verificar antes de publicar</h3><ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{bor.faltan.map((f, i) => <li key={i}>{f}</li>)}</ul></div>
               )}
               <Btn icon="download" className="self-start" onClick={bajarBorrador}>Descargar el borrador en Markdown</Btn>
             </div>
@@ -222,7 +222,7 @@ function SiNo({ id, label, value, onChange, opciones }) {
 }
 function Caja({ n, t }) { return <div className="flex-1 basis-[140px] tarjeta px-4 py-3"><b className="block text-[22px] font-extrabold tabular-nums text-acentodeep">{n}</b><span className="text-[11.5px] text-ink3">{t}</span></div>; }
 function Falta({ titulo = 'Qué falta verificar antes de publicar esto', items }) {
-  return <div className="rounded-r border border-line bg-soft p-5"><h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">{titulo}</h3><ul className="m-0 pl-5 text-[13px] leading-[1.7] text-ink2">{items.map((x, i) => <li key={i}>{x}</li>)}</ul></div>;
+  return <div className="rounded-r border border-line bg-soft p-5"><h3 className="m-0 mb-2 rotulo">{titulo}</h3><ul className="m-0 pl-5 text-[13px] leading-[1.7] text-ink2">{items.map((x, i) => <li key={i}>{x}</li>)}</ul></div>;
 }
 
 export function Herramientas() {
@@ -276,9 +276,9 @@ export function Herramientas() {
                 <div className="flex-1 basis-[130px] rounded-rs bg-soft px-4 py-3"><b className="block text-[22px] font-extrabold text-acentodeep">{rp.estadio}</b><span className="text-[11.5px] text-ink3">estadio</span></div>
                 <div className="flex-1 basis-[130px] rounded-rs bg-soft px-4 py-3"><b className="block text-[22px] font-extrabold text-acentodeep">{rp.grado}</b><span className="text-[11.5px] text-ink3">grado</span></div>
               </div>
-              <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió el estadio</h3>
+              <h3 className="m-0 mb-2 rotulo">Cómo salió el estadio</h3>
               <ul className="m-0 mb-4 pl-5 text-[13.5px] leading-[1.7] text-ink2">{rp.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
-              <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió el grado</h3>
+              <h3 className="m-0 mb-2 rotulo">Cómo salió el grado</h3>
               <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{rp.porqueG.map((r, i) => <li key={i}>{r}</li>)}</ul>
             </div>
           )}
@@ -313,7 +313,7 @@ export function Herramientas() {
               </div>
               {[['1.ª fase · lima inicial y ampliación apical', re.fase1], ['2.ª fase · escalonado y empalme', re.fase2]].map(([t, l]) => (
                 <div key={t}>
-                  <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">{t}</h3>
+                  <h3 className="m-0 mb-2 rotulo">{t}</h3>
                   <div className="flex flex-col gap-1.5">
                     {l.map((x, i) => (
                       <div key={i} className="grid grid-cols-[96px_80px_minmax(0,1fr)] items-baseline gap-3 rounded-rs border border-cardline bg-card shadow-sh px-3.5 py-2.5">
@@ -357,7 +357,7 @@ export function Herramientas() {
               {rn.avisos.map((t, i) => <Aviso key={i} tono="warn">{t}</Aviso>)}
               <div className="flex flex-wrap gap-2.5"><Caja n={rn.maxMg} t="dosis máxima" /><Caja n={rn.maxTubos} t="tubos como máximo" /><Caja n={rn.usadoMg} t="usado hasta ahora" /><Caja n={rn.quedanTubos} t="tubos de margen" /></div>
               <div className="tarjeta p-5">
-                <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió</h3>
+                <h3 className="m-0 mb-2 rotulo">Cómo salió</h3>
                 <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{rn.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
               </div>
             </div>
@@ -386,7 +386,7 @@ export function Herramientas() {
               {ra.pasado && <Aviso tono="bad">Los tubos registrados superan la dosis máxima para este peso. Detente y avisa al docente.</Aviso>}
               <div className="flex flex-wrap gap-2.5"><Caja n={ra.maxMg} t="dosis máxima" /><Caja n={ra.maxTubos} t="tubos como máximo" /><Caja n={ra.usadoMg} t="usado hasta ahora" /><Caja n={ra.quedanTubos} t="tubos de margen" /></div>
               <div className="tarjeta p-5">
-                <h3 className="m-0 mb-2 text-[11.5px] font-bold uppercase tracking-[.04em] text-ink3">Cómo salió</h3>
+                <h3 className="m-0 mb-2 rotulo">Cómo salió</h3>
                 <ul className="m-0 pl-5 text-[13.5px] leading-[1.7] text-ink2">{ra.porque.map((r, i) => <li key={i}>{r}</li>)}</ul>
               </div>
             </div>

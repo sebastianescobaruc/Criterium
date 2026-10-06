@@ -1,7 +1,7 @@
 import { PROTOS, DATOS } from './data.js';
 
 export const AREAS = ['Rehabilitación oral', 'Cirugía bucal', 'Periodoncia', 'Endodoncia', 'Odontopediatría', 'Ortodoncia', 'Radiología', 'Educación en ciencias de la salud'];
-export const ORDEN_ESP = ['Rehabilitación oral', 'Periodoncia', 'Endodoncia', 'Cirugía'];
+export const ORDEN_ESP = ['Rehabilitación oral', 'Periodoncia', 'Endodoncia', 'Cirugía', 'Odontopediatría'];
 export const ESPECIALIDADES_CASO = ['Rehabilitación oral', 'Operatoria', 'Periodoncia', 'Endodoncia', 'Cirugía bucal', 'Odontopediatría', 'Ortodoncia', 'Otra'];
 export const TIPOS_FOTO = ['Inicial', 'Progreso', 'Final', 'Radiografía'];
 

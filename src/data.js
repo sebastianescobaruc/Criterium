@@ -5,36 +5,29 @@ export const PROTOS = [
       s:'Corona unitaria sobre diente natural, de 6 a 24 meses. Dos vías: convencional y adhesiva. Solo la sesión de cementado.',
       extraTxt:'1 paso en disputa', n:'5 aportes', abre:true,
       k:'cementar cemento provisional pmma cadcam corona temporal eugenol adhesivo arenado primer mma resina superbond ferula larga duracion' },
-    { id:'tallado', esp:'Rehabilitación oral', estadoTxt:'Planificado',
-      t:'Tallado para corona completa cerámica',
-      s:'Reducción, terminación cervical y criterios de conservación de estructura.',
-      extraTxt:'', n:'', abre:false, k:'tallar tallado preparacion corona ceramica reduccion hombro chamfer' },
-    { id:'impresion', esp:'Rehabilitación oral', estadoTxt:'Planificado',
-      t:'Impresión con silicona de adición',
-      s:'Técnica de doble mezcla, manejo del hilo separador y criterios de aceptación.',
-      extraTxt:'', n:'', abre:false, k:'impresion silicona adicion cubeta hilo separador retraccion' },
     { id:'resina-clase-i', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.1',
       t:'Restauración de resina compuesta clase I oclusal',
       s:'Caries oclusal primaria en diente permanente vital. De la marca de oclusión al pulido.',
-      extraTxt:'2 pasos en disputa', n:'7 aportes', abre:true,
+      extraTxt:'2 pasos en disputa', n:'7 aportes', abre:true, estudio:true,
       k:'resina composite obturacion clase i oclusal caries operatoria aislamiento dique adhesivo grabado bulk fill incremental fotopolimerizar pulido' },
-    { id:'cementado-def', esp:'Rehabilitación oral', estadoTxt:'Planificado',
-      t:'Cementado adhesivo de corona cerámica',
-      s:'Acondicionamiento de la cerámica y del diente, aislamiento y fotopolimerización.',
-      extraTxt:'', n:'', abre:false, k:'cementar adhesivo ceramica disilicato grabado silano resina definitiva' },
-    { id:'instrumentacion', esp:'Periodoncia', estadoTxt:'Planificado',
-      t:'Instrumentación subgingival de un sextante',
-      s:'Secuencia por cara, criterio de término por superficie y control a las 6 semanas.',
-      extraTxt:'', n:'', abre:false, k:'destartraje instrumentacion subgingival raspado curetas periodoncia sextante' },
     { id:'exodoncia-18', esp:'Cirugía', estadoTxt:'Borrador v0.1',
       t:'Exodoncia simple del 1.8 erupcionado',
       s:'Tercer molar superior en paciente sano. Con los dos puntos donde este diente se complica.',
-      extraTxt:'2 pasos críticos', n:'4 aportes', abre:true,
+      extraTxt:'2 pasos críticos', n:'4 aportes', abre:true, estudio:true,
       k:'exodoncia extraccion 18 28 tercer molar cordal superior erupcionado forceps elevador tuberosidad seno maxilar comunicacion bucosinusal antibiotico cirugia' },
-    { id:'necropulpectomia', esp:'Endodoncia', estadoTxt:'Planificado',
-      t:'Necropulpectomía de molar',
-      s:'Longitud de trabajo, secuencia de instrumentación e irrigación.',
-      extraTxt:'', n:'', abre:false, k:'endodoncia necropulpectomia molar conducto irrigacion limas longitud trabajo' }
+    // Protocolos del estudio piloto que todavía no tienen borrador: solo catálogo, sin contenido clínico
+    { id:'pulpectomia-premolar', esp:'Endodoncia', estadoTxt:'Planificado', estudio:true,
+      t:'Bio/necropulpectomía de premolar superior',
+      s:'Uno de los 5 protocolos del estudio piloto. Se publica cuando el borrador esté terminado.',
+      extraTxt:'', n:'', abre:false, k:'endodoncia biopulpectomia necropulpectomia premolar superior conducto' },
+    { id:'destartraje', esp:'Periodoncia', estadoTxt:'Planificado', estudio:true,
+      t:'Destartraje y pulido radicular',
+      s:'Uno de los 5 protocolos del estudio piloto. Se publica cuando el borrador esté terminado.',
+      extraTxt:'', n:'', abre:false, k:'destartraje pulido radicular raspado curetas periodoncia' },
+    { id:'sellantes-ninos', esp:'Odontopediatría', estadoTxt:'Planificado', estudio:true,
+      t:'Sellantes en niños (ionómero de vidrio y resina)',
+      s:'Uno de los 5 protocolos del estudio piloto. Se publica cuando el borrador esté terminado.',
+      extraTxt:'', n:'', abre:false, k:'sellantes fosas fisuras niños ionomero vidrio resina odontopediatria' }
   ];
 
 export const DATOS = {
@@ -70,7 +63,7 @@ export const DATOS = {
           porque:['El acondicionamiento cambia por completo según el material. El PMMA es un polímero: se arena y se prima. Un bloque de composite CAD lleva ácido fluorhídrico y silano. Si los confundes, o pierdes la superficie interna o la corona se descementa.','El PMMA fresado reticulado tiene una resistencia flexural cercana a 135 MPa y el fabricante lo indica hasta 12 meses en coronas. Si tu plan son 24, estás usándolo fuera de la indicación del fabricante. Se puede hacer, pero tiene que quedar escrito: consentimiento, controles cada 3 meses y fecha de recambio fijada desde hoy.'],
           sub:[
             { titulo:'ver fuentes', fuentes:[
-              { grado:'Grado D · documentación de fabricante', cita:'Ivoclar Vivadent. Telio CAD: bloques de PMMA reticulado para provisionales de larga duración. Documentación de producto.', loc:'Resistencia flexural 135 MPa · permanencia máxima 12 meses en coronas · localizador pendiente' }
+              { grado:'Grado D · documentación de fabricante', cita:'Ivoclar Vivadent. Telio CAD: bloques de PMMA reticulado para provisionales de larga duración. Documentación de producto.', url:'https://www.ivoclar.com/en_li/products/digital-processes/telio-cad', loc:'Resistencia flexural 135 MPa · permanencia máxima 12 meses en coronas · localizador pendiente' }
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Asumir que todo provisional fresado es PMMA. Los bloques de composite CAD se fresan igual y se ven parecidos, pero se acondicionan al revés.','Empezar a arenar sin saber qué material es. El arenado sobre un composite CAD no es el error grave; el grave es el fluorhídrico sobre PMMA, que no hace nada y te hace creer que grabaste.'] }
           ] },
@@ -115,8 +108,8 @@ export const DATOS = {
           listo:'Terminaste cuando la zona ajustada devuelve brillo y la sonda recorre el margen sin engancharse.',
           porque:['Bajo 0,2 µm de rugosidad, seguir puliendo ya no reduce la adhesión bacteriana. Y un provisional fresado en PMMA sale de la fresadora entre 0,136 y 0,144 µm, o sea ya está bajo ese umbral.','Por eso pulir la superficie intacta no aporta nada. Lo que sí quedó rugoso es lo que tú desgastaste al ajustar oclusión y márgenes. Esa es la única zona que necesita pulido.'],
           sub:[{ titulo:'ver fuentes', fuentes:[
-            { grado:'Grado B · estudio in vitro comparativo', cita:'Burduroglu HD, Kanpalta B, Şentürk H, Keleş ZH, Sismanoglu S. Surface roughness and bacterial adhesion of CAD/CAM and conventional provisional restorative materials. Materials. 2026.', loc:'Telio CAD 0,136 ± 0,011 µm · Vita CAD-Temp 0,144 ± 0,005 µm · localizador pendiente' },
-            { grado:'Grado B · umbral de referencia', cita:'Bollen CM, Lambrechts P, Quirynen M. Comparison of surface roughness of oral hard materials to the threshold surface roughness for bacterial plaque retention. Dent Mater. 1997.', loc:'Umbral de 0,2 µm · localizador pendiente' }
+            { grado:'Grado B · estudio in vitro comparativo', cita:'Burduroglu HD, Kanpalta B, Şentürk H, Keleş ZH, Sismanoglu S. Surface roughness and bacterial adhesion of CAD/CAM and conventional provisional restorative materials. Materials. 2026.', url:'https://doi.org/10.3390/ma19163421', loc:'Telio CAD 0,136 ± 0,011 µm · Vita CAD-Temp 0,144 ± 0,005 µm · localizador pendiente' },
+            { grado:'Grado B · umbral de referencia', cita:'Bollen CM, Lambrechts P, Quirynen M. Comparison of surface roughness of oral hard materials to the threshold surface roughness for bacterial plaque retention. Dent Mater. 1997.', url:'https://doi.org/10.1016/S0109-5641(97)80038-3', loc:'Umbral de 0,2 µm · localizador pendiente' }
           ] }] },
         { corto:'Vía convencional: cementa sin eugenol', marca:'en disputa',
           disputa:'La evidencia de 2023 contradice la práctica establecida. Pendiente de resolución por el panel de expertos.',
@@ -160,7 +153,7 @@ export const DATOS = {
           porque:['El cemento que queda bajo la encía no se reabsorbe. Se comporta como un cuerpo extraño y mantiene inflamación mientras dure el provisional. A 24 meses eso no es un detalle estético.','Un estudio endoscópico de 2025 encontró cemento residual en el 80,4 % de los implantes que ya tenían enfermedad periimplantaria: 37 de 46. De esos, 64,9 % con mucositis y 35,1 % con periimplantitis.'],
           sub:[
             { titulo:'ojo con esta evidencia', parrafos:['Ese estudio es en implantes, no en dientes naturales. El surco periimplantario y el periodonto no se comportan igual, así que la cifra no se traslada directo a tu caso.','Sirve como advertencia de la magnitud del problema, no como prueba de lo que pasa en un diente natural. Criterium lo declara en vez de esconderlo.'],
-              fuentes:[{ grado:'Grado C · transversal, población distinta', cita:'Montevecchi M, Valeriani L, Salvadori MF, Stefanini M, Zucchelli G. Excess cement and peri-implant disease: a cross-sectional clinical endoscopic study. J Periodontol. 2025;96(9):965–973.', loc:'Recomienda óxido de zinc por ser más detectable y removible · localizador pendiente' }] },
+              fuentes:[{ grado:'Grado C · transversal, población distinta', cita:'Montevecchi M, Valeriani L, Salvadori MF, Stefanini M, Zucchelli G. Excess cement and peri-implant disease: a cross-sectional clinical endoscopic study. J Periodontol. 2025;96(9):965–973.', url:'https://doi.org/10.1002/jper.24-0510', loc:'Recomienda óxido de zinc por ser más detectable y removible · localizador pendiente' }] },
             { titulo:'dónde se equivoca la gente', parrafos:['Pasar el hilo hacia abajo y tirarlo de vuelta hacia oclusal. Eso vuelve a meter el cemento en el contacto. El hilo se saca tirando hacia vestibular o lingual.','Rascar el exceso endurecido con instrumento. Genera fragmentos que se meten más profundo en el surco en vez de salir.'] }
           ] },
         { corto:'Sella toda superficie que hayas fresado', hacer:'Repule con fresa de acrílico, discos y pasta, y aplica un recubrimiento de superficie fotopolimerizable sobre la cara vestibular.',
@@ -294,7 +287,7 @@ export const DATOS = {
         { corto:'Confirma indicación y radiografía', hacer:'Confirma la indicación y mira la radiografía antes de anestesiar.',
           listo:'Terminaste cuando tienes por escrito cuál es la patología que justifica la exodoncia, y viste en la radiografía la forma de las raíces y su relación con el seno maxilar.',
           porque:['La guía NICE es tajante: la extracción profiláctica de terceros molares sin patología no está indicada. Hace falta una razón concreta: caries irrecuperable, patología pulpar o periapical no tratable, infección, resorción, fractura, o patología del folículo.','Y hay un matiz que casi siempre se pasa por alto: un primer episodio de pericoronitis no es indicación de exodoncia, salvo que sea grave. Los episodios recurrentes sí.','La radiografía te dice dos cosas que cambian la sesión: si las raíces son divergentes o están fusionadas, y qué tan cerca está el piso del seno maxilar.'],
-          sub:[{ titulo:'ver fuente', fuentes:[{ grado:'Grado A · guía de agencia nacional', cita:'National Institute for Health and Care Excellence. Guidance on the extraction of wisdom teeth. NICE technology appraisal guidance TA1.', loc:'Sección 1, Recomendaciones · localizador de párrafo pendiente' }] }] },
+          sub:[{ titulo:'ver fuente', fuentes:[{ grado:'Grado A · guía de agencia nacional', cita:'National Institute for Health and Care Excellence. Guidance on the extraction of wisdom teeth. NICE technology appraisal guidance TA1.', url:'https://www.nice.org.uk/guidance/ta1/chapter/1-Recommendations', loc:'Sección 1, Recomendaciones · localizador de párrafo pendiente' }] }] },
         { corto:'Enjuague y posición', hacer:'Haz que el paciente se enjuague con clorhexidina al 0,12 % durante 1 minuto y ubícalo en decúbito supino.',
           listo:'Terminaste cuando completó el minuto completo y el respaldo del sillón quedó reclinado con el maxilar superior accesible sin que tengas que forzar la postura.',
           porque:['El enjuague baja la carga bacteriana antes de abrir un alveolo. Es una medida barata y sin riesgo.','La posición importa más de lo que parece en el 1.8: es el diente más posterior del maxilar y el acceso es malo. Si el paciente queda muy sentado, terminas trabajando con la muñeca en un ángulo que te quita fuerza controlada justo en el momento de luxar.'],

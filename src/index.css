@@ -2,64 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Paleta de la marca: azul petróleo #1B3949 y verde azulado #346F7D sobre #F6F8F9. Tipografía del sistema (estilo Apple). */
+/* Paleta final (presentación para tutores): azul petróleo profundo #0F2530, verde azulado #2F6A78, menta #5CCFC0 para lo que se destaca, sobre #F2F6F7. Una sola tipografía: la del sistema. */
 :root{
-  --bg:#F6F8F9;--card:#FFFFFF;--soft:#EDF2F4;
-  --ink:#15303D;--ink-2:#3E5A67;--ink-3:#5A717C;
-  --line:#DDE6EA;--line-2:#EDF2F4;
-  --deep:#1B3949;--acento:#2F6A78;--acento-soft:#E3EEF1;--acento-deep:#1B3949;
-  --ok:#2F7A55;--ok-soft:#E5F2EB;--warn:#9A5B12;--warn-soft:#FAF0E2;--bad:#B3261E;--bad-soft:#FBE9E7;
-  --onc:#FFFFFF;--logo-bg:#1B3949;--logo-acc:#346F7D;--band:#1B3949;--toast:#1B3949;--toast-ink:#FFFFFF;
-  --ring:conic-gradient(from 200deg,#1B3949,#346F7D,#7FB3BF,#1B3949);
-  --sh:0 1px 2px rgba(27,57,73,.04),0 4px 14px -6px rgba(27,57,73,.07),0 18px 40px -24px rgba(27,57,73,.16);
-  --sh-lg:0 2px 6px rgba(27,57,73,.05),0 16px 36px -12px rgba(27,57,73,.14),0 40px 80px -40px rgba(27,57,73,.28);
-  --card-line:rgba(27,57,73,.07);--dot:rgba(27,57,73,.085);--glow:rgba(52,111,125,.10);--input:#F3F6F8;
+  --bg:#F2F6F7;--card:#FFFFFF;--soft:#E9F1F3;
+  --ink:#132630;--ink-2:#3B5260;--ink-3:#5C727D;
+  --line:#DCE7EA;--line-2:#EAF1F3;
+  --deep:#0F2530;--acento:#2F6A78;--acento-soft:#DCEBEE;--acento-deep:#1B3949;
+  --ok:#3F7A5C;--ok-soft:#E3F1E8;--warn:#8A6326;--warn-soft:#F7EEDC;--bad:#A24A48;--bad-soft:#F7E4E2;
+  --estado-borrador:#8A6326;--estado-borrador-bg:#F7EEDC;
+  --estado-validado:#3F7A5C;--estado-validado-bg:#E3F1E8;
+  --estado-planificado:#5B6770;--estado-planificado-bg:#EDF0F2;
+  /* Panel oscuro y menta: el "nivel 1" de la presentación. Barra lateral en azul petróleo profundo. */
+  --panel:#1F3441;--panel-2:#2A4251;--panel-ink:#FFFFFF;--panel-ink-2:#C6D5DB;
+  --menta:#5CCFC0;--menta-soft:#D9F2EE;--menta-ink:#0F2530;--rotulo:#2F7F8A;
+  --nav:#0F2530;--nav-ink:#C6D5DB;--nav-ink-3:#7F98A3;--nav-line:rgba(255,255,255,.07);--nav-act:rgba(92,207,192,.13);
+  --onc:#FFFFFF;--logo-bg:#1B3949;--logo-acc:#346F7D;--band:#0F2530;--toast:#0F2530;--toast-ink:#FFFFFF;
+  --ring:conic-gradient(from 200deg,#0F2530,#346F7D,#5CCFC0,#0F2530);
+  --sh:0 1px 2px rgba(15,37,48,.04),0 6px 22px -8px rgba(15,37,48,.09);
+  --sh-lg:0 2px 6px rgba(15,37,48,.05),0 18px 44px -14px rgba(15,37,48,.18);
+  --card-line:rgba(15,37,48,.06);--dot:rgba(15,37,48,.05);--glow:rgba(92,207,192,.08);--input:#F5F9FA;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0B1419;--card:#12212A;--soft:#1A2E38;
-    --ink:#E6EEF1;--ink-2:#B3C4CB;--ink-3:#87A0AA;
-    --line:#243A45;--line-2:#1B303A;
-    --deep:#DCEBF0;--acento:#5FA9B9;--acento-soft:#163540;--acento-deep:#8FCAD6;
-    --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
-    --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
-    --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
-    --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
-    --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
-    --card-line:rgba(255,255,255,.06);--dot:rgba(143,202,214,.07);--glow:rgba(95,169,185,.10);--input:#0F1C23;
+  color-scheme:dark;
+  --bg:#0B171D;--card:#13232B;--soft:#1A2E37;
+  --ink:#E6EEF1;--ink-2:#B6C6CD;--ink-3:#88A0AA;
+  --line:#233841;--line-2:#1A2C35;
+  --deep:#E6EEF1;--acento:#7FB3BF;--acento-soft:#173640;--acento-deep:#A9D6DC;
+  --ok:#9CCBB0;--ok-soft:#1E3A2E;--warn:#E3C58F;--warn-soft:#3D3120;--bad:#E3A3A0;--bad-soft:#43262A;
+  --estado-borrador:#E3C58F;--estado-borrador-bg:#3D3120;
+  --estado-validado:#9CCBB0;--estado-validado-bg:#1E3A2E;
+  --estado-planificado:#C9D3D8;--estado-planificado-bg:#26363F;
+  --panel:#1E3742;--panel-2:#284551;--panel-ink:#F2F7F8;--panel-ink-2:#BED0D6;
+  --menta:#6FD8CA;--menta-soft:#173A38;--menta-ink:#0B171D;--rotulo:#79C9C0;
+  --nav:#08131A;--nav-ink:#BED0D6;--nav-ink-3:#78919C;--nav-line:rgba(255,255,255,.06);--nav-act:rgba(111,216,202,.12);
+  --onc:#0B171D;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#13232B;--toast:#DCE5E8;--toast-ink:#0B171D;
+  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#6FD8CA,#5FA9B9);
+  --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
+  --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
+  --card-line:rgba(255,255,255,.05);--dot:rgba(143,202,214,.05);--glow:rgba(111,216,202,.06);--input:#0F1E25;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0B1419;--card:#12212A;--soft:#1A2E38;
-  --ink:#E6EEF1;--ink-2:#B3C4CB;--ink-3:#87A0AA;
-  --line:#243A45;--line-2:#1B303A;
-  --deep:#DCEBF0;--acento:#5FA9B9;--acento-soft:#163540;--acento-deep:#8FCAD6;
-  --ok:#7CC49B;--ok-soft:#10291D;--warn:#DDAA66;--warn-soft:#2D2314;--bad:#EF9785;--bad-soft:#35191A;
-  --onc:#07161C;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#12212A;--toast:#DCEBF0;--toast-ink:#0B1419;
-  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#8FCAD6,#5FA9B9);
+  --bg:#0B171D;--card:#13232B;--soft:#1A2E37;
+  --ink:#E6EEF1;--ink-2:#B6C6CD;--ink-3:#88A0AA;
+  --line:#233841;--line-2:#1A2C35;
+  --deep:#E6EEF1;--acento:#7FB3BF;--acento-soft:#173640;--acento-deep:#A9D6DC;
+  --ok:#9CCBB0;--ok-soft:#1E3A2E;--warn:#E3C58F;--warn-soft:#3D3120;--bad:#E3A3A0;--bad-soft:#43262A;
+  --estado-borrador:#E3C58F;--estado-borrador-bg:#3D3120;
+  --estado-validado:#9CCBB0;--estado-validado-bg:#1E3A2E;
+  --estado-planificado:#C9D3D8;--estado-planificado-bg:#26363F;
+  --panel:#1E3742;--panel-2:#284551;--panel-ink:#F2F7F8;--panel-ink-2:#BED0D6;
+  --menta:#6FD8CA;--menta-soft:#173A38;--menta-ink:#0B171D;--rotulo:#79C9C0;
+  --nav:#08131A;--nav-ink:#BED0D6;--nav-ink-3:#78919C;--nav-line:rgba(255,255,255,.06);--nav-act:rgba(111,216,202,.12);
+  --onc:#0B171D;--logo-bg:#1F4557;--logo-acc:#4F98A8;--band:#13232B;--toast:#DCE5E8;--toast-ink:#0B171D;
+  --ring:conic-gradient(from 200deg,#5FA9B9,#2F6A78,#6FD8CA,#5FA9B9);
   --sh:0 1px 2px rgba(0,0,0,.35),0 12px 32px -18px rgba(0,0,0,.7);
   --sh-lg:0 2px 6px rgba(0,0,0,.4),0 28px 60px -28px rgba(0,0,0,.85);
-  --card-line:rgba(255,255,255,.06);--dot:rgba(143,202,214,.07);--glow:rgba(95,169,185,.10);--input:#0F1C23;
+  --card-line:rgba(255,255,255,.05);--dot:rgba(143,202,214,.05);--glow:rgba(111,216,202,.06);--input:#0F1E25;
 }
 html,body{background:var(--bg)}
 
-/* Fondo de la app: trama de puntos muy tenue + un brillo suave del color de la marca arriba. */
 .fondo{background-color:var(--bg);
   background-image:radial-gradient(1100px 520px at 78% -8%,var(--glow),transparent 62%),radial-gradient(var(--dot) 1px,transparent 1.3px);
   background-size:100% 100%,22px 22px;background-attachment:fixed,fixed}
 
 @layer components{
-  /* Tarjeta base: blanca, sin borde duro, sombra difusa. */
-  .tarjeta{@apply rounded-r bg-card shadow-sh;border:1px solid var(--card-line)}
-  /* Encabezado de marca: degradado azul petróleo → verde azulado (oscuro en los dos temas, texto blanco). */
+  /* Tarjeta base: rediseñada con más radio, sin borde sólido fuerte, sombra suave y más aire. */
+  .tarjeta{@apply rounded-[24px] bg-card shadow-sh transition-all duration-300; border: 1px solid var(--card-line);}
   .banda-marca{background:linear-gradient(135deg,var(--logo-bg) 0%,var(--logo-acc) 130%);color:#fff}
+  /* Rótulo de sección, como "03 · LA SOLUCIÓN" en la presentación */
+  .rotulo{font-size:11.5px;font-weight:700;line-height:1.4;text-transform:uppercase;letter-spacing:.13em;color:var(--rotulo)}
+  /* Panel oscuro: lo que siempre se ve (nivel 1 de un paso, destacados) */
+  .panel{@apply rounded-[20px]; background:var(--panel);color:var(--panel-ink)}
+  /* Recuadro suave sin borde: explicaciones (nivel 2) */
+  .suave{@apply rounded-[20px] bg-soft}
 }
-body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,"Helvetica Neue",sans-serif;letter-spacing:-.006em;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,sans-serif;letter-spacing:-.01em;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
 input,select,textarea,button{font-family:inherit}
 input[type="checkbox"]{accent-color:var(--acento)}
-/* Selectores propios: sin el estilo nativo del sistema (gris, con flechas). Chevron dibujado con el color del tema. */
+
 select{-webkit-appearance:none;-moz-appearance:none;appearance:none;cursor:pointer;
   background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
   background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;
@@ -69,8 +92,82 @@ summary{cursor:pointer;list-style:none}
 summary::-webkit-details-marker{display:none}
 :focus-visible{outline:2px solid var(--acento);outline-offset:2px}
 h1,h2,h3{text-wrap:balance}
-/* Títulos al estilo Apple: SF Pro Display semibold, tracking apretado. */
-h1{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-weight:600!important;letter-spacing:-.025em!important;line-height:1.08}
+h1,h2,h3{letter-spacing:-.02em}
 .scroll-x{scrollbar-width:none}
 .scroll-x::-webkit-scrollbar{display:none}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+/* ═══ Columna derecha del inicio: se pliega hacia el borde y deja la pestaña "Tu día" ═══ */
+:root{--pliegue:cubic-bezier(.77,0,.18,1);--resorte:cubic-bezier(.34,1.45,.64,1)}
+.feed-layout{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:2.5rem;max-width:980px;margin-inline:auto;overflow-x:clip}
+.feed-centro{max-width:600px}
+.pestana-dia{display:none}
+@media (min-width:1280px){
+  .feed-layout{grid-template-columns:minmax(0,1fr) 300px;
+    transition:grid-template-columns .8s var(--pliegue),column-gap .8s var(--pliegue),max-width .8s var(--pliegue)}
+  .feed-layout[data-derecha="oculta"]{grid-template-columns:minmax(0,1fr) 0px;column-gap:0;max-width:1320px}
+  .feed-centro{transition:max-width .8s var(--pliegue)}
+  .feed-layout[data-derecha="oculta"] .feed-centro{max-width:100%}
+
+  /* La columna gira hacia el borde, se desenfoca y sus bloques salen uno tras otro */
+  .feed-derecha{transform-origin:right center;
+    transition:opacity .5s ease .1s,transform .8s var(--pliegue),filter .6s ease,visibility 0s}
+  .feed-layout[data-derecha="oculta"] .feed-derecha{opacity:0;filter:blur(6px);pointer-events:none;visibility:hidden;
+    transform:perspective(900px) translateX(70px) rotateY(-32deg) scale(.94);
+    transition:opacity .45s ease,transform .8s var(--pliegue),filter .5s ease,visibility 0s linear .8s}
+  .feed-derecha>*{transition:opacity .5s ease,transform .65s var(--resorte);transition-delay:calc(var(--i,0) * 70ms + 220ms)}
+  .feed-layout[data-derecha="oculta"] .feed-derecha>*{opacity:0;transform:translateX(28px);
+    transition:opacity .3s ease,transform .4s ease;transition-delay:calc(var(--i,0) * 45ms)}
+
+  /* Pestaña: aparece con rebote cuando la columna terminó de irse y se asoma al pasar el mouse */
+  .pestana-dia{position:fixed;right:0;top:50%;z-index:35;display:flex;flex-direction:column;align-items:center;gap:.6rem;
+    padding:1rem .65rem 1rem .8rem;border-radius:18px 0 0 18px;color:var(--acento-deep);
+    background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--card-line);border-right:0;box-shadow:-10px 12px 32px -18px color-mix(in srgb,var(--deep) 45%,transparent);
+    transform:translate(0,-50%);transition:transform .6s var(--resorte) .55s,opacity .3s ease .55s,box-shadow .3s ease}
+  .pestana-dia[data-visible="no"]{transform:translate(120%,-50%);opacity:0;pointer-events:none;
+    transition:transform .35s var(--pliegue),opacity .25s ease}
+  .pestana-dia[data-visible="si"]:hover{transform:translate(-6px,-50%);transition-delay:0s;
+    box-shadow:-14px 16px 36px -16px color-mix(in srgb,var(--deep) 55%,transparent)}
+  .pestana-dia-borde{position:absolute;left:0;top:18%;bottom:18%;width:3px;border-radius:3px;background:var(--acento);opacity:.55}
+}
+@media (prefers-reduced-motion: reduce){.feed-derecha,.feed-derecha>*,.feed-layout,.feed-centro,.pestana-dia{transition:none!important}}
+
+/* ═══ Modo guiado: el protocolo se despliega de a un paso ═══ */
+@keyframes aparece{from{opacity:0;transform:translateY(16px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.aparece{animation:aparece .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0ms)}
+/* Cambio de paso: entra desde el lado hacia el que avanzas */
+@keyframes entra-der{from{opacity:0;transform:translateX(56px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes entra-izq{from{opacity:0;transform:translateX(-56px) scale(.985)}to{opacity:1;transform:none}}
+.entra-der{animation:entra-der .45s cubic-bezier(.2,.9,.25,1) both}
+.entra-izq{animation:entra-izq .45s cubic-bezier(.2,.9,.25,1) both}
+/* Número del paso como marca de agua: entra con un pequeño giro */
+@keyframes marca-agua{from{opacity:0;transform:translateY(30px) rotate(-6deg)}to{opacity:.1;transform:none}}
+.marca-agua{opacity:.1;animation:marca-agua .8s cubic-bezier(.2,.8,.2,1) both .1s}
+/* "Terminé": el botón confirma con un pulso antes de avanzar */
+@keyframes confirma{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+.confirma{animation:confirma .3s ease-out}
+/* Barras de lectura en voz alta */
+@keyframes barra{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.barras i{display:block;width:3px;height:12px;border-radius:2px;background:var(--menta);transform-origin:bottom;animation:barra .9s ease-in-out infinite}
+.barras i:nth-child(2){animation-delay:.15s}.barras i:nth-child(3){animation-delay:.3s}.barras i:nth-child(4){animation-delay:.45s}
+/* Flecha que se dibuja: cada trazo recorre su largo (--len) */
+@keyframes traza{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+.flecha path{stroke-dasharray:var(--len);stroke-dashoffset:0;animation:traza .55s ease-out both}
+/* Nodo del paso actual en el mapa: pulso suave en menta */
+@keyframes pulso{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--menta) 55%,transparent)}75%,100%{box-shadow:0 0 0 11px transparent}}
+.nodo-actual{animation:pulso 2.2s ease-out infinite}
+/* Paso terminado que se compacta en una fila */
+@keyframes compacta{from{opacity:0;transform:scaleY(.6);max-height:0}to{opacity:1;transform:none;max-height:80px}}
+.compacta{animation:compacta .45s cubic-bezier(.2,.8,.2,1) both;transform-origin:top}
+/* Desplegable con altura animada (nivel 2, «¿Por qué?») */
+.despliega{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.2,.8,.2,1)}
+.despliega.abierto{grid-template-rows:1fr}
+/* Cuenta regresiva del «¿Por qué?» en modo guiado: la barra se llena en --t */
+@keyframes cuenta{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.cuenta{transform-origin:left;animation:cuenta var(--t,5s) linear both}
+@media (prefers-reduced-motion: reduce){.cuenta{display:none}}
+/* Micrófono escuchando: ondas */
+@keyframes onda{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.1);opacity:0}}
+.onda::before,.onda::after{content:"";position:absolute;inset:0;border-radius:9999px;background:var(--menta);animation:onda 1.8s ease-out infinite;z-index:-1}
+.onda::after{animation-delay:.9s}

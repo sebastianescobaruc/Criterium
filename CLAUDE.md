@@ -25,6 +25,14 @@ npm run preview  # sirve dist/
 
 Stack: React 18 + Vite 5 + Tailwind CSS 3 + Firebase (Auth, Firestore, Storage). Sin TypeScript, sin router, sin librería de estado.
 
+```bash
+npm run deploy     # publica el sitio en https://criterium-e5d90.web.app (Firebase Hosting)
+npm run ios:sync   # compila y copia la web al proyecto de iOS (ios/, Capacitor 7 con SPM)
+npm run ios        # lo anterior + abre el proyecto en Xcode
+```
+
+**App instalable y de iOS.** La web es instalable como app (`public/manifest.webmanifest`, íconos en `public/icons/`). La app de iOS es la misma web envuelta con Capacitor (`capacitor.config.json`, id `cl.criterium.app`, carpeta `ios/`). Dentro de la app nativa Firebase Auth se inicializa con `initializeAuth` + IndexedDB (ver `firebase.js`). El reconocimiento de voz no existe en el WebView de iOS: ahí el botón de voz no aparece (la lectura en voz alta sí funciona). Capacitor 8 pide Node 22; con Node 20 se usa la 7. `cap add ios` con SPM exige CocoaPods por un error de la CLI: si hay que regenerar `ios/`, usar `CAPACITOR_COCOAPODS_PATH=/usr/bin/true npx cap add ios --packagemanager SPM`.
+
 ## Estructura
 
 ```
@@ -100,6 +108,7 @@ Las publicaciones antiguas no tienen `autorUid`: su nombre no enlaza a un perfil
 
 **Protocolo** (en `data.js`): `DATOS[id] = { esp, titulo, bandera, tags, alcance, bandeja, evidencia, nota, pdf?, pasos: [Paso] }`.
 Cada `Paso` tiene `corto`, `hacer`, `listo`, `porque[]` y opcionales `cond`, `marca`, `disputa`, `sinEv`, `sub[]` (con `parrafos`, `arbol`, `fuentes`) y `aportes[]`.
+Cada fuente es `{ grado, cita, loc, url? }`. La cita se vuelve enlace (`enlacesFuente` en `protocolos.jsx`): usa `url` si existe; si no, el DOI escrito en `loc` (→ doi.org) y el PMID (→ PubMed). **Nunca agregues un `url`, DOI o PMID que no hayas verificado.**
 
 ## Reglas que no se pueden romper
 
@@ -131,10 +140,32 @@ Están en `logic.js`. Si cambias alguna, cambia también el texto que la explica
 - **Firebase Auth** maneja la autenticación con email/contraseña. El UID de Firebase identifica al usuario en todo el sistema.
 - **IndexedDB legacy**: `logic.js` conserva las funciones `leer()` y `escribir()` para la migración de datos locales al registrarse.
 - **Firestore offline**: habilitado con `enableIndexedDbPersistence`. Los datos se sincronizan cuando hay conexión.
-- localStorage (solo comodidades): `criterium-tema`, `criterium-checks` (modo box), `criterium-revisor`, `criterium-guia` (la guía del inicio quedó oculta).
+- localStorage (solo comodidades): `criterium-tema`, `criterium-checks` (modo box), `criterium-revisor`, `criterium-guia` (la guía del inicio quedó oculta), `criterium-lateral` (barra lateral visible u oculta en escritorio), `criterium-derecha` (columna "Tu día" del inicio visible u oculta; al ocultarse se pliega hacia el borde y queda una pestaña), `criterium-modo-proto` (`guiado` o `todo`), `criterium-leer` (leer cada paso en voz alta al llegar).
 - Las fotos se comprimen en el navegador a 1600 px de lado mayor, JPEG 0,84, sin recortar, y luego se suben a Storage.
 - **Variables de entorno**: las credenciales de Firebase van en `.env` (nunca en el código). Ver `.env.example`.
 - **Migración**: al registrarse o iniciar sesión por primera vez, la app detecta datos en IndexedDB y ofrece subirlos a Firestore.
+
+## Modo guiado y voz
+
+- Un protocolo se abre en **modo guiado** (`views/guiado.jsx`): primero la bandeja, después un paso a la vez y al final un cierre con los pasos sin marcar y "Registrar un caso". "Terminé este paso" marca el paso (en `criterium-checks`, las mismas marcas del modo box) y avanza. El mapa del recorrido (`Recorrido`) es una fila de puntos dentro del panel oscuro del paso (también en la bandeja y el cierre), así el paso usa todo el ancho (hasta 1100 px); los pasos que aún no se ven muestran solo su número. "Ver todo" vuelve a la lista completa.
+- En modo guiado, el «¿Por qué?» de cada paso se abre solo a los 5 segundos (`autoPorque` en `Paso`), con «Se abre en N s» y una barra menta (`.cuenta`). Tocarlo antes cancela la cuenta.
+- **Manos libres** (botón en la franja superior del modo guiado): capa fija que tapa la app, pantalla completa del navegador si existe (en iPhone no: queda la capa), voz y lectura encendidas, pantalla sin apagarse (Wake Lock) y botones Anterior / Terminé más grandes. Se sale con «Salir», Esc, saliendo de la pantalla completa o diciendo «salir». Al salir, la lectura vuelve a lo guardado en `criterium-leer`.
+- Animaciones solo con CSS y SVG (`.aparece`, `.flecha`, `.nodo-actual`, `.compacta`, `.onda` en `index.css`). Con "reducir movimiento" no hay animación.
+- Cada paso entra desde el lado hacia el que avanzas; el número del paso va de marca de agua; "Terminé" muestra ✓ un instante antes de pasar. En móvil se desliza (izquierda avanza, derecha retrocede).
+- **Leer pasos** (🔊, `speechSynthesis`): encendido, lee cada paso al llegar, venga del botón, del teclado, del gesto o de la voz. Mientras lee, el paso muestra barras animadas (`useHablando`).
+- Teclado: ← y →. **Voz** (`voz.js`, Web Speech API, `es-CL`): «siguiente / sigamos / listo / dale», «anterior / atrás», «lee / repite», «por qué», «silencio» y, en manos libres, «salir». Al avanzar por voz, lee el paso en voz alta; mientras lee solo acepta «silencio». Chrome manda el audio a Google y Safari a Apple: la interfaz pide no decir datos del paciente. Firefox no lo trae y el botón no aparece.
+
+## Estudio START MEDUC 2026 (contexto de los socios)
+
+Criterium postula al concurso START MEDUC 2026 (cierre 23-10-2026) para validar 5 protocolos y probarlos en un piloto. Documentos fuente: extenso v4.4, formulario, carta a Transferencia UC, Gantt, presupuesto y plan de negocio v2.0 (carpeta "CRITERIUM DOCUMENTOS" del escritorio; la actualización más reciente está en `ACTUALIZACION_CONTEXTO_2026-10-05.md` de esa carpeta).
+
+- **Los 5 protocolos del estudio** (`estudio: true` en `PROTOS`): resina oclusal clase I y exodoncia de tercer molar superior (con borrador); bio/necropulpectomía de premolar superior, destartraje y pulido radicular, y sellantes en niños (solo en el catálogo, *planificados*, sin contenido). El cementado de PMMA tiene borrador pero no es del estudio.
+- **Validación de protocolos = juicio de expertos** (Delphi modificado): ≥5 especialistas por protocolo, hasta 2 rondas, paso aprobado si ≥80 % pone 4 o 5 en pertinencia, claridad y respaldo; sin acuerdo → «sin acuerdo experto» o se elimina. No confundir con la revisión por pares de **casos** (los revisores de las 8 áreas).
+- **La IA solo está en la producción.** El estudiante lee un texto fijo, fechado y con huella SHA-256. La app no genera indicaciones nuevas.
+- **Sin nombre ni marca de la UC** dentro de la plataforma. Se puede decir «validado por juicio de expertos» cuando lo esté; nunca «aprobado por la UC».
+- **Piloto (jun–oct 2027):** plataforma cerrada, cuentas individuales solo con consentimiento firmado, y registro de uso (% de estudiantes que abre ≥1 protocolo por sesión). El registro de uso **todavía no existe** en el código.
+- **Ley 21.719** (vigente desde el 1-12-2026): datos mínimos, agregados con umbral mínimo de grupo, consentimiento de investigación separado de los términos de uso.
+- El código inscrito en el DDI es la **v0.2.0** (manifiesto en `_registro_DDI/`). Todo lo posterior (modo guiado, voz, enlaces a fuentes, rediseño) es una versión nueva que se puede inscribir aparte.
 
 ## Integraciones de claude.ai
 
@@ -149,11 +180,13 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 - Colores solo desde los tokens de `index.css` (`--bg`, `--card`, `--ink`, `--acento`, `--ok`, `--warn`, `--bad`…), mapeados en `tailwind.config.js`. Nada de colores sueltos, salvo la banda oscura del inicio y el lightbox.
 - Tres estados de tema: claro, oscuro y "sistema" (sin `data-theme`). Todo color nuevo se define en los tres bloques.
 - Texto sobre fondos de color sólido: `text-onc` (no `text-white`), para que funcione en tema oscuro.
-- Colores de la marca (del logo oficial): azul petróleo `#1B3949` (`--deep`, títulos y logo) y verde azulado `#346F7D` (`--acento` `#2F6A78` para botones y enlaces), sobre fondo `#F6F8F9`. En oscuro: `#0B1419`, tarjetas `#12212A`, acento `#5FA9B9`. El anillo de las historias usa `--ring`; el ícono del logo, `--logo-bg` y `--logo-acc`.
+- Paleta final (de la presentación para tutores START MEDUC): azul petróleo profundo `#0F2530` (`--deep`, títulos; `--nav`, barra lateral de escritorio), verde azulado `--acento` `#2F6A78` para botones y enlaces, y **menta** `--menta` `#5CCFC0` para lo que se destaca sobre fondo oscuro (números, "Terminaste cuando", ítem activo). Fondo `#F2F6F7`, recuadros suaves `--soft` `#E9F1F3`. En oscuro: `#0B171D`, tarjetas `#13232B`, menta `#6FD8CA`. Texto sobre menta: `text-mentaink`. Los estados (ok, aviso, error, borrador, validado) van en tonos pastel. Nada neón ni saturado. El anillo de las historias usa `--ring`; el ícono del logo, `--logo-bg` y `--logo-acc`.
+- Piezas del sistema (en `index.css`): `.rotulo` (rótulo de sección en mayúsculas espaciadas, color `--rotulo`, como "03 · LA SOLUCIÓN"), `.panel` (recuadro oscuro `--panel` con texto `text-panelink` / `text-panelink2`; lo que siempre se ve), `.suave` (recuadro `--soft` sin borde; explicaciones). Números grandes de una lista: `font-extrabold text-menta`.
+- **Paso del protocolo en tres niveles** (`Paso` en `protocolos.jsx`): 1 · `.panel` con "Paso NN", qué hacer y "Terminaste cuando" en menta (siempre visible); 2 · "¿Por qué?" desplegable (`.suave`, cerrado de partida, se abre con altura animada `.despliega`; la voz «por qué» también lo abre); 3 · "Fuente y otros casos": una ficha por cada `sub` (el título se traduce en `FICHA`: "ver fuentes" → Fuentes, "dónde se equivoca la gente" → Errores, "dónde no hay acuerdo" → Disenso…) más "Otros casos" con los aportes. Una ficha abierta a la vez.
 - Una sola tipografía en toda la app: la del logo (San Francisco, `-apple-system`, con Inter como respaldo fuera de Apple). `font-serif` apunta a esa misma familia. **El logo y su tipografía no se cambian.** No usar tipografía monoespaciada.
 - Estilo "clínico premium": fondo `.fondo` (trama de puntos tenue + brillo de marca), recuadros con la clase `.tarjeta` (blanca, sin borde duro, sombra difusa, `--card-line`), barras con vidrio esmerilado (`backdrop-blur`), campos en `--input`. Encabezados de marca con `.banda-marca` (degradado del logo, texto blanco). Todo en `index.css`.
 - Los `<select>` no usan el estilo nativo del sistema: `index.css` les quita la apariencia y dibuja el chevron con el color del tema.
-- Logo: componente `Logo` en `ui.jsx`, recreado en SVG desde el logo oficial (C con una muela al centro y un tramo verde azulado; "Criter" en `text-deep` e "ium" en `text-acento`). El favicon está en `public/favicon.svg`.
+- Logo: componente `Logo` en `ui.jsx` (prop `oscuro` sobre fondo oscuro: "Criter" claro e "ium" menta), recreado en SVG desde el logo oficial (C con una muela al centro y un tramo verde azulado; "Criter" en `text-deep` e "ium" en `text-acento`). El favicon está en `public/favicon.svg`.
 - **Fotos clínicas siempre completas dentro de su marco** (`object-contain`), nunca recortadas.
 - Todo en español de Chile, simple y directo, que lo entienda un estudiante de primer año. Frases cortas. Los tecnicismos se dejan y se explican en el mismo texto.
 - Debe funcionar a 390 px de ancho sin scroll horizontal. En móvil la navegación va en la barra inferior.
@@ -168,7 +201,8 @@ La app se publicó primero como artifact en claude.ai. Ahí existe `window.claud
 ## Próximos pasos (en orden)
 
 1. ~~**Backend y cuentas reales.**~~ ✅ Hecho: Firebase Auth + Firestore + Storage integrados.
-2. **Privacidad.** Los datos de salud son datos sensibles. Antes de usar casos reales: consentimiento registrado, cifrado, control de acceso y revisión legal según la ley chilena de protección de datos.
+2. **Privacidad.** Los datos de salud son datos sensibles. Antes de usar casos reales: consentimiento registrado, cifrado, control de acceso y revisión legal según la Ley 21.719 (vigente desde el 1-12-2026).
+2b. **Preparar el piloto:** registro de uso con consentimiento, acceso cerrado por cuentas individuales y opción de desactivar la voz durante el estudio.
 3. **Bloquear la autorrevisión** y asignar revisores por área del caso.
 4. **Asistente vía servidor** (ver "Integraciones").
 5. **Pruebas** para `chequeoCaso`, `validar`, `perio`, `endo`, `anestesia` y `validarDientes`.

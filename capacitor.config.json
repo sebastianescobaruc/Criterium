@@ -1,0 +1,9 @@
+{
+  "appId": "cl.criterium.app",
+  "appName": "Criterium",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#F2F6F7"
+  }
+}

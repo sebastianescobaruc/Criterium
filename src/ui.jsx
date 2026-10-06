@@ -26,9 +26,16 @@ const PATHS = {
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" /></>,
   download: <><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14" /></>,
   menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+  panel: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M9.5 4.5v15" /></>,
+  panelder: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M14.5 4.5v15" /></>,
   dots: <><circle cx="5" cy="12" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="19" cy="12" r="1.2" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   alert: <><path d="M12 4 2.8 19.5h18.4z" /><path d="M12 10v4.2M12 17h.01" /></>,
+  volumen: <><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" /><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.5a8 8 0 0 1 0 11" /></>,
+  expand: <><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></>,
+  shrink: <><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></>,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></>,
+  ext: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>,
   copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></>,
   image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="10" r="1.8" /><path d="M20.5 16.5 15 11l-9.5 8.5" /></>,
   heart: <><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z" /></>,
@@ -37,7 +44,7 @@ const PATHS = {
 };
 
 /* Logo: la C de Criterium con una muela al centro y un tramo en verde azulado. Recreado en SVG desde el logo oficial. */
-export function Logo({ size = 26, texto = true, className = '' }) {
+export function Logo({ size = 26, texto = true, oscuro = false, className = '' }) {
   return (
     <span className={cx('inline-flex items-center gap-2', className)}>
       <svg width={size} height={size} viewBox="61 60 317 317" aria-hidden="true" className="flex-none">
@@ -46,7 +53,7 @@ export function Logo({ size = 26, texto = true, className = '' }) {
         <path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" style={{ fill: 'var(--logo-acc)' }} />
         <path d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF" />
       </svg>
-      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className="text-deep">Criter</span><span className="text-acento">ium</span></span>}
+      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className={oscuro ? 'text-panelink' : 'text-deep'}>Criter</span><span className={oscuro ? 'text-menta' : 'text-acento'}>ium</span></span>}
     </span>
   );
 }
@@ -216,7 +223,7 @@ export function Chequeo({ ch, titulo = 'Chequeo de evidencia', compacto }) {
   return (
     <div className="tarjeta">
       <div className="flex items-center justify-between gap-3 border-b border-line2 px-4 py-3">
-        <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">{titulo}</h3>
+        <h3 className="m-0 rotulo">{titulo}</h3>
         <div className="flex gap-1.5">
           {ch.fallas.length > 0 && <Pill tono="bad">{ch.fallas.length} bloquea{ch.fallas.length > 1 ? 'n' : ''}</Pill>}
           {ch.revisar.length > 0 && <Pill tono="warn">{ch.revisar.length} a revisar</Pill>}
@@ -245,7 +252,7 @@ export function useToasts() {
     setTimeout(() => setLista((l) => l.filter((x) => x.id !== id)), 3800);
   }, []);
   const vista = (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[88px] z-[70] flex flex-col items-center gap-2 px-4 lg:bottom-6" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-16 z-[70] flex flex-col items-center gap-2 px-4 lg:top-6" aria-live="polite">
       {lista.map((t) => (
         <div key={t.id} className={cx('pointer-events-auto flex max-w-md items-center gap-2.5 rounded-full px-4 py-2.5 text-[13.5px] font-semibold shadow-shlg',
           t.tono === 'warn' ? 'bg-warn text-onc' : t.tono === 'bad' ? 'bg-bad text-onc' : 'bg-toast text-toastink')}>
@@ -262,7 +269,7 @@ export function Seccion({ titulo, extra, children, className = '' }) {
     <section className={cx('flex flex-col gap-3', className)}>
       {(titulo || extra) && (
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          {titulo && <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">{titulo}</h2>}
+          {titulo && <h2 className="m-0 rotulo">{titulo}</h2>}
           {extra}
         </div>
       )}
@@ -279,11 +286,94 @@ export function PageHead({ eyebrow, titulo, children, acciones }) {
   return (
     <header className="flex flex-col gap-4 border-b border-line2 pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="max-w-[68ch]">
-        {eyebrow && <p className="m-0 mb-2 text-[12px] font-semibold text-acentodeep">{eyebrow}</p>}
+        {eyebrow && <p className="rotulo m-0 mb-2.5">{eyebrow}</p>}
         <h1 className="m-0 text-[28px] font-extrabold leading-[1.1] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{titulo}</h1>
         {children && <p className="m-0 mt-2.5 font-serif text-[16px] leading-relaxed text-ink2">{children}</p>}
       </div>
       {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}
     </header>
+  );
+}
+
+/* ═══════ Componentes Rediseño - Fase 2 ═══════ */
+
+export function ChipEstadoProtocolo({ estado }) {
+  const config = {
+    borrador: { txt: 'Borrador', icon: 'edit', cls: 'bg-[var(--estado-borrador-bg)] text-[var(--estado-borrador)]' },
+    disputa: { txt: 'En disputa', icon: 'alert', cls: 'bg-[var(--estado-borrador-bg)] text-[var(--estado-borrador)]' },
+    validado: { txt: 'Validado', icon: 'check', cls: 'bg-[var(--estado-validado-bg)] text-[var(--estado-validado)]' },
+    planificado: { txt: 'Planificado', icon: 'clock', cls: 'bg-[var(--estado-planificado-bg)] text-[var(--estado-planificado)]' }
+  };
+  const c = config[estado] || config.borrador;
+  return (
+    <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-bold tracking-tight', c.cls)}>
+      <Ic n={c.icon} s={14} sw={2.5} />
+      {c.txt}
+    </span>
+  );
+}
+
+export function ChipEvidencia({ fuente, año, onClick }) {
+  if (!fuente) return null;
+  return (
+    <button type="button" onClick={(e) => { e.stopPropagation(); onClick && onClick(); }} className="inline-flex items-center gap-1 rounded bg-soft px-2 py-0.5 text-[11px] font-semibold text-ink2 transition-colors hover:bg-line hover:text-ink">
+      <Ic n="book" s={10} />
+      <span className="truncate max-w-[120px]">{fuente}</span>
+      {año && <span className="opacity-75">{año}</span>}
+    </button>
+  );
+}
+
+export function TarjetaResumenProtocolo({ tiempo, instrumental, fuentes, estado }) {
+  return (
+    <div className="tarjeta flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center gap-4 text-[13.5px] font-medium text-ink2">
+        <div className="flex items-center gap-1.5"><Ic n="clock" s={16} className="text-ink3" /> {tiempo} min</div>
+        <div className="h-4 w-px bg-line" />
+        <div className="flex items-center gap-1.5"><Ic n="tool" s={16} className="text-ink3" /> {instrumental} clave</div>
+        <div className="h-4 w-px bg-line" />
+        <div className="flex items-center gap-1.5"><Ic n="book" s={16} className="text-ink3" /> {fuentes} fuentes</div>
+      </div>
+      <ChipEstadoProtocolo estado={estado} />
+    </div>
+  );
+}
+
+export function LineaTiempoPasos({ pasos, pasoActivo, onPasoClick, onPorQue }) {
+  return (
+    <div className="relative flex flex-col gap-0 py-2">
+      <div className="absolute top-4 bottom-4 left-[23px] w-0.5 bg-line2" />
+      {pasos.map((paso, i) => {
+        const activo = i === pasoActivo;
+        const pasado = i < pasoActivo;
+        return (
+          <div key={i} className={cx('relative flex items-start gap-4 p-2 transition-opacity', activo ? 'opacity-100' : 'opacity-60 hover:opacity-100')} onClick={() => onPasoClick(i)} style={{ cursor: 'pointer' }}>
+            <div className={cx('z-10 grid h-8 w-8 flex-none place-items-center rounded-full border-2 text-[13px] font-bold transition-colors', 
+              activo ? 'border-acento bg-acento text-onc ring-4 ring-acentosoft' : pasado ? 'border-acento bg-card text-acento' : 'border-line bg-card text-ink3')}>
+              {pasado ? <Ic n="check" s={16} sw={2.5} /> : (i + 1)}
+            </div>
+            <div className="pt-1.5 pb-6">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h4 className={cx('m-0 text-[15px] font-bold', activo ? 'text-deep' : 'text-ink2')}>{paso.titulo}</h4>
+                {paso.evidencia && <ChipEvidencia fuente={paso.evidencia.fuente} año={paso.evidencia.año} onClick={() => onPorQue(i)} />}
+              </div>
+              {activo && (
+                <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300 flex flex-col gap-3">
+                  <p className="m-0 text-[14.5px] leading-relaxed text-ink">{paso.txt}</p>
+                  {paso.clave && (
+                    <div className="rounded-rs bg-warnsoft px-3 py-2 text-[13px] text-warn">
+                      <b className="font-bold">Terminaste cuando:</b> {paso.clave}
+                    </div>
+                  )}
+                  {paso.por_que && !paso.evidencia && (
+                     <button type="button" onClick={(e) => { e.stopPropagation(); onPorQue(i); }} className="self-start text-[12.5px] font-semibold text-acento hover:underline">¿Por qué?</button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

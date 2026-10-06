@@ -26,7 +26,7 @@ function Intro() {
       <div className="flex flex-col gap-4 tarjeta p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="max-w-[60ch]">
           <h2 className="m-0 mb-1 text-[16px] font-bold text-deep">{puede ? 'Tu perfil puede revisar' : '¿Eres especialista o docente de clínica?'}</h2>
-          <p className="m-0 text-[13.5px] leading-relaxed text-ink2">{puede ? 'Entra al modo revisor para ver la cola de casos pendientes.' : 'Postula a una de las ocho plazas. Mientras tanto puedes probar el flujo completo en modo de prueba, con casos de ejemplo.'}</p>
+          <p className="m-0 text-[13.5px] leading-relaxed text-ink2">{puede ? 'Entra al modo revisor para ver la cola de casos pendientes.' : 'Postula como revisor de casos en tu área. Mientras tanto puedes probar el flujo completo en modo de prueba, con casos de ejemplo.'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Btn v="primary" icon="stamp" onClick={() => setModoRevisor(true)}>{puede ? 'Entrar como revisor' : 'Probar como revisor'}</Btn>
@@ -34,7 +34,7 @@ function Intro() {
         </div>
       </div>
       <section className="flex flex-col gap-3">
-        <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tus casos enviados</h2>
+        <h2 className="m-0 rotulo">Tus casos enviados</h2>
         {mios.length === 0 ? <p className="m-0 text-[13.5px] text-ink3">Todavía no envías casos a revisión.</p> : (
           <div className="tarjeta">
             {mios.map((c) => (
@@ -174,7 +174,7 @@ function FormRevision({ c, ch, onFirmar }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 tarjeta p-4">
-        <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Tu revisión</h3>
+        <h3 className="m-0 rotulo">Tu revisión</h3>
         {CRITERIOS.map((k) => <Puntaje key={k.k} k={k} valor={p[k.k]} onChange={(n) => setP({ ...p, [k.k]: n })} error={intento && !p[k.k]} />)}
         {intento && errores.puntajes && <span className="text-[12px] font-medium text-bad">{errores.puntajes}</span>}
         <div className="flex flex-col gap-2">
@@ -205,7 +205,7 @@ function FormRevision({ c, ch, onFirmar }) {
       {iaOn && (
         <div className="flex flex-col gap-3 tarjeta p-4">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Segunda lectura</h3>
+            <h3 className="m-0 rotulo">Segunda lectura</h3>
             <Btn sm v="soft" icon="sparkle" onClick={segunda} disabled={iaCargando}>{iaCargando ? 'Leyendo…' : ia ? 'Pedir otra' : 'Pedir al asistente'}</Btn>
           </div>
           <p className="m-0 text-[11.5px] leading-snug text-ink3">La hace un modelo de lenguaje con el caso y el protocolo. Sirve para ver lo que una regla fija no ve. La decisión es tuya.</p>
@@ -255,11 +255,11 @@ function PantallaRevision() {
           {propio && <Aviso tono="warn" className="mt-4">Conflicto de interés: es tu propio caso. No puedes revisarlo; lo revisa otra persona.</Aviso>}
         </div>
         <section className="grid gap-4 md:grid-cols-2">
-          <div className="tarjeta p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Diagnóstico</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico}</p></div>
-          <div className="tarjeta p-5"><h2 className="m-0 mb-2 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Procedimiento</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento}</p></div>
+          <div className="tarjeta p-5"><h2 className="m-0 mb-2 rotulo">Diagnóstico</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.diagnostico}</p></div>
+          <div className="tarjeta p-5"><h2 className="m-0 mb-2 rotulo">Procedimiento</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento}</p></div>
         </section>
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Adherencia al protocolo</h2>
+          <h2 className="m-0 rotulo">Adherencia al protocolo</h2>
           <Adherencia c={c} />
           {c.evidencia && <div className="rounded-r bg-soft p-4"><h3 className="m-0 mb-1.5 text-[12px] font-bold text-ink2">Evidencia declarada por el autor</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink">{c.evidencia}</p></div>}
         </section>
@@ -287,12 +287,12 @@ function PantallaRevision() {
           </details>
         )}
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Fotos y radiografías</h2>
+          <h2 className="m-0 rotulo">Fotos y radiografías</h2>
           <Galeria c={c} />
         </section>
         {(c.revisiones || []).length > 0 && (
           <section className="flex flex-col gap-3">
-            <h2 className="m-0 text-[12px] font-bold uppercase tracking-[.05em] text-ink3">Revisiones anteriores</h2>
+            <h2 className="m-0 rotulo">Revisiones anteriores</h2>
             {[...c.revisiones].reverse().map((r) => <TarjetaRevision key={r.id} r={r} />)}
           </section>
         )}

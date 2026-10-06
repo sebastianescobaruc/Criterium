@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth, initializeAuth, indexedDBLocalPersistence, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
@@ -13,7 +13,10 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Dentro de la app de iOS (Capacitor), getAuth se queda esperando el resolvedor de ventanas emergentes:
+// ahí se inicializa con persistencia en IndexedDB y sin popups. En el navegador sigue igual.
+const nativa = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
+export const auth = nativa ? initializeAuth(app, { persistence: indexedDBLocalPersistence }) : getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
