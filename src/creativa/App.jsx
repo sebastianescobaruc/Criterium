@@ -8,6 +8,7 @@ import { MarcaRed } from './marca.jsx';
 import { Feed, PerfilPublico, Bienvenida } from '../views/red.jsx';
 import { Casos, CasoRed, SubirCaso, Celebracion } from './casos.jsx';
 import { PortadaRed } from './portada.jsx';
+import { Invitar, Liga, LigaMini } from './crecer.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from '../auth.js';
 import { useEsDocente, useEsAdmin, useFeedFS, useCasosRed, useColaCasos, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS, enviarMensajeFS } from '../db.js';
 import AuthGate from '../views/auth.jsx';
@@ -15,10 +16,15 @@ import AuthGate from '../views/auth.jsx';
 const vista = (cargar, nombre) => lazy(() => cargar().then((m) => ({ default: m[nombre] })));
 const Privacidad = vista(() => import('../views/privacidad.jsx'), 'Privacidad');
 const Contacto = vista(() => import('../views/contacto.jsx'), 'Contacto');
+const Herramientas = vista(() => import('../views/herramientas.jsx'), 'Herramientas');
 
-const VISTAS = ['feed', 'casos', 'caso', 'subir', 'perfil', 'privacidad', 'contacto'];
-const NAV = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos']];
+const VISTAS = ['feed', 'casos', 'caso', 'subir', 'herramientas', 'liga', 'perfil', 'privacidad', 'contacto'];
+// Invita a tu curso: el enlace trae ?i=<uid de quien invita>; se guarda hasta que la persona tenga perfil
+try { const i = new URLSearchParams(location.search).get('i'); if (i && /^[\w-]{4,128}$/.test(i)) { sessionStorage.setItem('criterium-invita', i); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
+const NAV = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos'], ['herramientas', 'tool', 'Herramientas'], ['liga', 'edificio', 'Liga']];
 const NAV_SECUNDARIO = [['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
+// En el celular, «Más» suma la liga
+const NAV_MAS = [['liga', 'Liga de universidades'], ...NAV_SECUNDARIO];
 const activo = (view, v) => view === v || (v === 'casos' && (view === 'caso' || view === 'subir'));
 
 export default function AppRed() {
@@ -43,12 +49,13 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   const { siguiendo } = useSeguimientos(myUid);
   const perfil = perfilAuth;
 
-  const ini = (() => { try { const h = (location.hash || '').slice(1); return ['feed', 'casos', 'privacidad', 'contacto'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
+  const ini = (() => { try { const h = (location.hash || '').slice(1); return ['feed', 'casos', 'herramientas', 'liga', 'privacidad', 'contacto'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
   const [view, setView] = useState(ini);
   const [perfilUid, setPerfilUid] = useState(null);
   const [casoRedId, setCasoRedId] = useState(null);
   const [corrigiendo, setCorrigiendo] = useState(null);
   const [menu, setMenu] = useState(false);
+  const [herrTab, setHerrTab] = useState('perio');
   const [feedProc, setFeedProcRaw] = useState('');
   // Celebrar la aprobación: un caso propio publicado en los últimos 7 días que todavía no se celebró en este navegador
   const [celebrar, setCelebrar] = useState(null);
@@ -72,6 +79,13 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
     try { await guardarPerfilPublicoFS(myUid, p); } catch (e) { console.warn('Perfil público pendiente:', e && e.code); }
   }, [myUid]);
   useEffect(() => { if (myUid && perfil && perfil.nombre) guardarPerfilPublicoFS(myUid, perfil).catch(() => {}); }, [myUid, perfil && perfil.nombre]);
+  // Quién te invitó: se anota una vez en tu perfil (si llegaste por un enlace de invitación)
+  useEffect(() => {
+    let i = null; try { i = sessionStorage.getItem('criterium-invita'); } catch (e) {}
+    if (!i || !myUid || !perfil || !perfil.nombre) return;
+    try { sessionStorage.removeItem('criterium-invita'); } catch (e) {}
+    if (i !== myUid && !perfil.invitadoPor) setPerfil({ ...perfil, invitadoPor: i }).catch(() => {});
+  }, [myUid, perfil && perfil.nombre]);
 
   const go = (v) => {
     if (!VISTAS.includes(v)) v = 'feed';
@@ -98,13 +112,14 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
     feed, feedProto: '', setFeedProto: () => {}, abrirProto: () => {},
     feedProc, setFeedProc: (v) => { setFeedProcRaw(v); if (v) go('feed'); },
     perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'),
+    herrTab, setHerrTab,
     esDocente, esAdmin, esRevisor, casoRedId, abrirCasoRed, subirCaso, corregirCaso,
     setMensajes: guardarMensaje, mensajes: []
   };
 
   const pantalla = !feedListo ? <div className="h-64 animate-pulse rounded-[22px] bg-soft" /> : ({
-    feed: <Feed />, casos: <Casos />, caso: <CasoRed key={casoRedId} />, subir: <SubirCaso key={corrigiendo ? corrigiendo.id + (corrigiendo.version || 1) : 'nuevo'} caso={corrigiendo} />,
-    perfil: <PerfilPublico key={perfilUid} />, privacidad: <Privacidad />, contacto: <Contacto />
+    feed: <Feed lado={<><Invitar compacto /><LigaMini /></>} movil={<Invitar />} />, liga: <Liga />, casos: <Casos />, caso: <CasoRed key={casoRedId} />, subir: <SubirCaso key={corrigiendo ? corrigiendo.id + (corrigiendo.version || 1) : 'nuevo'} caso={corrigiendo} />,
+    herramientas: <Herramientas />, perfil: <PerfilPublico key={perfilUid} />, privacidad: <Privacidad />, contacto: <Contacto />
   })[view];
 
   const navBtn = (v, icon, t) => (
@@ -145,10 +160,10 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
         </div>
       </div>
 
-      {/* Barra inferior del celular: Inicio, Casos, Subir (al centro), Perfil, Más */}
+      {/* Barra inferior del celular: Inicio, Casos, Subir (al centro), Herramientas, Más. El perfil va en la foto de arriba */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5 items-center">
-          {[['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos'], ['subir', 'plus', 'Subir'], ['perfil', 'userCheck', 'Perfil']].map(([v, i, t]) => {
+          {[['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos'], ['subir', 'plus', 'Subir'], ['herramientas', 'tool', 'Herramientas']].map(([v, i, t]) => {
             const on = v === 'perfil' ? yoActivo : v === 'subir' ? view === 'subir' : activo(view, v) && view !== 'subir';
             if (v === 'subir') return (
               <button key={v} type="button" onClick={subirCaso} className="flex flex-col items-center gap-0.5 py-1.5 text-[11px] font-semibold text-ink3" aria-label="Subir un caso">
@@ -164,7 +179,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
               </button>
             );
           })}
-          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['privacidad', 'contacto'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
+          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['privacidad', 'contacto', 'liga'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
         </div>
       </nav>
 
@@ -172,7 +187,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
         <div className="fixed inset-0 z-50 bg-[rgba(18,17,12,.5)] lg:hidden" onMouseDown={(e) => { if (e.target === e.currentTarget) setMenu(false); }}>
           <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 rounded-t-[22px] bg-card px-4 pt-4" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
             <div className="mb-2 flex items-center justify-between"><MarcaRed size={24} /><button type="button" onClick={() => setMenu(false)} className="rounded-full p-2 text-ink3 hover:bg-soft" aria-label="Cerrar menú"><Ic n="x" /></button></div>
-            {NAV_SECUNDARIO.map(([v, t]) => <button key={v} type="button" onClick={() => go(v)} className="rounded-rs px-3 py-3 text-left text-[15px] font-semibold text-ink hover:bg-soft">{t}</button>)}
+            {NAV_MAS.map(([v, t]) => <button key={v} type="button" onClick={() => go(v)} className="rounded-rs px-3 py-3 text-left text-[15px] font-semibold text-ink hover:bg-soft">{t}</button>)}
             <button type="button" onClick={() => { setMenu(false); logout(); }} className="rounded-rs px-3 py-3 text-left text-[15px] text-ink2 hover:bg-soft">Cerrar sesión</button>
           </div>
         </div>

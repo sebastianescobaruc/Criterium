@@ -332,7 +332,7 @@ export async function responderPostFS(postId, respuesta) {
     rol (etapa: estudiante, egresado, especialista, docente), institucion, anio (año que cursa o de egreso),
     intereses (especialidades) y temas (listas cortas), descripcion y onboarding (terminó la bienvenida).
     tipo 'oficial' y verificado los pone solo el equipo Criterium desde la consola: nadie se los pone a sí mismo. */
-export const PERFIL_PUBLICO = ['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio'];
+export const PERFIL_PUBLICO = ['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio', 'invitadoPor'];
 export const PERFIL_LISTAS = ['intereses', 'temas'];
 export async function guardarPerfilPublicoFS(uid, p) {
   const datos = {};

@@ -246,7 +246,10 @@ service cloud.firestore {
       allow read: if conSesion();
       allow delete: if soy(uid); // «Borrar mi cuenta»
       allow create, update: if soy(uid)
-        && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio', 'intereses', 'temas', 'onboarding', 'actualizado'])
+        && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio', 'intereses', 'temas', 'onboarding', 'invitadoPor', 'actualizado'])
+        // Quién lo invitó (Invita a tu curso): un uid ajeno, nunca el propio
+        && request.resource.data.get('invitadoPor', '') is string && request.resource.data.get('invitadoPor', '').size() <= 128
+        && request.resource.data.get('invitadoPor', '') != uid
         && request.resource.data.get('intereses', []).size() <= 12
         && request.resource.data.get('temas', []).size() <= 12
         && request.resource.data.nombre is string && request.resource.data.nombre.size() <= 80

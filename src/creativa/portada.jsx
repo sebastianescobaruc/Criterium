@@ -12,6 +12,7 @@ const PUNTOS = [
 const CAMINO = [['folder', 'Subes el caso'], ['stamp', 'Lo revisa un docente'], ['edit', 'Lo corriges'], ['check', 'Se publica']];
 
 export function PortadaRed({ entrar, privacidad }) {
+  const invitado = (() => { try { return !!sessionStorage.getItem('criterium-invita'); } catch (e) { return false; } })();
   return (
     <div className="fondo min-h-screen">
       <header className="sticky top-0 z-20 border-b border-cardline bg-[color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur-xl" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -24,6 +25,7 @@ export function PortadaRed({ entrar, privacidad }) {
 
       <main className="mx-auto flex max-w-[1080px] flex-col gap-20 px-4 pb-16 pt-14 sm:px-6 sm:pt-20">
         <section className="flex flex-col items-center text-center">
+          {invitado && <p className="m-0 mb-5 inline-flex items-center gap-2 rounded-full bg-menta px-4 py-1.5 text-[13.5px] font-semibold text-mentaink"><Ic n="personas" s={16} />Te invitaron a Criterium</p>}
           <p className="rotulo m-0 mb-4">La red de la Odontología</p>
           <h1 className="m-0 max-w-[15ch] text-[40px] font-bold leading-[1.04] tracking-[-.035em] text-deep [text-wrap:balance] sm:text-[60px]">Casos reales, revisados por docentes.</h1>
           <p className="m-0 mt-5 max-w-[46ch] text-[17px] leading-relaxed text-ink2 sm:text-[19px]">Sube tus casos, recibe correcciones, discute planes de tratamiento y sigue a quienes te enseñan.</p>

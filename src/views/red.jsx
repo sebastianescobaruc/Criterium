@@ -1,7 +1,7 @@
 // La red profesional de Criterium: bienvenida (perfil profesional), feed, publicaciones por tipo, perfil público,
 // a quién seguir y la cola de moderación del equipo.
 // Los casos clínicos, borradores y protocolos pasan por el filtro del equipo Criterium antes de aparecer (db.js: publicarFS).
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { protoPorId, protosAbiertos, hace, uid, datosPersonales } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { CREATIVA } from '../edicion.js';
@@ -409,6 +409,9 @@ function Votacion({ p }) {
   );
 }
 
+// Tu caso en Instagram: el generador de la imagen se descarga recién al tocar «Compartir»
+const CompartirModal = lazy(() => import('./compartir.jsx').then((m) => ({ default: m.CompartirModal })));
+
 const leerGuardados = () => { try { return JSON.parse(localStorage.getItem('criterium-guardados') || '[]'); } catch (e) { return []; } };
 export function Publicacion({ p, pendiente = false }) {
   const { conPerfil, perfil, abrirProto, myUid, verPerfil, siguiendo, toggleSeguir, avisar, go, abrirCasoRed, esRevisor, esDocente, esAdmin, setFeedProc } = useApp();
@@ -420,6 +423,7 @@ export function Publicacion({ p, pendiente = false }) {
   const [err, setErr] = useState('');
   const [guardado, setGuardado] = useState(() => leerGuardados().includes(p.id));
   const [borrar, setBorrar] = useState(false);
+  const [compartir, setCompartir] = useState(false);
   const tipo = tipoDe(p); const T = TIPOS[tipo];
   const proto = p.protocoloId && protoPorId(p.protocoloId);
   const autorUid = p.autorUid || (p.autor && p.autor.uid) || '';
@@ -528,6 +532,11 @@ export function Publicacion({ p, pendiente = false }) {
             <button type="button" onClick={() => setResp(!resp)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft">
               <Ic n="chat" s={19} />{respuestas.length > 0 ? respuestas.length : ''} <span className="hidden sm:inline">Responder</span>
             </button>
+            {['caso', 'discusion'].includes(tipo) && (
+              <button type="button" onClick={() => setCompartir(true)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft" aria-label="Compartir en Instagram">
+                <Ic n="compartir" s={18} /><span className="hidden sm:inline">Compartir</span>
+              </button>
+            )}
             {puedeDestacar && (
               <button type="button" onClick={async () => { try { await destacarFS(p.id, p.destacado ? null : { uid: myUid, nombre: (perfil && perfil.nombre) || '' }); avisar(p.destacado ? 'Ya no es el caso de la semana' : 'Destacado como caso de la semana'); } catch (e) { avisar('No se pudo destacar.', 'warn'); } }}
                 aria-pressed={!!p.destacado} title="Caso de la semana" className={cx('ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold hover:bg-soft', p.destacado ? 'text-acento' : 'text-ink2')}>
@@ -564,6 +573,7 @@ export function Publicacion({ p, pendiente = false }) {
           )}
         </>
       )}
+      {compartir && <Suspense fallback={null}><CompartirModal p={p} cerrar={() => setCompartir(false)} /></Suspense>}
     </article>
   );
 }
@@ -644,7 +654,8 @@ function CasoSemana({ p }) {
 }
 
 // arriba y lado: lo que cada edición agrega al inicio (en la completa, el mapa de protocolos y «Tu día»)
-export function Feed({ arriba = null, lado = null }) {
+// movil: lo que la edición muestra en el celular bajo «A quién seguir» (en la Red, Invita a tu curso)
+export function Feed({ arriba = null, lado = null, movil = null }) {
   const { feed, perfil, myUid, siguiendo, verPerfil, feedProto, setFeedProto, editarPerfil, feedProc, setFeedProc } = useApp();
   const semana = useMemo(() => feed.filter((p) => (p.estado || 'publicado') === 'publicado' && p.destacado && p.destacado.fecha && Date.now() - new Date(p.destacado.fecha).getTime() < SEMANA)
     .sort((a, b) => b.destacado.fecha.localeCompare(a.destacado.fecha))[0], [feed]);
@@ -698,6 +709,7 @@ export function Feed({ arriba = null, lado = null }) {
         <Crear />
         {enRevision > 0 && <button type="button" onClick={() => verPerfil(myUid)} className="flex items-center gap-2 rounded-rs bg-warnsoft px-4 py-2.5 text-left text-[13px] font-semibold text-warn"><Ic n="clock" s={15} />{enRevision === 1 ? 'Tienes 1 publicación' : 'Tienes ' + enRevision + ' publicaciones'} en revisión del equipo Criterium.<span className="ml-auto underline">Ver</span></button>}
         <div className="xl:hidden"><ASeguir horizontal /></div>
+        {movil && <div className="xl:hidden">{movil}</div>}
         <nav className="scroll-x sticky top-[60px] z-10 -mx-4 flex gap-1 overflow-x-auto bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] px-4 py-2 backdrop-blur-xl lg:top-2" aria-label="Filtrar el inicio">
           {PESTANAS.map(([k, t]) => (
             <button key={k} type="button" onClick={() => setTab(k)} aria-pressed={tab === k} className={cx('flex-none rounded-full px-4 py-2 text-[13.5px] font-semibold transition-colors', tab === k ? 'bg-deep text-onc' : 'text-ink2 hover:bg-soft')}>{t}</button>
