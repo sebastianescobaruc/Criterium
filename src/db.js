@@ -317,15 +317,17 @@ export async function limpiarDatosLocales() {
 /* ═══════ Red social: likes, respuestas, perfiles públicos y seguimientos ═══════ */
 
 /** Me gusta por persona: guarda quién lo dio en likedBy y ajusta el conteo. */
+// Una publicación vive en feed/{id} o, si es de un espacio por curso, en grupos/{g}/posts/{id}: se pasa el id o la ruta completa
+const postRef = (x) => (String(x).includes('/') ? doc(db, x) : doc(db, 'feed', x));
 export async function toggleLikeFS(postId, uid, yaLeGusta) {
-  await updateDoc(doc(db, 'feed', postId), yaLeGusta
+  await updateDoc(postRef(postId), yaLeGusta
     ? { likedBy: arrayRemove(uid), likes: increment(-1) }
     : { likedBy: arrayUnion(uid), likes: increment(1) });
 }
 
 /** Agrega una respuesta sin reescribir el resto de la publicación. */
 export async function responderPostFS(postId, respuesta) {
-  await updateDoc(doc(db, 'feed', postId), { respuestas: arrayUnion(respuesta) });
+  await updateDoc(postRef(postId), { respuestas: arrayUnion(respuesta) });
 }
 
 /** Perfil público: solo datos profesionales, nunca el correo.
@@ -469,12 +471,12 @@ export async function revisarCasoRedFS(caso, rev) {
 
 /** Caso de la semana: un docente o el equipo lo destaca (o lo quita con por = null). */
 export async function destacarFS(postId, por) {
-  await updateDoc(doc(db, 'feed', postId), { destacado: por ? { ...por, fecha: new Date().toISOString() } : deleteField() });
+  await updateDoc(postRef(postId), { destacado: por ? { ...por, fecha: new Date().toISOString() } : deleteField() });
 }
 
 /** Discusión de un plan de tratamiento: cada persona vota un plan (o retira su voto). */
 export async function votarFS(postId, uid, opcion) {
-  await updateDoc(doc(db, 'feed', postId), { ['votos.' + uid]: opcion === null ? deleteField() : opcion });
+  await updateDoc(postRef(postId), { ['votos.' + uid]: opcion === null ? deleteField() : opcion });
 }
 
 export function usePerfilPublico(uid) {
@@ -611,3 +613,74 @@ export async function borrarMisDatosFS(uid) {
   for (const d of docs) await deleteDoc(d.ref).catch(() => {});
   for (const ruta of ['perfiles', 'usuarios', 'postulaciones']) await deleteDoc(doc(db, ruta, uid)).catch(() => {});
 }
+
+
+/* ═══════ Criterium Red · Bloque 3: Hoy (desafío, videos, rondas) y espacios por curso ═══════ */
+const lista = (q, set, orden) => onSnapshot(q, (snap) => { const l = snap.docs.map((d) => ({ ...d.data(), id: d.id })); set(orden ? l.sort(orden) : l); }, () => set([]));
+const ahoraISO = () => new Date().toISOString();
+
+/** Desafío del día: desafios/{id} { fecha 'AAAA-MM-DD', pregunta, opciones[2-4], correcta, explicacion, especialidad, autor }.
+ *  Respuestas en desafios/{id}/respuestas/{uid} (una por persona). Racha en rachas/{uid} { dias, mejor, ultimo }. */
+export function useDesafios(activo = true) {
+  const [l, set] = useState([]);
+  useEffect(() => { if (!activo) return; return lista(query(collection(db, 'desafios'), orderBy('fecha', 'desc'), limit(30)), set); }, [activo]);
+  return l;
+}
+export function useRespuestasDesafio(id) {
+  const [l, set] = useState([]);
+  useEffect(() => { if (!id) { set([]); return; } return lista(collection(db, 'desafios', id, 'respuestas'), set); }, [id]);
+  return l;
+}
+export async function crearDesafioFS(d) { await addDoc(collection(db, 'desafios'), { ...d, creado: ahoraISO() }); }
+export async function borrarDesafioFS(id) { await deleteDoc(doc(db, 'desafios', id)); }
+export async function responderDesafioFS(id, uid, opcion, correcta) {
+  await setDoc(doc(db, 'desafios', id, 'respuestas', uid), { uid, opcion, correcta, fecha: ahoraISO() });
+}
+export function useRacha(uid) {
+  const [r, set] = useState(null);
+  useEffect(() => { if (!uid) return; return onSnapshot(doc(db, 'rachas', uid), (s) => set(s.exists() ? s.data() : { dias: 0, mejor: 0, ultimo: '' }), () => set({ dias: 0, mejor: 0, ultimo: '' })); }, [uid]);
+  return r;
+}
+export async function guardarRachaFS(uid, r) { await setDoc(doc(db, 'rachas', uid), r); }
+
+/** Caso en 60 segundos: videos/{id} { url, plataforma 'youtube'|'vimeo', vid, titulo, paso, especialidad, autor, fecha, likedBy } */
+export function useVideos(activo = true) {
+  const [l, set] = useState([]);
+  useEffect(() => { if (!activo) return; return lista(query(collection(db, 'videos'), orderBy('fecha', 'desc'), limit(40)), set); }, [activo]);
+  return l;
+}
+export async function subirVideoFS(v) { await addDoc(collection(db, 'videos'), { ...v, fecha: ahoraISO(), likedBy: [] }); }
+export async function borrarVideoFS(id) { await deleteDoc(doc(db, 'videos', id)); }
+export async function meSirveVideoFS(id, uid, ya) { await updateDoc(doc(db, 'videos', id), { likedBy: ya ? arrayRemove(uid) : arrayUnion(uid) }); }
+
+/** Ronda clínica en vivo: rondas/{id} { titulo, descripcion, especialidad, inicio ISO, duracion (min), enlace, autor, asistentes[uid], mensajes[] } */
+export function useRondas(activo = true) {
+  const [l, set] = useState([]);
+  useEffect(() => { if (!activo) return; return lista(query(collection(db, 'rondas'), orderBy('inicio', 'desc'), limit(20)), set); }, [activo]);
+  return l;
+}
+export async function crearRondaFS(r) { const x = await addDoc(collection(db, 'rondas'), { ...r, asistentes: [], mensajes: [], creado: ahoraISO() }); return x.id; }
+export async function borrarRondaFS(id) { await deleteDoc(doc(db, 'rondas', id)); }
+export async function avisameRondaFS(id, uid, ya) { await updateDoc(doc(db, 'rondas', id), { asistentes: ya ? arrayRemove(uid) : arrayUnion(uid) }); }
+export async function mensajeRondaFS(id, m) { await updateDoc(doc(db, 'rondas', id), { mensajes: arrayUnion(m) }); }
+
+/** Espacios por curso: grupos/{id} { nombre, descripcion, institucion, curso, creador { uid, nombre }, miembros [uid], creado }.
+ *  Sus publicaciones viven en grupos/{id}/posts y solo las leen sus miembros. */
+export function useGrupos(activo = true) {
+  const [l, set] = useState(null);
+  useEffect(() => { if (!activo) return; return lista(query(collection(db, 'grupos'), limit(200)), set, (a, b) => (b.creado || '').localeCompare(a.creado || '')); }, [activo]);
+  return l;
+}
+export function usePostsGrupo(gid, activo = true) {
+  const [l, set] = useState([]);
+  useEffect(() => {
+    if (!gid || !activo) { set([]); return; }
+    return onSnapshot(collection(db, 'grupos', gid, 'posts'), (snap) => set(snap.docs.map((d) => ({ ...d.data(), id: d.id, _ruta: 'grupos/' + gid + '/posts/' + d.id })).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''))), () => set([]));
+  }, [gid, activo]);
+  return l;
+}
+export async function crearGrupoFS(g) { const x = await addDoc(collection(db, 'grupos'), { ...g, creado: ahoraISO() }); return x.id; }
+export async function unirseGrupoFS(gid, uid, salir) { await updateDoc(doc(db, 'grupos', gid), { miembros: salir ? arrayRemove(uid) : arrayUnion(uid) }); }
+export async function borrarGrupoFS(gid) { await deleteDoc(doc(db, 'grupos', gid)); }
+export async function publicarEnGrupoFS(gid, post) { await addDoc(collection(db, 'grupos', gid, 'posts'), { ...post, estado: 'publicado' }); }
+export async function borrarPostGrupoFS(ruta) { await deleteDoc(doc(db, ruta)); }

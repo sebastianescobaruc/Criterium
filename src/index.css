@@ -434,3 +434,13 @@ h1,h2,h3{letter-spacing:-.02em}
 @keyframes celebra-entra{from{transform:translateY(24px) scale(.94);opacity:0}}
 @keyframes celebra-sello{from{transform:scale(.3)}}
 @keyframes celebra-cae{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(420px) rotate(var(--r,200deg))}}
+
+/* Criterium Red · Hoy: anillo de las historias, «en vivo» que late, «Me sirve» que salta */
+.historia-anillo{background:var(--ring)}
+.capitalize-first::first-letter{text-transform:uppercase}
+@media (prefers-reduced-motion:no-preference){
+  .en-vivo{animation:en-vivo 1.6s ease-in-out infinite}
+  .salta{animation:salta .38s cubic-bezier(.2,1.6,.4,1)}
+}
+@keyframes en-vivo{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--bad) 25%,transparent)}}
+@keyframes salta{40%{transform:scale(1.35)}}

@@ -23,7 +23,8 @@ const SECCIONES = [
     'Tus mensajes de contacto: solo el equipo Criterium.'
   ]],
   ['Dónde se guarda', [
-    'En Google Firebase (servidores de Google). Usamos lo mínimo para que la app funcione.'
+    'En Google Firebase (servidores de Google). Usamos lo mínimo para que la app funcione.',
+    ...(CREATIVA ? ['Los videos de «Caso en 60 segundos» se ven desde YouTube o Vimeo, que tienen sus propias reglas de privacidad. Usamos la versión de YouTube que no guarda cookies hasta que das «play».'] : [])
   ]],
   ['Tus derechos', [
     'Puedes ver, corregir y borrar tus datos, y oponerte a su uso (Ley 21.719).',

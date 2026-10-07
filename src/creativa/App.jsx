@@ -9,6 +9,8 @@ import { Feed, PerfilPublico, Bienvenida } from '../views/red.jsx';
 import { Casos, CasoRed, SubirCaso, Celebracion } from './casos.jsx';
 import { PortadaRed } from './portada.jsx';
 import { Invitar, Liga, LigaMini } from './crecer.jsx';
+import { Hoy, Rondas, Ronda } from './hoy.jsx';
+import { Grupos, Grupo } from './grupos.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from '../auth.js';
 import { useEsDocente, useEsAdmin, useFeedFS, useCasosRed, useColaCasos, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS, enviarMensajeFS } from '../db.js';
 import AuthGate from '../views/auth.jsx';
@@ -18,14 +20,17 @@ const Privacidad = vista(() => import('../views/privacidad.jsx'), 'Privacidad');
 const Contacto = vista(() => import('../views/contacto.jsx'), 'Contacto');
 const Herramientas = vista(() => import('../views/herramientas.jsx'), 'Herramientas');
 
-const VISTAS = ['feed', 'casos', 'caso', 'subir', 'herramientas', 'liga', 'perfil', 'privacidad', 'contacto'];
+const VISTAS = ['feed', 'casos', 'caso', 'subir', 'herramientas', 'liga', 'grupos', 'grupo', 'rondas', 'ronda', 'perfil', 'privacidad', 'contacto'];
 // Invita a tu curso: el enlace trae ?i=<uid de quien invita>; se guarda hasta que la persona tenga perfil
+try { const g = new URLSearchParams(location.search).get('g'); if (g && /^[\w-]{4,128}$/.test(g)) { sessionStorage.setItem('criterium-grupo', g); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
+// El espacio al que lleva el enlace (?g=): se abre después de entrar o crear la cuenta
+const GRUPO_INICIAL = (() => { try { return sessionStorage.getItem('criterium-grupo'); } catch (e) { return null; } })();
 try { const i = new URLSearchParams(location.search).get('i'); if (i && /^[\w-]{4,128}$/.test(i)) { sessionStorage.setItem('criterium-invita', i); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
-const NAV = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos'], ['herramientas', 'tool', 'Herramientas'], ['liga', 'edificio', 'Liga']];
+const NAV = [['feed', 'home', 'Inicio'], ['casos', 'folder', 'Casos'], ['grupos', 'personas', 'Espacios'], ['rondas', 'video', 'Rondas en vivo'], ['herramientas', 'tool', 'Herramientas'], ['liga', 'edificio', 'Liga']];
 const NAV_SECUNDARIO = [['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
 // En el celular, «Más» suma la liga
-const NAV_MAS = [['liga', 'Liga de universidades'], ...NAV_SECUNDARIO];
-const activo = (view, v) => view === v || (v === 'casos' && (view === 'caso' || view === 'subir'));
+const NAV_MAS = [['grupos', 'Espacios por curso'], ['rondas', 'Rondas en vivo'], ['liga', 'Liga de universidades'], ...NAV_SECUNDARIO];
+const activo = (view, v) => view === v || (v === 'casos' && (view === 'caso' || view === 'subir')) || (v === 'grupos' && view === 'grupo') || (v === 'rondas' && view === 'ronda');
 
 export default function AppRed() {
   const { usuario, perfil, setPerfil, cargando } = useUsuario();
@@ -49,13 +54,16 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   const { siguiendo } = useSeguimientos(myUid);
   const perfil = perfilAuth;
 
-  const ini = (() => { try { const h = (location.hash || '').slice(1); return ['feed', 'casos', 'herramientas', 'liga', 'privacidad', 'contacto'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
-  const [view, setView] = useState(ini);
+  const ini = (() => { try { const h = (location.hash || '').slice(1); return ['feed', 'casos', 'herramientas', 'liga', 'grupos', 'rondas', 'privacidad', 'contacto'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
+  const [view, setView] = useState(GRUPO_INICIAL ? 'grupo' : ini);
+  useEffect(() => { try { sessionStorage.removeItem('criterium-grupo'); } catch (e) {} }, []);
   const [perfilUid, setPerfilUid] = useState(null);
   const [casoRedId, setCasoRedId] = useState(null);
   const [corrigiendo, setCorrigiendo] = useState(null);
   const [menu, setMenu] = useState(false);
   const [herrTab, setHerrTab] = useState('perio');
+  const [grupoId, setGrupoId] = useState(GRUPO_INICIAL);
+  const [rondaId, setRondaId] = useState(null);
   const [feedProc, setFeedProcRaw] = useState('');
   // Celebrar la aprobación: un caso propio publicado en los últimos 7 días que todavía no se celebró en este navegador
   const [celebrar, setCelebrar] = useState(null);
@@ -90,7 +98,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   const go = (v) => {
     if (!VISTAS.includes(v)) v = 'feed';
     setView(v); setMenu(false);
-    try { history.replaceState(null, '', '#' + (['caso', 'subir'].includes(v) ? 'casos' : v === 'perfil' ? 'feed' : v)); } catch (e) {}
+    try { history.replaceState(null, '', '#' + (['caso', 'subir'].includes(v) ? 'casos' : v === 'grupo' ? 'grupos' : v === 'ronda' ? 'rondas' : v === 'perfil' ? 'feed' : v)); } catch (e) {}
     try { window.scrollTo(0, 0); } catch (e) {}
   };
   const verPerfil = (uid) => { if (!uid) return; setPerfilUid(uid); go('perfil'); };
@@ -112,13 +120,13 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
     feed, feedProto: '', setFeedProto: () => {}, abrirProto: () => {},
     feedProc, setFeedProc: (v) => { setFeedProcRaw(v); if (v) go('feed'); },
     perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'),
-    herrTab, setHerrTab,
+    herrTab, setHerrTab, grupoId, abrirGrupo: (id) => { setGrupoId(id); go('grupo'); }, rondaId, abrirRonda: (id) => { setRondaId(id); go('ronda'); },
     esDocente, esAdmin, esRevisor, casoRedId, abrirCasoRed, subirCaso, corregirCaso,
     setMensajes: guardarMensaje, mensajes: []
   };
 
   const pantalla = !feedListo ? <div className="h-64 animate-pulse rounded-[22px] bg-soft" /> : ({
-    feed: <Feed lado={<><Invitar compacto /><LigaMini /></>} movil={<Invitar />} />, liga: <Liga />, casos: <Casos />, caso: <CasoRed key={casoRedId} />, subir: <SubirCaso key={corrigiendo ? corrigiendo.id + (corrigiendo.version || 1) : 'nuevo'} caso={corrigiendo} />,
+    feed: <Feed saludo={false} arriba={<Hoy />} lado={<><Invitar compacto /><LigaMini /></>} movil={<Invitar />} />, grupos: <Grupos />, grupo: <Grupo key={grupoId} />, rondas: <Rondas />, ronda: <Ronda key={rondaId} />, liga: <Liga />, casos: <Casos />, caso: <CasoRed key={casoRedId} />, subir: <SubirCaso key={corrigiendo ? corrigiendo.id + (corrigiendo.version || 1) : 'nuevo'} caso={corrigiendo} />,
     herramientas: <Herramientas />, perfil: <PerfilPublico key={perfilUid} />, privacidad: <Privacidad />, contacto: <Contacto />
   })[view];
 
@@ -179,7 +187,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
               </button>
             );
           })}
-          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['privacidad', 'contacto', 'liga'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
+          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['privacidad', 'contacto', 'liga', 'grupos', 'grupo', 'rondas', 'ronda'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
         </div>
       </nav>
 

@@ -324,5 +324,81 @@ service cloud.firestore {
       allow create: if conSesion() && request.resource.data.uid == request.auth.uid;
       allow read: if conSesion() && resource.data.uid == request.auth.uid;
     }
+  
+    // ═══ Criterium Red · Bloque 3 ═══
+    // Desafío del día: lo publica un revisor (docente o equipo); cada persona responde una vez y lleva su racha
+    match /desafios/{id} {
+      allow read: if conSesion();
+      allow create: if esRevisor() && request.resource.data.autor.uid == request.auth.uid
+        && request.resource.data.opciones is list && request.resource.data.opciones.size() >= 2 && request.resource.data.opciones.size() <= 4
+        && request.resource.data.correcta is int && request.resource.data.correcta >= 0 && request.resource.data.correcta < request.resource.data.opciones.size()
+        && request.resource.data.fecha is string && request.resource.data.pregunta is string && request.resource.data.pregunta.size() <= 600;
+      allow update, delete: if (esRevisor() && soy(resource.data.autor.uid)) || esAdmin();
+      match /respuestas/{uid} {
+        allow read: if conSesion();
+        allow create: if soy(uid) && request.resource.data.uid == uid && request.resource.data.opcion is int;
+        allow update, delete: if false;
+      }
+    }
+    match /rachas/{uid} {
+      allow read: if conSesion();
+      allow write: if soy(uid) && request.resource.data.keys().hasOnly(['dias', 'mejor', 'ultimo'])
+        && request.resource.data.dias is int && request.resource.data.mejor is int && request.resource.data.ultimo is string;
+    }
+
+    // Caso en 60 segundos: videos enlazados (YouTube o Vimeo) que sube un revisor; cada persona marca «Me sirve» solo con su uid
+    match /videos/{id} {
+      allow read: if conSesion();
+      allow create: if esRevisor() && request.resource.data.autor.uid == request.auth.uid
+        && request.resource.data.plataforma in ['youtube', 'vimeo'] && request.resource.data.vid is string && request.resource.data.vid.size() <= 40
+        && request.resource.data.get('likedBy', []).size() == 0;
+      allow update: if (conSesion() && cambia().hasOnly(['likedBy'])
+          && request.resource.data.likedBy.toSet().difference(resource.data.get('likedBy', []).toSet()).hasOnly([request.auth.uid])
+          && resource.data.get('likedBy', []).toSet().difference(request.resource.data.likedBy.toSet()).hasOnly([request.auth.uid]))
+        || (soy(resource.data.autor.uid) && !cambia().hasAny(['autor', 'likedBy']));
+      allow delete: if soy(resource.data.autor.uid) || esAdmin();
+    }
+
+    // Ronda clínica en vivo: la crea un revisor; cualquiera con sesión se anota («Avísame») y escribe en el chat a su nombre
+    match /rondas/{id} {
+      allow read: if conSesion();
+      allow create: if esRevisor() && request.resource.data.autor.uid == request.auth.uid
+        && request.resource.data.inicio is string && request.resource.data.duracion is int
+        && request.resource.data.asistentes.size() == 0 && request.resource.data.mensajes.size() == 0;
+      allow update: if (soy(resource.data.autor.uid) && !cambia().hasAny(['autor']))
+        || (conSesion() && cambia().hasOnly(['asistentes'])
+          && request.resource.data.asistentes.toSet().difference(resource.data.asistentes.toSet()).hasOnly([request.auth.uid])
+          && resource.data.asistentes.toSet().difference(request.resource.data.asistentes.toSet()).hasOnly([request.auth.uid]))
+        || (conSesion() && cambia().hasOnly(['mensajes'])
+          && request.resource.data.mensajes.size() == resource.data.mensajes.size() + 1
+          && request.resource.data.mensajes[0:resource.data.mensajes.size()] == resource.data.mensajes
+          && request.resource.data.mensajes[resource.data.mensajes.size()].autor.uid == request.auth.uid
+          && request.resource.data.mensajes[resource.data.mensajes.size()].txt.size() <= 500);
+      allow delete: if soy(resource.data.autor.uid) || esAdmin();
+    }
+
+    // Espacios por curso: cualquiera con sesión ve los espacios y entra o sale solo a sí mismo;
+    // las publicaciones del espacio las leen y escriben solo sus miembros
+    match /grupos/{gid} {
+      function miembro() { return conSesion() && request.auth.uid in get(/databases/$(database)/documents/grupos/$(gid)).data.miembros; }
+      allow read: if conSesion();
+      allow create: if conSesion() && request.resource.data.creador.uid == request.auth.uid
+        && request.resource.data.miembros == [request.auth.uid]
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() >= 3 && request.resource.data.nombre.size() <= 60;
+      allow update: if (soy(resource.data.creador.uid) && !cambia().hasAny(['creador']))
+        || (conSesion() && cambia().hasOnly(['miembros'])
+          && request.resource.data.miembros.toSet().difference(resource.data.miembros.toSet()).hasOnly([request.auth.uid])
+          && resource.data.miembros.toSet().difference(request.resource.data.miembros.toSet()).hasOnly([request.auth.uid]));
+      allow delete: if soy(resource.data.creador.uid) || esAdmin();
+      match /posts/{pid} {
+        allow read: if miembro();
+        allow create: if miembro() && request.resource.data.autorUid == request.auth.uid
+          && request.resource.data.autor.uid == request.auth.uid
+          && request.resource.data.autor.get('verificado', false) == false
+          && request.resource.data.tipo in ['publicacion', 'pregunta', 'discusion'];
+        allow update: if miembro() && cambia().hasOnly(['likes', 'likedBy', 'respuestas', 'votos']);
+        allow delete: if soy(resource.data.autorUid) || soy(get(/databases/$(database)/documents/grupos/$(gid)).data.creador.uid) || esAdmin();
+      }
+    }
   }
 }

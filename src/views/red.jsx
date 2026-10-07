@@ -370,7 +370,7 @@ function Votacion({ p }) {
   const votado = typeof mio === 'number';
   const total = Object.keys(votos).length;
   const cuenta = (k) => Object.values(votos).filter((v) => v === k).length;
-  const votar = async (k) => { try { await votarFS(p.id, myUid, mio === k ? null : k); } catch (e) { avisar('No se pudo guardar tu voto.', 'warn'); } };
+  const votar = async (k) => { try { await votarFS(p._ruta || p.id, myUid, mio === k ? null : k); } catch (e) { avisar('No se pudo guardar tu voto.', 'warn'); } };
   // ¿Qué harías tú?: el desenlace (qué se hizo y cómo resultó) se ve recién al votar; el autor lo ve siempre
   const d = p.desenlace && p.desenlace.txt ? p.desenlace : null;
   const autor = (p.autorUid || (p.autor && p.autor.uid)) === myUid;
@@ -432,7 +432,7 @@ export function Publicacion({ p, pendiente = false }) {
   const meGusta = likedBy.includes(myUid);
   const likes = Math.max(p.likes || 0, likedBy.length);
   const esp = especialidadDe(p);
-  const like = async () => { try { await toggleLikeFS(p.id, myUid, meGusta); } catch (e) { avisar('No se pudo guardar tu «me sirve».', 'warn'); } };
+  const like = async () => { try { await toggleLikeFS(p._ruta || p.id, myUid, meGusta); } catch (e) { avisar('No se pudo guardar tu «me sirve».', 'warn'); } };
   const guardar = () => {
     const l = leerGuardados(); const n = l.includes(p.id) ? l.filter((x) => x !== p.id) : [...l, p.id];
     try { localStorage.setItem('criterium-guardados', JSON.stringify(n)); } catch (e) {}
@@ -444,7 +444,7 @@ export function Publicacion({ p, pendiente = false }) {
     if (datosPersonales(txt).length) { setErr('La respuesta trae datos que identifican a alguien. Quítalos.'); return; }
     conPerfil(async (pf) => {
       try {
-        await responderPostFS(p.id, { id: uid(), autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, verificado: false }, fecha: new Date().toISOString(), txt: txt.trim() });
+        await responderPostFS(p._ruta || p.id, { id: uid(), autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, verificado: false }, fecha: new Date().toISOString(), txt: txt.trim() });
         setTxt(''); setResp(false); setErr(''); setTodas(true);
       } catch (er) { setErr('No se pudo publicar la respuesta. Revisa tu conexión.'); }
     });
@@ -527,7 +527,7 @@ export function Publicacion({ p, pendiente = false }) {
         <>
           <div className="flex items-center gap-1 border-t border-line2 px-2 py-1">
             <button type="button" onClick={like} aria-pressed={meGusta} className={cx('inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold transition-colors', meGusta ? 'text-bad' : 'text-ink2 hover:bg-soft')}>
-              <Ic n="heart" s={19} className={meGusta ? 'fill-current' : ''} />{likes > 0 ? likes : ''} <span className="hidden sm:inline">Me sirve</span>
+              <Ic n="heart" s={19} className={meGusta ? 'salta fill-current' : ''} />{likes > 0 ? likes : ''} <span className="hidden sm:inline">Me sirve</span>
             </button>
             <button type="button" onClick={() => setResp(!resp)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft">
               <Ic n="chat" s={19} />{respuestas.length > 0 ? respuestas.length : ''} <span className="hidden sm:inline">Responder</span>
@@ -655,7 +655,7 @@ function CasoSemana({ p }) {
 
 // arriba y lado: lo que cada edición agrega al inicio (en la completa, el mapa de protocolos y «Tu día»)
 // movil: lo que la edición muestra en el celular bajo «A quién seguir» (en la Red, Invita a tu curso)
-export function Feed({ arriba = null, lado = null, movil = null }) {
+export function Feed({ arriba = null, lado = null, movil = null, saludo = true }) {
   const { feed, perfil, myUid, siguiendo, verPerfil, feedProto, setFeedProto, editarPerfil, feedProc, setFeedProc } = useApp();
   const semana = useMemo(() => feed.filter((p) => (p.estado || 'publicado') === 'publicado' && p.destacado && p.destacado.fecha && Date.now() - new Date(p.destacado.fecha).getTime() < SEMANA)
     .sort((a, b) => b.destacado.fecha.localeCompare(a.destacado.fecha))[0], [feed]);
@@ -688,7 +688,7 @@ export function Feed({ arriba = null, lado = null, movil = null }) {
     <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="mx-auto flex w-full min-w-0 max-w-[660px] flex-col gap-5">
         <h1 className="sr-only">Inicio</h1>
-        <header className="flex flex-wrap items-end justify-between gap-3">
+        <header className={cx('flex flex-wrap items-end justify-between gap-3', !saludo && 'hidden')}>
           <div className="min-w-0">
             <p className="m-0 text-[24px] font-bold tracking-[-.02em] text-deep sm:text-[28px]">{nombre ? 'Hola, ' + nombre : 'Hola'}</p>
             {intereses.length > 0 && <p className="m-0 mt-0.5 text-[14px] text-ink3">Tu inicio según {intereses.slice(0, 3).join(', ')}</p>}
