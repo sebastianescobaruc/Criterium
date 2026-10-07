@@ -36,10 +36,10 @@ export function casosIniciales() {
       diagnostico: 'Pilar 2.1 endodonciado con poste de fibra, tallado para corona de disilicato. Provisional de PMMA fresado mientras termina el tratamiento periodontal (8 meses estimados).',
       procedimiento: 'Prueba en seco, ajuste oclusal y pulido de la zona ajustada. Cementado convencional con óxido de zinc con eugenol, el único disponible en el pañol.',
       pasos: {
-        0: { estado: 'hecho' }, 1: { estado: 'hecho' }, 2: { estado: 'hecho' }, 3: { estado: 'hecho' }, 4: { estado: 'hecho' },
-        5: { estado: 'modificado', nota: 'No se arenó ni se primó: se cementó con óxido de zinc con eugenol, el único cemento disponible en el pañol.' },
-        6: { estado: 'modificado', nota: 'Cementado convencional con óxido de zinc con eugenol en vez de cemento de resina.' },
-        7: { estado: 'hecho' }, 8: { estado: 'hecho' }, 9: { estado: 'hecho' }, 10: { estado: 'hecho' }
+        0: { estado: 'hecho' }, 1: { estado: 'hecho' }, 2: { estado: 'hecho' }, 3: { estado: 'hecho' },
+        4: { estado: 'modificado', nota: 'No se arenó ni se primó: se cementó con óxido de zinc con eugenol, el único cemento disponible en el pañol.' },
+        5: { estado: 'modificado', nota: 'Cementado convencional con óxido de zinc con eugenol en vez de cemento de resina.' },
+        6: { estado: 'hecho' }, 7: { estado: 'hecho' }, 8: { estado: 'hecho' }, 9: { estado: 'hecho' }
       },
       evidencia: '', consentimiento: true, fotos: [],
       sesiones: [{ id: 's1', fecha: isoDia(-2), txt: 'Cementado del provisional.', proximo: isoDia(88) }],
@@ -80,7 +80,7 @@ export function casosIniciales() {
       pasos: {
         0: { estado: 'hecho' }, 1: { estado: 'hecho' }, 2: { estado: 'hecho' }, 3: { estado: 'hecho' },
         4: { estado: 'hecho' }, 5: { estado: 'hecho' }, 6: { estado: 'hecho' }, 7: { estado: 'hecho' },
-        8: { estado: 'hecho' }, 9: { estado: 'hecho' }, 10: { estado: 'hecho' }
+        8: { estado: 'hecho' }, 9: { estado: 'hecho' }
       },
       evidencia: '', consentimiento: true, fotos: [],
       sesiones: [
@@ -89,7 +89,7 @@ export function casosIniciales() {
       revisiones: [{
         id: 'r1', fecha: iso(15), revisor: { nombre: 'r.sepulveda', area: 'Rehabilitación oral', verificado: true },
         puntajes: { pertinencia: 5, claridad: 4, evidencia: 4 }, veredicto: 'aprobado', motivos: [],
-        justificacion: 'La vía adhesiva está bien indicada: 18 meses de permanencia y pilar con poste. La férula quedó medida y registrada. Falta la foto final, pero el registro de pasos es completo.'
+        justificacion: 'La vía adhesiva está bien indicada: 18 meses de permanencia y pilar con poste. Falta la foto final, pero el registro de pasos es completo.'
       }],
       historial: [{ fecha: iso(21), txt: 'Caso creado' }, { fecha: iso(20), txt: 'Enviado a revisión' }, { fecha: iso(15), txt: 'Aprobado por r.sepulveda' }],
       creado: iso(21), actualizado: iso(15)

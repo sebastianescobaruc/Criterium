@@ -1,15 +1,19 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { PROTOS, DATOS } from '../data.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { ComentariosProvider, ComentariosPaso, useNComentarios } from './comentarios.jsx';
-import { Animacion } from './animaciones.jsx';
 import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
-import { Guiado } from './guiado.jsx';
 import { hablar, callar, useHablando, lecturaDisponible } from '../voz.js';
 import { textoPorqueCompleto } from '../lectura.js';
-import { SolicitudesProtocolo } from './agenda.jsx';
+// Se cargan recién cuando se usan: así abrir la app no descarga el modo guiado, las animaciones ni las solicitudes
+const Guiado = lazy(() => import('./guiado.jsx').then((m) => ({ default: m.Guiado })));
+const AnimacionDiferida = lazy(() => import('./animaciones.jsx').then((m) => ({ default: m.Animacion })));
+const SolicitudesProtocolo = lazy(() => import('./agenda.jsx').then((m) => ({ default: m.SolicitudesProtocolo })));
+// Mientras llega la animación, un recuadro del mismo tamaño (así la página no salta)
+const HuecoAnim = () => <div className="aspect-[2/1] w-full animate-pulse rounded-[22px] bg-soft" aria-hidden="true" />;
+export const Animacion = (p) => <Suspense fallback={<HuecoAnim />}><AnimacionDiferida {...p} /></Suspense>;
 
 // Cómo se recorre un protocolo: 'guiado' (un paso a la vez) o 'todo' (la lista completa). Comodidad local.
 const leerModo = () => { try { return localStorage.getItem('criterium-modo-proto') === 'todo' ? 'todo' : 'guiado'; } catch (e) { return 'guiado'; } };
@@ -268,13 +272,9 @@ export function Biblioteca() {
   const pdf = async (id) => { setBajando(id); await bajarPdf(DATOS[id].pdf, avisar); setBajando(''); };
   return (
     <div className="flex flex-col gap-6">
-      <header className="max-w-[66ch]">
-        <p className="rotulo m-0 mb-2.5">Biblioteca viva de protocolos</p>
-        <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
-        <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">Todos los protocolos, con su estado a la vista. Nada aparece como validado hasta que un especialista lo firma.</p>
-      </header>
+      <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
       <div className="flex flex-col gap-3">
-        <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento">
+        <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento md:hidden">
           <Ic n="search" s={16} className="text-ink3" />
           <input id="busqueda-biblioteca" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="cementar, tallar, exodoncia del 1.8…" aria-label="Buscar un protocolo"
             className="min-w-0 flex-1 bg-transparent py-2.5 text-[14px] text-ink outline-none placeholder:text-ink3" />
@@ -284,29 +284,24 @@ export function Biblioteca() {
       {grupos.length === 0 && <p className="m-0 text-[14px] text-ink2">Nada coincide con “{q}”.</p>}
       {grupos.map((g) => (
         <section key={g.esp} className="flex flex-col gap-2.5">
-          <div className="flex items-baseline justify-between"><h2 className="rotulo m-0">{g.esp}</h2><span className="text-[12.5px] text-ink3">{g.meta}</span></div>
+          <h2 className="rotulo m-0">{g.esp}</h2>
           {g.items.map((p) => (
-            <article key={p.id} id={'proto-' + p.id} className={cx('grid scroll-mt-28 items-center gap-4 tarjeta px-5 py-4 transition-colors hover:bg-soft sm:grid-cols-[minmax(0,1fr)_auto]', foco === p.id && 'foco-proto')}>
-              <div className="min-w-0">
-                <div className="mb-1.5 flex flex-wrap items-center gap-1.5"><Pill>{p.estadoTxt}</Pill>{p.estudio && <Pill tono="acento">Estudio piloto</Pill>}{p.extraTxt && <Pill tono="warn">{p.extraTxt}</Pill>}{p.n && <span className="text-[11.5px] text-ink3">{p.n}</span>}</div>
-                <h3 className="m-0 mb-1 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
-                <p className="m-0 font-serif text-[14.5px] leading-normal text-ink2">{p.s}</p>
-              </div>
-              {p.abre ? (
-                <div className="flex flex-wrap items-center gap-2 justify-self-start">
-                  <Btn onClick={() => abrirProto(p.id, { libre: true })} className="!text-acentodeep">Abrir</Btn>
-                  {DATOS[p.id]?.pdf && (
-                    <Btn v="soft" icon="download" onClick={() => pdf(p.id)} disabled={bajando === p.id} title="Descargar el PDF para imprimir y llevar al box">
-                      {bajando === p.id ? 'Preparando…' : 'PDF de box'}
-                    </Btn>
-                  )}
-                </div>
-              ) : <span className="text-[12.5px] font-semibold text-ink3">Planificado</span>}
+            <article key={p.id} id={'proto-' + p.id} className={cx('flex scroll-mt-28 items-center gap-3 tarjeta px-5 py-4 transition-colors', p.abre && 'hover:bg-soft', foco === p.id && 'foco-proto')}>
+              <button type="button" onClick={() => p.abre && abrirProto(p.id, { libre: true })} disabled={!p.abre} className="min-w-0 flex-1 text-left">
+                <h3 className="m-0 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
+                <p className="m-0 mt-0.5 line-clamp-2 text-[14px] leading-normal text-ink3">{p.s}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5"><Pill tono={p.abre ? 'warn' : 'neutro'}>{p.abre ? p.estadoTxt : 'Planificado'}</Pill>{p.extraTxt && p.abre && <Pill>{p.extraTxt}</Pill>}</div>
+              </button>
+              {p.abre && DATOS[p.id]?.pdf && (
+                <button type="button" onClick={() => pdf(p.id)} disabled={bajando === p.id} aria-label={'PDF de box de ' + p.t} title="PDF de box para imprimir"
+                  className="grid h-11 w-11 flex-none place-items-center rounded-full bg-soft text-acento hover:bg-acentosoft disabled:opacity-50"><Ic n="download" s={18} /></button>
+              )}
+              {p.abre && <button type="button" onClick={() => abrirProto(p.id, { libre: true })} className="hidden h-11 flex-none rounded-full bg-acento px-5 text-[14px] font-semibold text-onc hover:bg-acentodeep sm:block">Abrir</button>}
             </article>
           ))}
         </section>
       ))}
-      <SolicitudesProtocolo />
+      <Suspense fallback={null}><SolicitudesProtocolo /></Suspense>
     </div>
   );
 }
@@ -701,9 +696,9 @@ function VistaProtocolo() {
   );
   const registrar = () => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp });
   if (modo === 'guiado') {
-    return <Guiado key={id} d={d} hechos={hechos} toggle={toggle} marcar={marcar} reiniciar={reiniciar} libreInicial={libreAlEntrar}
+    return <Suspense fallback={<div className="h-[60vh] animate-pulse rounded-[22px] bg-soft" />}><Guiado key={id} d={d} hechos={hechos} toggle={toggle} marcar={marcar} reiniciar={reiniciar} libreInicial={libreAlEntrar}
       onPdf={d.pdf ? bajarPdfProto : null} bajando={bajando}
-      onVerTodo={() => setModo('todo')} onRegistrar={esDocente ? registrar : null} volver={() => go('biblioteca')} />;
+      onVerTodo={() => setModo('todo')} onRegistrar={esDocente ? registrar : null} volver={() => go('biblioteca')} /></Suspense>;
   }
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">

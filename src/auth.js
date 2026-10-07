@@ -5,7 +5,10 @@ import {
   signOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  deleteUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase.js';
@@ -100,4 +103,13 @@ export function errorAuth(code) {
     'auth/missing-password': 'Escribe tu contraseña.'
   };
   return mapa[code] || 'Ocurrió un error. Intenta de nuevo.';
+}
+
+/* ═══ Borrar la cuenta: confirma con la contraseña, borra los datos (borrarDatos) y después la cuenta de acceso ═══ */
+export async function borrarCuenta(password, borrarDatos) {
+  const u = auth.currentUser;
+  if (!u) throw new Error('sin sesión');
+  await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, password));
+  await borrarDatos(u.uid);
+  await deleteUser(u);
 }

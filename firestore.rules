@@ -17,6 +17,9 @@ service cloud.firestore {
       return conSesion() && exists(/databases/$(database)/documents/docentes/$(request.auth.uid));
     }
 
+    // Revisor de casos de Criterium Red: docente verificado o equipo Criterium
+    function esRevisor() { return esDocente() || esAdmin(); }
+
     // Lista de docentes. Cada uno lee solo su propio documento (para saber si es docente); nadie la escribe desde la app.
     // Cualquiera con sesión la lee: el estudiante elige de esta lista al docente que lo evalúa.
     match /docentes/{uid} {
@@ -177,15 +180,36 @@ service cloud.firestore {
         && request.resource.data.autor.get('verificado', false) == false
         && request.resource.data.autor.get('oficial', false) == false
         && request.resource.data.get('autorUid', request.auth.uid) == request.auth.uid
-        && request.resource.data.get('tipo', 'publicacion') in ['publicacion', 'pregunta'])
-        || esAdmin();
+        && request.resource.data.get('tipo', 'publicacion') in ['publicacion', 'pregunta', 'discusion']
+        && discusionValida())
+        || esAdmin()
+        || casoAprobado();
+
+      // Discusión de un plan de tratamiento: de 2 a 4 planes, sin votos al crearla
+      function discusionValida() {
+        return request.resource.data.get('tipo', 'publicacion') != 'discusion'
+          || (request.resource.data.opciones is list && request.resource.data.opciones.size() >= 2 && request.resource.data.opciones.size() <= 4
+            && request.resource.data.get('votos', {}).size() == 0);
+      }
+      // Un revisor publica el caso que aprobó: mismo id y mismo autor que en /pendientes, y nunca el suyo
+      function casoAprobado() {
+        return esRevisor()
+          && request.resource.data.get('tipo', '') == 'caso' && request.resource.data.estado == 'publicado'
+          && exists(/databases/$(database)/documents/pendientes/$(postId))
+          && get(/databases/$(database)/documents/pendientes/$(postId)).data.autorUid == request.resource.data.autorUid
+          && !soy(request.resource.data.autorUid);
+      }
 
       // Actualizar: cualquiera con sesión puede dar "me pasó lo mismo" o agregar respuestas,
       // sin editar el texto ni borrar respuestas de otros.
       // En likedBy cada persona solo agrega o quita su propio uid.
+      // Caso de la semana: un docente o el equipo destaca (o quita) una publicación, sin tocar nada más
+      allow update: if esRevisor() && cambia().hasOnly(['destacado'])
+        && (!('destacado' in request.resource.data) || request.resource.data.destacado.uid == request.auth.uid);
       allow update: if conSesion()
-        && cambia().hasOnly(['likes', 'liked', 'likedBy', 'respuestas'])
+        && cambia().hasOnly(['likes', 'liked', 'likedBy', 'respuestas', 'votos'])
         && likeValido()
+        && votosValidos()
         && request.resource.data.respuestas.size() >= resource.data.respuestas.size()
         && request.resource.data.respuestas[0:resource.data.respuestas.size()] == resource.data.respuestas
         && respuestasNuevasValidas();
@@ -198,6 +222,14 @@ service cloud.firestore {
         let despues = request.resource.data.get('likedBy', []).toSet();
         return despues.difference(antes).hasOnly([request.auth.uid])
           && antes.difference(despues).hasOnly([request.auth.uid]);
+      }
+      // En una discusión cada persona vota (o retira) solo su propio voto, por un plan que exista
+      function votosValidos() {
+        let antes = resource.data.get('votos', {});
+        let despues = request.resource.data.get('votos', {});
+        return despues.diff(antes).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in despues)
+            || (despues[request.auth.uid] is int && despues[request.auth.uid] >= 0 && despues[request.auth.uid] < resource.data.get('opciones', []).size()));
       }
       // La respuesta agregada no se marca como verificada y, si trae uid, es el propio.
       function respuestasNuevasValidas() {
@@ -212,7 +244,8 @@ service cloud.firestore {
     // Perfil público: lo ve cualquiera con sesión; solo el dueño lo escribe. Nunca guarda el correo.
     match /perfiles/{uid} {
       allow read: if conSesion();
-      allow write: if soy(uid)
+      allow delete: if soy(uid); // «Borrar mi cuenta»
+      allow create, update: if soy(uid)
         && request.resource.data.keys().hasOnly(['nombre', 'rol', 'institucion', 'area', 'descripcion', 'anio', 'intereses', 'temas', 'onboarding', 'actualizado'])
         && request.resource.data.get('intereses', []).size() <= 12
         && request.resource.data.get('temas', []).size() <= 12
@@ -229,18 +262,43 @@ service cloud.firestore {
     // Filtro de publicación: casos clínicos, borradores y protocolos esperan aquí antes del feed.
     // Los ven su autor y el equipo Criterium; el equipo aprueba (lo copia al feed) o rechaza con un motivo.
     match /pendientes/{id} {
-      allow read: if conSesion() && (soy(resource.data.autorUid) || esAdmin());
+      // El autor ve lo suyo; los revisores (docentes y equipo) ven la cola para revisar casos
+      allow read: if conSesion() && (soy(resource.data.autorUid) || esRevisor());
       allow create: if conSesion()
         && request.resource.data.autorUid == request.auth.uid
         && request.resource.data.autor.uid == request.auth.uid
         && request.resource.data.autor.get('verificado', false) == false
         && request.resource.data.autor.get('oficial', false) == false
         && request.resource.data.estado == 'revision'
+        && request.resource.data.get('revisiones', []).size() == 0
         && request.resource.data.tipo in ['caso', 'borrador', 'protocolo']
         && request.resource.data.txt is string && request.resource.data.txt.size() <= 10000;
-      allow update: if esAdmin();
+      // El equipo Criterium puede todo; un revisor (nunca el autor) agrega una revisión firmada a un caso en revisión;
+      // el autor corrige y reenvía un caso al que le pidieron correcciones (sube la versión, no toca las revisiones)
+      allow update: if esAdmin() || revisionDeCaso() || correccionDelAutor();
       allow delete: if (soy(resource.data.autorUid) && resource.data.estado != 'aprobado') || esAdmin();
+
+      function revisionDeCaso() {
+        let antes = resource.data.get('revisiones', []);
+        let despues = request.resource.data.get('revisiones', []);
+        return esRevisor() && !soy(resource.data.autorUid)
+          && resource.data.tipo == 'caso' && resource.data.estado == 'revision'
+          && cambia().hasOnly(['estado', 'revisiones', 'historial', 'actualizado'])
+          && request.resource.data.estado in ['cambios', 'aprobado', 'rechazado']
+          && despues.size() == antes.size() + 1
+          && despues[0:antes.size()] == antes
+          && despues[antes.size()].revisor.uid == request.auth.uid
+          && despues[antes.size()].veredicto == request.resource.data.estado;
+      }
+      function correccionDelAutor() {
+        return soy(resource.data.autorUid)
+          && resource.data.estado == 'cambios' && request.resource.data.estado == 'revision'
+          && cambia().hasOnly(['estado', 'titulo', 'txt', 'secciones', 'especialidad', 'procedimiento', 'diente', 'edad', 'pregunta', 'version', 'historial', 'actualizado'])
+          && request.resource.data.version == resource.data.get('version', 1) + 1
+          && request.resource.data.txt is string && request.resource.data.txt.size() <= 10000;
+      }
     }
+
 
     // Seguimientos: el documento se llama {de}_{a}. Cada uno maneja solo a quién sigue.
     match /seguimientos/{segId} {

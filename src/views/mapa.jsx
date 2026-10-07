@@ -135,17 +135,17 @@ export function Mapa({ incrustado = false }) {
           <button type="button" onClick={() => setEsp(null)} className={cx('uppercase tracking-[.16em]', esp ? 'text-acento hover:underline' : 'text-rotulo')}>Especialidades</button>
           {esp && <><span className="text-ink3">›</span><span className="text-rotulo">{esp}</span></>}
         </nav>
-        {React.createElement(incrustado ? 'h2' : 'h1', { className: 'm-0 max-w-[26ch] text-[26px] font-extrabold leading-[1.12] tracking-[-.025em] text-deep sm:text-[32px]' },
-          esp ? 'Cómo se entrelazan sus protocolos.' : 'Elige una especialidad.')}
-        <p className="m-0 mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink2">
+        {React.createElement(incrustado ? 'h2' : 'h1', { className: cx('m-0 max-w-[26ch] font-extrabold leading-[1.12] tracking-[-.025em] text-deep', incrustado ? 'text-[19px] sm:text-[21px]' : 'text-[26px] sm:text-[32px]') },
+          esp ? 'Cómo se entrelazan sus protocolos.' : incrustado ? 'Protocolos por especialidad' : 'Elige una especialidad.')}
+        {!incrustado && <p className="m-0 mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink2">
           {esp ? 'Las líneas unen protocolos que comparten técnicas o materiales; la flecha marca cuando uno lleva al otro. Alrededor, las especialidades con las que se conecta.'
             : 'Cada punto es una especialidad. Los arcos muestran cuánto se conectan sus protocolos entre sí.'}
-        </p>
+        </p>}
       </header>
       {esp
         ? <Especialidad esp={esp} protos={protos} lazos={lazos} movil={movil} irA={setEsp} abrirProto={abrirProto} />
         : <Especialidades protos={protos} lazos={lazos} movil={movil} elegir={setEsp} />}
-      {!esp && <button type="button" onClick={() => go('biblioteca')} className="self-start text-[13px] font-semibold text-acento hover:underline">Ver todos los protocolos en la Biblioteca</button>}
+      {!esp && !incrustado && <button type="button" onClick={() => go('biblioteca')} className="self-start text-[13px] font-semibold text-acento hover:underline">Ver todos los protocolos en la Biblioteca</button>}
     </div>
   );
 }

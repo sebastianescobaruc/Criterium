@@ -13,15 +13,7 @@ const ESTADOS_PASO = [
 const TXT_PASO = { hecho: 'Hecho', modificado: 'Modificado', omitido: 'Omitido', noaplica: 'No aplica', pendiente: 'Sin marcar' };
 const TONO_PASO = { hecho: 'ok', modificado: 'warn', omitido: 'bad', noaplica: 'neutro', pendiente: 'neutro' };
 
-export function casoVacio(preset = {}) {
-  return {
-    id: uid(), ejemplo: false, estado: 'borrador', autor: { id: 'yo', nombre: 'Tú', rol: '' },
-    titulo: '', dientes: '', especialidad: preset.especialidad || 'Rehabilitación oral',
-    paciente: { iniciales: '', edad: '', sexo: '' }, protocoloId: preset.protocoloId || '',
-    diagnostico: '', procedimiento: '', pasos: {}, evidencia: '', consentimiento: false, fotos: [],
-    sesiones: [], revisiones: [], historial: [], creado: new Date().toISOString(), actualizado: new Date().toISOString(), nuevo: true
-  };
-}
+export { casoVacio } from './casos-vacio.js';
 
 /* ─────────────── tarjeta de revisión (veredicto) ─────────────── */
 export function TarjetaRevision({ r }) {

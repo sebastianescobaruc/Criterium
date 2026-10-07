@@ -38,22 +38,6 @@ export function Base({ gutapercha = false, children }) {
 export const Invertida = ({ children }) => <g transform="translate(0,4) rotate(180 150 70)"><path className="pmma" d={C.corona} />{children}</g>;
 
 export const ESCENAS_PMMA = {
-  // Mide con sonda la dentina sana bajo el margen de la corona, en todo el perímetro
-  'pmma.ferula': {
-    d: 7, quieto: 0.5, alt: 'En un pilar endodonciado, la sonda milimetrada mide la dentina sana sobre la línea de terminación, a cada lado del muñón.',
-    C: ({ d }) => (
-      <>
-        <Base gutapercha />
-        <g><Tr d={d} p={[[0, 100, -40], [0.08, 124, 108], [0.36, 124, 108], [0.42, 100, -40], [0.48, 200, -40], [0.54, 176, 108], [0.82, 176, 108], [0.88, 200, -40]]} /><SondaPerio /></g>
-        <path className="cota" d="M112,108 L112,92 M108,108 L116,108 M108,92 L116,92" opacity="0"><Op d={d} p={ve(0.14, 0.4)} /></path>
-        <path className="cota" d="M188,108 L188,92 M184,108 L192,108 M184,92 L192,92" opacity="0"><Op d={d} p={ve(0.6, 0.86)} /></path>
-        <Rotulo x={222} y={30} d={d} p={ve(0.06, 0.4)}>mide la dentina sana</Rotulo>
-        <Rotulo x={222} y={43} d={d} p={ve(0.08, 0.4)}>bajo el margen de la corona</Rotulo>
-        <Rotulo x={222} y={30} d={d} p={ve(0.46, 0.94)} tono="acento">en todo el contorno</Rotulo>
-        <Rotulo x={222} y={43} d={d} p={ve(0.6, 0.94)}>al menos 2 mm</Rotulo>
-      </>
-    )
-  },
   // Retira el provisional anterior, limpia el cemento y prueba la corona en seco
   'pmma.probar': {
     d: 9, quieto: 0.9, alt: 'Sale el provisional anterior, se limpian los restos de cemento del muñón y la corona nueva se prueba en seco: asienta sin presión con los márgenes en contacto.',

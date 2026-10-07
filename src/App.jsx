@@ -1,33 +1,44 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { PROTOS } from './data.js';
 import { ESTADOS, chequeoCaso, leer, escribir, uid } from './logic.js';
 import { casosIniciales } from './seeds.js';
 import { Ctx } from './ctx.js';
 import { Ic, Avatar, Lightbox, Logo, useToasts, cx } from './ui.jsx';
-import { Inicio, Biblioteca, Protocolo } from './views/protocolos.jsx';
-import { CasosLista, CasoDetalle, CasoEditor, casoVacio } from './views/casos.jsx';
-import { Revision } from './views/revision.jsx';
-import { Herramientas } from './views/herramientas.jsx';
-import { Postular, Contacto, PerfilModal } from './views/comunidad.jsx';
+import { Inicio, Biblioteca, Protocolo, TuDia } from './views/protocolos.jsx';
+import { casoVacio } from './views/casos-vacio.js';
+import { PerfilModal } from './views/comunidad.jsx';
+// Secciones que se descargan al entrar (el inicio, la biblioteca y el perfil van en la carga inicial)
+const vista = (cargar, nombre) => lazy(() => cargar().then((m) => ({ default: m[nombre] })));
+const CasosLista = vista(() => import('./views/casos.jsx'), 'CasosLista');
+const CasoDetalle = vista(() => import('./views/casos.jsx'), 'CasoDetalle');
+const CasoEditor = vista(() => import('./views/casos.jsx'), 'CasoEditor');
+const Revision = vista(() => import('./views/revision.jsx'), 'Revision');
+const Herramientas = vista(() => import('./views/herramientas.jsx'), 'Herramientas');
+const Postular = vista(() => import('./views/comunidad.jsx'), 'Postular');
+const Contacto = vista(() => import('./views/comunidad.jsx'), 'Contacto');
+const Privacidad = vista(() => import('./views/privacidad.jsx'), 'Privacidad');
 import { Feed, PerfilPublico, Bienvenida, Moderacion } from './views/red.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
 import { useEsDocente, useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS, useEsAdmin, useColaModeracion } from './db.js';
 import AuthGate from './views/auth.jsx';
+import { Portada } from './views/portada.jsx';
+import { Mapa } from './views/mapa.jsx';
 import Migracion from './views/migracion.jsx';
 
-const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion'];
+const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion', 'privacidad'];
 // Secciones guardadas para más adelante (el código sigue en views/): no aparecen en el menú y go() las manda al inicio
 const OCULTAS = ['mapa', 'agenda', 'calificaciones', 'evaluaciones', 'asistente'];
 const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
-  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil', moderacion: 'Filtro de publicación' };
+  revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil', moderacion: 'Filtro de publicación', privacidad: 'Privacidad y términos' };
 
-const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['herramientas', 'tool', 'Herramientas']];
+// Menú principal: tres lugares. Lo demás va abajo, como enlaces chicos.
+const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['herramientas', 'tool', 'Herramientas']];
 // Portal docente: solo para quien está en /docentes (se agrega a mano en la consola de Firebase)
 const NAV_DOCENTE = [['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión de casos']];
 const VISTAS_DOCENTE = ['casos', 'caso', 'editor', 'revision'];
 // Equipo Criterium: el filtro de lo que se publica (admins/{uid}, agregado a mano en la consola)
 const NAV_EQUIPO = [['moderacion', 'stamp', 'Filtro de publicación']];
-const NAV_BIBLIO = [['biblioteca', 'book', 'Biblioteca'], ['inicio', 'sparkle', 'Sobre Criterium'], ['postular', 'userCheck', 'Postular a revisor'], ['contacto', 'mail', 'Contáctanos']];
+const NAV_SECUNDARIO = [['inicio', 'Sobre Criterium'], ['postular', 'Postular a revisor'], ['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
 
 function lsGet(k, d) { try { const x = localStorage.getItem(k); return x ? JSON.parse(x) : d; } catch (e) { return d; } }
@@ -38,7 +49,7 @@ function AppWrapper() {
   const { usuario, perfil: perfilAuth, setPerfil: setPerfilAuth, cargando } = useUsuario();
 
   return (
-    <AuthGate usuario={usuario} cargando={cargando}>
+    <AuthGate usuario={usuario} cargando={cargando} portada={Portada}>
       <AppConUsuario usuario={usuario} perfilAuth={perfilAuth} setPerfilAuth={setPerfilAuth} />
     </AuthGate>
   );
@@ -85,7 +96,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     if (!myUid) return;
     setPerfilAuth(p);
     await actualizarPerfil(myUid, p);
-    await guardarPerfilPublicoFS(myUid, p);
+    // El perfil público se reintenta al volver a entrar (efecto de abajo); si falla ahora, no bloquea el ingreso
+    try { await guardarPerfilPublicoFS(myUid, p); } catch (e) { console.warn('Perfil público pendiente:', e && e.code); }
   }, [myUid]);
 
   /* ── Perfil público: se crea o actualiza al iniciar sesión (solo datos profesionales) ── */
@@ -315,7 +327,6 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   );
   const navegacion = (oscuro) => (
     <nav className="flex flex-col gap-0.5">
-      <div className={cx('rotulo px-3 pb-1.5 pt-1', oscuro && '!text-navink3')}>Trabajo diario</div>
       {NAV_DIARIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
       {esDocente && <>
         <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Portal docente</div>
@@ -325,9 +336,16 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
         <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Equipo Criterium</div>
         {NAV_EQUIPO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
       </>}
-      <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Biblioteca y comunidad</div>
-      {NAV_BIBLIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
     </nav>
+  );
+  // Enlaces secundarios: chicos, al pie
+  const navSecundario = (oscuro) => (
+    <div className="flex flex-col gap-0.5 px-3">
+      {NAV_SECUNDARIO.map(([v, t]) => (
+        <button key={v} type="button" onClick={() => go(v)} aria-current={view === v ? 'page' : undefined}
+          className={cx('py-1 text-left text-[13px] transition-colors', oscuro ? (view === v ? 'text-panelink' : 'text-navink3 hover:text-panelink') : (view === v ? 'font-semibold text-ink' : 'text-ink3 hover:text-ink'))}>{t}</button>
+      ))}
+    </div>
   );
   const marca = (oscuro) => (
     <button type="button" onClick={() => go('feed')} className="text-left" aria-label="Criterium, ir al inicio">
@@ -351,12 +369,12 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     );
   }
 
-  const vista = !listo ? (
+  const pantalla = !listo ? (
     <div className="flex flex-col gap-4 pt-8"><div className="h-8 w-64 animate-pulse rounded-rs bg-soft" /><div className="h-4 w-96 max-w-full animate-pulse rounded-rs bg-soft" /><div className="h-48 animate-pulse rounded-r bg-soft" /></div>
   ) : ({
     inicio: <Inicio />, biblioteca: <Biblioteca />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
     editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, herramientas: <Herramientas />,
-    feed: <Feed key={feedProto} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />, moderacion: <Moderacion />
+    feed: <Feed key={feedProto} arriba={<Mapa incrustado />} lado={<TuDia />} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />, moderacion: <Moderacion />, privacidad: <Privacidad />
   })[view];
 
   return (
@@ -368,20 +386,11 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               {marca(true)}
               <button type="button" onClick={() => setLateral(false)} className="-mr-2 rounded-full p-2 text-navink3 hover:bg-navline hover:text-panelink" aria-label="Ocultar barra lateral" title="Ocultar barra lateral"><Ic n="panel" s={18} /></button>
             </div>
-            <div className="mt-2 text-[11.5px] leading-snug text-navink3">Biblioteca viva de protocolos</div>
           </div>
           {navegacion(true)}
-          <div className="mt-6 rounded-r border border-navline bg-navline p-4">
-            <div className="rotulo mb-2.5 !text-navink3">Estado del proyecto</div>
-            {[['Protocolos validados', '0'], ['Borradores publicados', String(PROTOS.filter((p) => p.abre).length)], ['Protocolos del estudio', PROTOS.filter((p) => p.estudio && p.abre).length + ' / ' + PROTOS.filter((p) => p.estudio).length], ['Tus casos', String(mios.length)]].map(([a, b]) => (
-              <div key={a} className="flex items-baseline justify-between py-0.5 text-[12.5px]"><span className="text-navink">{a}</span><b className="text-[14px] font-extrabold tabular-nums text-menta">{b}</b></div>
-            ))}
-          </div>
-          <div className="mt-auto flex flex-col gap-2.5 pt-5">
-            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-full border border-navline px-3.5 py-2 text-[13px] text-navink hover:bg-navline hover:text-panelink">
-              <Ic n="back" s={15} />Cerrar sesión
-            </button>
-            <p className="m-0 text-[11px] leading-normal text-navink3">Borradores sin revisión de especialista. No deben usarse como estándar de atención.</p>
+          <div className="mt-auto flex flex-col gap-4 pt-5">
+            {navSecundario(true)}
+            <p className="m-0 px-3 text-[11px] leading-normal text-navink3">Borradores sin revisión de especialista.</p>
           </div>
         </aside>
 
@@ -392,7 +401,6 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
                 <button type="button" onClick={() => setLateral(true)} className="hidden rounded-full p-2 text-ink2 hover:bg-soft hover:text-ink lg:inline-flex" aria-label="Mostrar barra lateral" title="Mostrar barra lateral"><Ic n="panel" s={18} /></button>
               )}
               <div className={cx(lateral && 'lg:hidden')}>{marca()}</div>
-              <div className="hidden whitespace-nowrap text-[12.5px] text-ink3 lg:block">{RUTAS[view]}</div>
               <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-cardline bg-card px-4 shadow-sh focus-within:border-acento md:flex">
                 <Ic n="search" s={15} className="text-ink3" />
                 <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (view !== 'biblioteca' && e.target.value) go('biblioteca'); }} aria-label="Buscar un protocolo" placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
@@ -411,7 +419,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               </form>
             )}
           </div>
-          <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">{vista}</main>
+          <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"><Suspense fallback={<div className="h-64 animate-pulse rounded-[22px] bg-soft" />}>{pantalla}</Suspense></main>
         </div>
       </div>
 
@@ -426,7 +434,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               {badge[v] > 0 && <span className={cx('absolute left-1/2 top-1.5 ml-2 min-w-[16px] rounded-full px-1 text-[10px] font-bold leading-4 text-onc', v === 'casos' ? 'bg-warn' : 'bg-acento')}>{badge[v]}</span>}
             </button>
           ))}
-          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['herramientas', 'inicio', 'postular', 'contacto', 'moderacion'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
+          <button type="button" onClick={() => setMenu(true)} className={cx('flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', ['herramientas', 'inicio', 'postular', 'contacto', 'moderacion', 'privacidad'].includes(view) ? 'text-ink' : 'text-ink3')}><Ic n="menu" s={21} />Más</button>
         </div>
       </nav>
 
@@ -435,6 +443,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
           <div className="absolute inset-x-0 bottom-0 flex max-h-[85vh] flex-col gap-3 overflow-auto rounded-t-[22px] bg-card px-4 pb-6 pt-4" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))' }}>
             <div className="flex items-center justify-between">{marca()}<button type="button" onClick={() => setMenu(false)} className="rounded-full p-2 text-ink3 hover:bg-soft" aria-label="Cerrar menú"><Ic n="x" /></button></div>
             {navegacion()}
+            {navSecundario()}
             <div className="flex flex-wrap gap-2 pt-2">
               {esDocente && <button type="button" onClick={() => { setMenu(false); nuevoCaso(); }} className="flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-semibold text-onc"><Ic n="plus" s={15} />Nuevo caso</button>}
               <button type="button" onClick={() => { setMenu(false); logout(); }} className="flex items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-[13px] text-ink2 hover:bg-soft"><Ic n="back" s={15} />Cerrar sesión</button>

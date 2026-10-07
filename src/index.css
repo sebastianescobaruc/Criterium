@@ -22,6 +22,11 @@
   --sh:0 1px 2px rgba(15,37,48,.04),0 6px 22px -8px rgba(15,37,48,.09);
   --sh-lg:0 2px 6px rgba(15,37,48,.05),0 18px 44px -14px rgba(15,37,48,.18);
   --card-line:rgba(15,37,48,.06);--dot:rgba(15,37,48,.05);--glow:rgba(92,207,192,.08);--input:#F5F9FA;
+  /* Color por especialidad (Criterium Red): tono pastel de fondo y su tinta */
+  --esp-rehab:#EFE4F3;--esp-rehab-ink:#6B4A7D;--esp-opera:#DCEFF2;--esp-opera-ink:#22606B;--esp-perio:#F6E1E4;--esp-perio-ink:#8C4452;
+  --esp-endo:#FBE6D6;--esp-endo-ink:#8F4F22;--esp-ciru:#E3E8F6;--esp-ciru-ink:#3D4F86;--esp-pedia:#FFF1C9;--esp-pedia-ink:#7A5B10;
+  --esp-orto:#E2F1E2;--esp-orto-ink:#3B6A3E;--esp-impla:#E6ECEF;--esp-impla-ink:#46585F;--esp-radio:#E3E3EE;--esp-radio-ink:#3F4166;
+  --esp-este:#F9E3EF;--esp-este-ink:#8A3E66;--esp-atm:#EAEFDC;--esp-atm-ink:#56662A;
 }
 html,body{background:var(--bg)}
 
@@ -414,3 +419,18 @@ h1,h2,h3{letter-spacing:-.02em}
 .bienvenida .titulo-bv{margin:0 0 6px;font-size:30px;font-weight:700;line-height:1.12;letter-spacing:-.025em;color:var(--deep)}
 .bienvenida .sub-bv{margin:0 0 22px;font-size:15.5px;line-height:1.5;color:var(--ink-2)}
 @media (min-width:640px){.bienvenida .titulo-bv{font-size:38px}}
+
+/* Celebración al publicarse un caso (Criterium Red) */
+.celebra-velo{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:color-mix(in srgb,var(--deep) 55%,transparent);backdrop-filter:blur(6px)}
+.celebra-caja{position:relative;width:min(380px,100%);border-radius:28px;background:var(--card);padding:34px 24px 22px;text-align:center;box-shadow:var(--sh-lg);overflow:hidden}
+.celebra-sello{width:84px;height:84px;margin:0 auto;border-radius:50%;background:var(--menta);color:var(--menta-ink);display:grid;place-items:center}
+.celebra-pieza{position:absolute;top:-14px;width:9px;height:12px;border-radius:3px 3px 5px 5px;opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  .celebra-caja{animation:celebra-entra .5s cubic-bezier(.2,1.3,.4,1) both}
+  .celebra-sello{animation:celebra-sello .7s .15s cubic-bezier(.2,1.5,.4,1) both}
+  .celebra-pieza{animation:celebra-cae 1.9s var(--d,0s) ease-in forwards}
+}
+@media (prefers-reduced-motion:reduce){.celebra-pieza{display:none}}
+@keyframes celebra-entra{from{transform:translateY(24px) scale(.94);opacity:0}}
+@keyframes celebra-sello{from{transform:scale(.3)}}
+@keyframes celebra-cae{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(420px) rotate(var(--r,200deg))}}

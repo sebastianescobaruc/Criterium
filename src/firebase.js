@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, initializeAuth, indexedDBLocalPersistence, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FB_API_KEY,
@@ -18,7 +17,8 @@ export const app = initializeApp(firebaseConfig);
 const nativa = typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
 export const auth = nativa ? initializeAuth(app, { persistence: indexedDBLocalPersistence }) : getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Storage (fotos de casos) se carga recién al subir o borrar una foto: no pesa en la carga inicial
+export const usarStorage = async () => { const m = await import('firebase/storage'); return { ...m, storage: m.getStorage(app) }; };
 
 /* Persistencia offline de Firestore — falla silenciosamente en incógnito */
 enableIndexedDbPersistence(db).catch(() => {});

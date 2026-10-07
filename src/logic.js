@@ -538,3 +538,13 @@ export function chequeoCita(c) {
   if (dErr) e.pieza = dErr;
   return e;
 }
+
+// Datos que identifican a una persona: si aparecen, no se manda nada (Ley 21.719)
+const IDENTIFICA = [
+  [/\b\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\b/, 'un RUT'],
+  [/\+?56\s?9\s?\d{4}\s?\d{4}\b|\b9\s?\d{4}\s?\d{4}\b/, 'un teléfono'],
+  [/[^\s@]+@[^\s@]+\.[^\s@]{2,}/, 'un correo'],
+  [/\b(ficha|historia cl[ií]nica)\s*(n[°º.]?|#)\s*\d+/i, 'un número de ficha'],
+  [/\b(nombre|paciente)\s*:\s*[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+/, 'un nombre']
+];
+export function datosPersonales(texto) { return IDENTIFICA.filter(([re]) => re.test(texto)).map(([, q]) => q); }

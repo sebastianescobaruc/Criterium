@@ -2,12 +2,11 @@
 // a quién seguir y la cola de moderación del equipo.
 // Los casos clínicos, borradores y protocolos pasan por el filtro del equipo Criterium antes de aparecer (db.js: publicarFS).
 import React, { useEffect, useMemo, useState } from 'react';
-import { protoPorId, protosAbiertos, hace, uid } from '../logic.js';
+import { protoPorId, protosAbiertos, hace, uid, datosPersonales } from '../logic.js';
 import { useApp } from '../ctx.js';
-import { Mapa } from './mapa.jsx';
-import { TuDia } from './protocolos.jsx';
-import { datosPersonales } from './desdecaso.jsx';
-import { toggleLikeFS, responderPostFS, publicarFS, usePerfilPublico, usePostsDe, useSeguimientos, usePerfiles, useMisPendientes, useColaModeracion, aprobarFS, rechazarFS, borrarPendienteFS, MODERADOS } from '../db.js';
+import { CREATIVA } from '../edicion.js';
+import { borrarCuenta, errorAuth } from '../auth.js';
+import { borrarMisDatosFS, toggleLikeFS, votarFS, destacarFS, responderPostFS, publicarFS, usePerfilPublico, usePostsDe, useSeguimientos, usePerfiles, useMisPendientes, useColaModeracion, aprobarFS, rechazarFS, borrarPendienteFS, MODERADOS } from '../db.js';
 import { Ic, Pill, Btn, Field, PageHead, Avatar, Modal, Vacio, Logo, inputCls, inputErr, cx } from '../ui.jsx';
 
 /* ═══ Vocabulario del perfil ═══ */
@@ -36,11 +35,40 @@ const lineaPerfil = (p) => [p.rol === 'Estudiante de pregrado' ? 'Estudiante' : 
 const TIPOS = {
   publicacion: { t: 'Publicación', ic: 'chat', tono: '' },
   pregunta: { t: 'Pregunta', ic: 'pregunta', tono: 'acento' },
+  discusion: { t: 'Plan de tratamiento', ic: 'personas', tono: 'acento' },
   caso: { t: 'Caso clínico', ic: 'folder', tono: 'acento' },
   borrador: { t: 'Borrador de protocolo', ic: 'edit', tono: 'warn' },
   protocolo: { t: 'Protocolo', ic: 'book', tono: 'ok' }
 };
 const tipoDe = (p) => (TIPOS[p.tipo] ? p.tipo : 'publicacion');
+// Lo que se puede crear desde el inicio. En Criterium Red no hay borradores ni protocolos, y el caso abre su propio formulario.
+const CREABLES = CREATIVA ? ['publicacion', 'pregunta', 'discusion', 'caso'] : ['publicacion', 'pregunta', 'discusion', 'caso', 'borrador', 'protocolo'];
+// Secciones de un caso clínico (Criterium Red): el revisor corrige cada una por separado
+export const SECCIONES_CASO = [
+  ['motivo', 'Motivo de consulta'], ['diagnostico', 'Diagnóstico'], ['plan', 'Plan de tratamiento'], ['realizado', 'Qué se hizo y cómo resultó']
+];
+// Color por especialidad: un tono pastel y su tinta (tokens --esp-* en index.css)
+const CLAVE_ESP = { 'Rehabilitación oral': 'rehab', 'Rehabilitación': 'rehab', 'Prótesis': 'rehab', Operatoria: 'opera', Periodoncia: 'perio', Endodoncia: 'endo', 'Cirugía bucal': 'ciru', 'Cirugía': 'ciru',
+  Odontopediatría: 'pedia', Ortodoncia: 'orto', Implantología: 'impla', Radiología: 'radio', Estética: 'este', 'Trastornos temporomandibulares': 'atm' };
+export const claveEsp = (e) => CLAVE_ESP[e] || '';
+export const colorEsp = (e) => { const k = claveEsp(e); return k ? { background: `var(--esp-${k})`, color: `var(--esp-${k}-ink)` } : null; };
+export function PillEsp({ esp, className = '' }) {
+  const c = colorEsp(esp);
+  return c ? <span style={c} className={cx('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-[3px] text-[11.5px] font-semibold leading-5', className)}>{esp}</span> : <Pill className={className}>{esp}</Pill>;
+}
+// Procedimientos (lista cerrada): etiquetan cada caso para enlazarlo a su protocolo cuando se fusionen las ediciones
+export const PROCEDIMIENTOS = [
+  ['Operatoria', ['Resina clase I', 'Resina clase II', 'Resina clase III o IV', 'Resina clase V', 'Incrustación', 'Sellante']],
+  ['Endodoncia', ['Biopulpectomía', 'Necropulpectomía', 'Retratamiento endodóntico', 'Pulpotomía', 'Recubrimiento pulpar']],
+  ['Periodoncia', ['Destartraje y pulido radicular', 'Cirugía periodontal', 'Alargamiento coronario', 'Injerto de encía']],
+  ['Cirugía bucal', ['Exodoncia simple', 'Exodoncia de tercer molar', 'Exodoncia quirúrgica', 'Biopsia', 'Frenectomía']],
+  ['Odontopediatría', ['Sellantes en niños', 'Pulpotomía en diente temporal', 'Corona preformada', 'Mantenedor de espacio']],
+  ['Rehabilitación oral', ['Corona', 'Puente fijo', 'Prótesis removible', 'Prótesis total', 'Provisorio', 'Perno y muñón']],
+  ['Implantología', ['Instalación de implante', 'Rehabilitación sobre implante']],
+  ['Ortodoncia', ['Aparato removible', 'Ortodoncia fija']],
+  ['Estética', ['Blanqueamiento', 'Carillas']],
+  ['Otros', ['Urgencia', 'Otro procedimiento']]
+];
 const especialidadDe = (p) => p.especialidad || (p.protocoloId && protoPorId(p.protocoloId) ? protoPorId(p.protocoloId).esp : '');
 
 // Insignias junto al nombre
@@ -60,10 +88,12 @@ export function Bienvenida({ editar = false, cerrar }) {
   const [paso, setPaso] = useState(0);
   const [guardando, setGuardando] = useState(false);
   const personas = usePerfiles(!editar);
-  const egreso = !esEstudiante(f.rol) && /^Egres/.test(f.anio || '') ? (f.anio.match(/\d{4}/) || [''])[0] : '';
+  const [egreso, setEgreso] = useState(() => ((perfil && perfil.anio) || '').match(/\d{4}/)?.[0] || '');
+  const anioEgreso = (v) => { const n = +v; return v.length === 4 && n >= 1950 && n <= new Date().getFullYear(); };
   const pasos = editar ? 4 : 5;
   const marca = (k, v) => setF((x) => ({ ...x, [k]: x[k].includes(v) ? x[k].filter((y) => y !== v) : [...x[k], v].slice(0, 12) }));
-  const valido = [!!f.rol, f.institucion.trim().length >= 3 && !!f.anio, f.intereses.length > 0, f.nombre.trim().length >= 3, true][paso];
+  const paso2 = f.institucion.trim().length >= 3 && (esEstudiante(f.rol) ? !!f.anio : !egreso || anioEgreso(egreso));
+  const valido = [!!f.rol, paso2, f.intereses.length > 0, f.nombre.trim().length >= 3, true][paso];
   const guardar = async (terminado) => {
     setGuardando(true);
     try {
@@ -112,8 +142,8 @@ export function Bienvenida({ editar = false, cerrar }) {
         <div className="mt-5"><p className="m-0 mb-2 text-[13px] font-semibold text-ink2">¿En qué año vas?</p><div className="flex flex-wrap gap-2">{ANIOS.map((a) => chip(f.anio === a, () => setF({ ...f, anio: a }), a))}</div></div>
       ) : (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Field label="¿En qué año egresaste?" id="bv-egreso">
-            <input id="bv-egreso" inputMode="numeric" maxLength={4} value={egreso} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 4); setF({ ...f, anio: v.length === 4 ? 'Egresó en ' + v : v ? 'Egresó en ' + v : '' }); }} placeholder="2019" className={inputCls} />
+          <Field label="¿En qué año egresaste?" id="bv-egreso" error={egreso && !anioEgreso(egreso) ? 'Escribe el año con 4 números.' : ''}>
+            <input id="bv-egreso" inputMode="numeric" maxLength={4} value={egreso} onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 4); setEgreso(v); setF({ ...f, anio: anioEgreso(v) ? 'Egresó en ' + v : '' }); }} placeholder="2019 (opcional)" className={inputCls} />
           </Field>
           {f.rol === 'Especialista' && (
             <Field label="Tu especialidad" id="bv-area">
@@ -125,7 +155,7 @@ export function Bienvenida({ editar = false, cerrar }) {
     </>,
     <>
       <h2 className="titulo-bv">¿Qué te interesa?</h2>
-      <p className="sub-bv">Elige tus áreas. Tu inicio, las sugerencias de a quién seguir y los protocolos se ordenan según esto.</p>
+      <p className="sub-bv">{CREATIVA ? 'Elige tus áreas. Tu inicio y las sugerencias de a quién seguir se ordenan según esto.' : 'Elige tus áreas. Tu inicio, las sugerencias de a quién seguir y los protocolos se ordenan según esto.'}</p>
       <p className="m-0 mb-2 text-[13px] font-semibold text-ink2">Áreas clínicas</p>
       <div className="flex flex-wrap gap-2">{INTERESES.map((a) => chip(f.intereses.includes(a), () => marca('intereses', a), a))}</div>
       <p className="m-0 mb-2 mt-5 text-[13px] font-semibold text-ink2">Temas</p>
@@ -192,28 +222,37 @@ export function Bienvenida({ editar = false, cerrar }) {
 }
 
 /* ═════════ CREAR: el compositor de publicaciones ═════════ */
+const VACIO = { titulo: '', txt: '', especialidad: '', diente: '', protocoloId: '', sinDatos: false, opciones: ['', ''], conDesenlace: false, desPlan: '', desTxt: '' };
 function Crear() {
-  const { perfil, myUid, avisar, conPerfil } = useApp();
+  const { perfil, myUid, avisar, conPerfil, subirCaso } = useApp();
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState('publicacion');
-  const [f, setF] = useState({ titulo: '', txt: '', especialidad: '', diente: '', protocoloId: '', sinDatos: false });
+  const [f, setF] = useState(VACIO);
   const [medios, setMedios] = useState(false);
   const [err, setErr] = useState('');
   const [enviando, setEnviando] = useState(false);
   const moderado = MODERADOS.includes(tipo);
-  const conTitulo = moderado;
-  const limpiar = () => { setF({ titulo: '', txt: '', especialidad: '', diente: '', protocoloId: '', sinDatos: false }); setErr(''); setMedios(false); setAbierto(false); setTipo('publicacion'); };
+  const conTitulo = moderado || tipo === 'discusion';
+  const clinico = tipo === 'caso' || tipo === 'discusion';
+  const opciones = f.opciones.map((o) => o.trim()).filter(Boolean);
+  const limpiar = () => { setF(VACIO); setErr(''); setMedios(false); setAbierto(false); setTipo('publicacion'); };
+  const elegir = (k) => { if (CREATIVA && k === 'caso') { limpiar(); subirCaso(); return; } setTipo(k); setErr(''); };
+  const setOpcion = (k, v) => { setF({ ...f, opciones: f.opciones.map((o, i) => (i === k ? v : o)) }); setErr(''); };
   const publicar = () => {
-    if (conTitulo && f.titulo.trim().length < 6) { setErr('Ponle un título que diga de qué se trata.'); return; }
-    if (f.txt.trim().length < 10) { setErr(tipo === 'pregunta' ? 'Cuenta un poco más: qué pasó, en qué paso y qué dudas tienes.' : 'Escribe un poco más.'); return; }
-    if (tipo === 'caso' && !f.sinDatos) { setErr('Confirma que el caso no trae datos que identifiquen al paciente.'); return; }
-    const p = datosPersonales(f.titulo + ' ' + f.txt);
+    if (conTitulo && f.titulo.trim().length < 6) { setErr(tipo === 'discusion' ? 'Ponle un título: el caso en una línea.' : 'Ponle un título que diga de qué se trata.'); return; }
+    if (f.txt.trim().length < 10) { setErr(tipo === 'pregunta' ? 'Cuenta un poco más: qué pasó, en qué paso y qué dudas tienes.' : tipo === 'discusion' ? 'Resume el caso: diagnóstico, hallazgos y qué te hace dudar.' : 'Escribe un poco más.'); return; }
+    if (tipo === 'discusion' && opciones.length < 2) { setErr('Escribe al menos dos planes de tratamiento para que la gente vote.'); return; }
+    if (tipo === 'discusion' && f.conDesenlace && f.desTxt.trim().length < 10) { setErr('Cuenta qué se hizo y cómo resultó, o quita el desenlace.'); return; }
+    if (clinico && !f.sinDatos) { setErr('Confirma que no hay datos que identifiquen al paciente.'); return; }
+    const p = datosPersonales([f.titulo, f.txt, ...opciones, f.conDesenlace ? f.desTxt : ''].join(' '));
     if (p.length) { setErr('El texto trae ' + p.join(', ') + '. Quítalo: en Criterium no van datos que identifiquen a nadie.'); return; }
     conPerfil(async (pf) => {
       setEnviando(true);
       try {
         const dest = await publicarFS({
-          tipo, titulo: f.titulo.trim(), txt: f.txt.trim(), especialidad: f.especialidad, diente: tipo === 'caso' ? f.diente.trim() : '', protocoloId: f.protocoloId,
+          tipo, titulo: f.titulo.trim(), txt: f.txt.trim(), especialidad: f.especialidad, diente: clinico ? f.diente.trim() : '', protocoloId: f.protocoloId,
+          ...(tipo === 'discusion' ? { opciones: opciones.slice(0, 4), votos: {} } : {}),
+          ...(tipo === 'discusion' && f.conDesenlace ? { desenlace: { plan: f.desPlan === '' ? -1 : +f.desPlan, txt: f.desTxt.trim() } } : {}),
           adjuntos: [], autorUid: myUid, autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, institucion: pf.institucion || '', verificado: false },
           fecha: new Date().toISOString(), likes: 0, likedBy: [], respuestas: []
         });
@@ -224,48 +263,79 @@ function Crear() {
     });
   };
   if (!abierto) return (
-    <button type="button" onClick={() => setAbierto(true)} className="flex w-full items-center gap-3 rounded-[22px] bg-card px-4 py-3.5 text-left shadow-sh transition-shadow hover:shadow-shlg">
-      <Avatar nombre={(perfil && perfil.nombre) || '?'} size={40} />
-      <span className="flex-1 text-[15px] text-ink3">Comparte algo con la comunidad…</span>
-      <span className="hidden gap-1 text-acento sm:flex"><Ic n="image" s={20} /><Ic n="video" s={20} /></span>
-    </button>
+    <div className="rounded-[22px] bg-card shadow-sh transition-shadow hover:shadow-shlg">
+      <button type="button" onClick={() => setAbierto(true)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+        <Avatar nombre={(perfil && perfil.nombre) || '?'} size={40} />
+        <span className="flex-1 text-[15px] text-ink3">{CREATIVA ? 'Comparte un caso, una duda o un plan…' : 'Comparte algo con la comunidad…'}</span>
+        <span className="hidden gap-1 text-acento sm:flex"><Ic n="image" s={20} /><Ic n="video" s={20} /></span>
+      </button>
+      {CREATIVA && (
+        <div className="flex gap-1 border-t border-line2 px-2 py-1.5">
+          {[['caso', 'folder', 'Caso clínico', 'Caso'], ['discusion', 'personas', 'Plan de tratamiento', 'Plan'], ['pregunta', 'pregunta', 'Pregunta', 'Pregunta']].map(([k, ic, t, corto]) => (
+            <button key={k} type="button" onClick={() => { setAbierto(true); elegir(k); }} className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft"><Ic n={ic} s={17} className="flex-none text-acento" /><span className="truncate sm:hidden">{corto}</span><span className="hidden truncate sm:inline">{t}</span></button>
+          ))}
+        </div>
+      )}
+    </div>
   );
   return (
     <section className="aparece rounded-[22px] bg-card p-4 shadow-shlg sm:p-5" aria-label="Crear una publicación">
       <div className="scroll-x -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist">
-        {Object.entries(TIPOS).map(([k, t]) => (
-          <button key={k} type="button" role="tab" aria-selected={tipo === k} onClick={() => { setTipo(k); setErr(''); }}
+        {CREABLES.map((k) => { const t = TIPOS[k]; return (
+          <button key={k} type="button" role="tab" aria-selected={tipo === k} onClick={() => elegir(k)}
             className={cx('inline-flex flex-none items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', tipo === k ? 'bg-deep text-onc' : 'bg-soft text-ink2 hover:bg-acentosoft')}>
             <Ic n={t.ic} s={15} />{t.t}
           </button>
-        ))}
+        ); })}
       </div>
       {moderado && <p className="m-0 mt-2.5 flex items-start gap-2 rounded-rs bg-warnsoft px-3 py-2 text-[12.5px] font-semibold leading-snug text-warn"><Ic n="stamp" s={15} className="mt-[1px]" />Pasa por el filtro del equipo Criterium antes de aparecer en el feed{tipo !== 'caso' ? '. Los protocolos se publican después de la revisión de al menos 5 expertos.' : '.'}</p>}
+      {tipo === 'discusion' && <p className="m-0 mt-2.5 text-[13px] leading-snug text-ink3">Cuenta el caso y propone los planes que estás considerando. La comunidad vota y explica por qué.</p>}
       <div className="mt-3 flex flex-col gap-3">
-        {conTitulo && <input value={f.titulo} onChange={(e) => { setF({ ...f, titulo: e.target.value }); setErr(''); }} aria-label="Título" placeholder={tipo === 'caso' ? 'Título del caso: qué se hizo y en qué diente' : 'Título del protocolo'} className="w-full bg-transparent text-[18px] font-bold text-ink outline-none placeholder:text-ink3" />}
+        {conTitulo && <input value={f.titulo} onChange={(e) => { setF({ ...f, titulo: e.target.value }); setErr(''); }} aria-label="Título" placeholder={tipo === 'caso' ? 'Título del caso: qué se hizo y en qué diente' : tipo === 'discusion' ? 'El caso en una línea: ej. molar con lesión de furca grado II' : 'Título del protocolo'} className="w-full bg-transparent text-[18px] font-bold text-ink outline-none placeholder:text-ink3" />}
         <textarea autoFocus value={f.txt} onChange={(e) => { setF({ ...f, txt: e.target.value }); setErr(''); }} rows={4} aria-label="Texto"
-          placeholder={{ publicacion: '¿Qué quieres compartir?', pregunta: '¿Qué te pasó en el box? Di en qué paso y qué dudas tienes.', caso: 'Diagnóstico, qué hiciste y cómo resultó. Sin datos del paciente.', borrador: 'De qué trata el borrador, qué cubre y qué fuentes usaste.', protocolo: 'Resumen del protocolo: para qué caso es y qué cubre.' }[tipo]}
+          placeholder={{ publicacion: '¿Qué quieres compartir?', pregunta: '¿Qué te pasó en el box? Di en qué paso y qué dudas tienes.', discusion: 'Edad, motivo de consulta, hallazgos, diagnóstico y qué te hace dudar. Sin datos del paciente.', caso: 'Diagnóstico, qué hiciste y cómo resultó. Sin datos del paciente.', borrador: 'De qué trata el borrador, qué cubre y qué fuentes usaste.', protocolo: 'Resumen del protocolo: para qué caso es y qué cubre.' }[tipo]}
           className="w-full resize-y bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink3" />
+        {tipo === 'discusion' && (
+          <div className="flex flex-col gap-2">
+            {f.opciones.map((o, k) => (
+              <div key={k} className="flex items-center gap-2">
+                <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-acentosoft text-[13px] font-bold text-acentodeep">{String.fromCharCode(65 + k)}</span>
+                <input value={o} maxLength={120} onChange={(e) => setOpcion(k, e.target.value)} aria-label={'Plan ' + String.fromCharCode(65 + k)} placeholder={k === 0 ? 'Plan A: ej. destartraje, pulido radicular y control' : 'Plan ' + String.fromCharCode(65 + k)} className={cx(inputCls, '!py-2 !text-[14px]')} />
+                {f.opciones.length > 2 && <button type="button" onClick={() => setF({ ...f, opciones: f.opciones.filter((_, i) => i !== k) })} className="rounded-full p-1.5 text-ink3 hover:bg-soft" aria-label="Quitar este plan"><Ic n="x" s={16} /></button>}
+              </div>
+            ))}
+            {f.opciones.length < 4 && <button type="button" onClick={() => setF({ ...f, opciones: [...f.opciones, ''] })} className="self-start rounded-full px-3 py-1.5 text-[13px] font-semibold text-acento hover:bg-soft">+ Otro plan</button>}
+            <div className={cx('mt-1 flex flex-col gap-2.5 rounded-[18px] p-3.5 transition-colors', f.conDesenlace ? 'bg-deep' : 'bg-soft')}>
+              <label className={cx('flex items-start gap-2.5 text-[13.5px] font-semibold leading-snug', f.conDesenlace ? 'text-onc' : 'text-ink')}>
+                <input type="checkbox" checked={f.conDesenlace} onChange={(e) => { setF({ ...f, conDesenlace: e.target.checked }); setErr(''); }} className="mt-0.5 accent-[var(--menta)]" />
+                <span>¿Qué harías tú? <span className={cx('block text-[12.5px] font-normal', f.conDesenlace ? 'text-panelink2' : 'text-ink3')}>Si ya lo trataste, cuenta qué se hizo. Se revela cuando cada persona vota.</span></span>
+              </label>
+              {f.conDesenlace && (
+                <>
+                  <select value={f.desPlan} onChange={(e) => setF({ ...f, desPlan: e.target.value })} aria-label="Qué plan se hizo" className={inputCls}>
+                    <option value="">Se hizo otra cosa</option>
+                    {f.opciones.map((o, k) => o.trim() && <option key={k} value={k}>{'Se hizo el plan ' + String.fromCharCode(65 + k) + ': ' + o.trim().slice(0, 50)}</option>)}
+                  </select>
+                  <textarea value={f.desTxt} rows={3} onChange={(e) => { setF({ ...f, desTxt: e.target.value }); setErr(''); }} aria-label="Qué se hizo y cómo resultó" placeholder="Qué se hizo, cómo resultó y en qué control. Sin datos del paciente." className={cx(inputCls, 'resize-y')} />
+                </>
+              )}
+            </div>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2">
-          {(moderado || tipo === 'pregunta') && (
+          {(moderado || tipo === 'pregunta' || tipo === 'discusion') && (
             <select value={f.especialidad} onChange={(e) => setF({ ...f, especialidad: e.target.value })} aria-label="Especialidad" className="rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Especialidad</option>{INTERESES.map((a) => <option key={a}>{a}</option>)}</select>
           )}
-          {tipo === 'caso' && <input value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} aria-label="Diente (FDI)" placeholder="Diente FDI, ej. 3.6" className="w-[150px] rounded-full bg-soft px-3 py-1.5 text-[13px] text-ink2 outline-none" />}
-          {!['borrador', 'protocolo'].includes(tipo) && (
+          {clinico && <input value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} aria-label="Diente (FDI)" placeholder="Diente FDI, ej. 3.6" className="w-[150px] rounded-full bg-soft px-3 py-1.5 text-[13px] text-ink2 outline-none" />}
+          {!CREATIVA && !['borrador', 'protocolo'].includes(tipo) && (
             <select value={f.protocoloId} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} aria-label="Protocolo relacionado" className="max-w-[260px] rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Protocolo relacionado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}</select>
           )}
         </div>
-        {medios && (
-          <div className="grid place-items-center gap-1.5 rounded-[18px] border-2 border-dashed border-cardline bg-soft px-4 py-7 text-center">
-            <span className="flex gap-2 text-acento"><Ic n="image" s={26} /><Ic n="video" s={26} /></span>
-            <b className="text-[14px] text-ink">Fotos y videos · muy pronto</b>
-            <span className="max-w-[44ch] text-[12.5px] leading-snug text-ink3">Aquí vas a poder arrastrar fotos y videos cortos. {tipo === 'caso' ? 'Las fotos de pacientes irán sin rostro, sin datos que los identifiquen y con su consentimiento.' : 'Mientras, describe en el texto lo que mostrarías.'}</span>
-          </div>
-        )}
-        {tipo === 'caso' && (
+        {medios && <EspacioMedios caso={clinico} />}
+        {clinico && (
           <label className="flex items-start gap-2.5 text-[13px] leading-snug text-ink2">
             <input type="checkbox" checked={f.sinDatos} onChange={(e) => { setF({ ...f, sinDatos: e.target.checked }); setErr(''); }} className="mt-0.5 accent-[var(--acento)]" />
-            El caso no trae nombre, RUT, ficha, fecha de nacimiento ni fotos que identifiquen al paciente.
+            No trae nombre, RUT, ficha, fecha de nacimiento ni fotos que identifiquen al paciente.
           </label>
         )}
         {err && <p className="m-0 text-[12.5px] font-semibold text-bad">{err}</p>}
@@ -280,10 +350,69 @@ function Crear() {
   );
 }
 
+// El espacio para fotos y videos: listo en diseño; se activa cuando se prenda Firebase Storage
+export function EspacioMedios({ caso }) {
+  return (
+    <div className="grid place-items-center gap-1.5 rounded-[18px] border-2 border-dashed border-cardline bg-soft px-4 py-7 text-center">
+      <span className="flex gap-2 text-acento"><Ic n="image" s={26} /><Ic n="video" s={26} /></span>
+      <b className="text-[14px] text-ink">Fotos y videos · muy pronto</b>
+      <span className="max-w-[44ch] text-[12.5px] leading-snug text-ink3">Aquí vas a poder arrastrar fotos, radiografías y videos cortos. {caso ? 'Irán sin rostro, sin datos que identifiquen al paciente y con su consentimiento.' : 'Mientras, describe en el texto lo que mostrarías.'}</span>
+    </div>
+  );
+}
+
 /* ═════════ PUBLICACIÓN (una tarjeta, según su tipo) ═════════ */
+// Discusión de un plan de tratamiento: se vota un plan; los resultados se ven después de votar
+function Votacion({ p }) {
+  const { myUid, avisar } = useApp();
+  const votos = p.votos || {};
+  const mio = votos[myUid];
+  const votado = typeof mio === 'number';
+  const total = Object.keys(votos).length;
+  const cuenta = (k) => Object.values(votos).filter((v) => v === k).length;
+  const votar = async (k) => { try { await votarFS(p.id, myUid, mio === k ? null : k); } catch (e) { avisar('No se pudo guardar tu voto.', 'warn'); } };
+  // ¿Qué harías tú?: el desenlace (qué se hizo y cómo resultó) se ve recién al votar; el autor lo ve siempre
+  const d = p.desenlace && p.desenlace.txt ? p.desenlace : null;
+  const autor = (p.autorUid || (p.autor && p.autor.uid)) === myUid;
+  const ve = d && (votado || autor);
+  const plan = d && typeof d.plan === 'number' && p.opciones && p.opciones[d.plan] ? d.plan : -1;
+  const igual = d && plan >= 0 && total ? Math.round((cuenta(plan) * 100) / total) : null;
+  return (
+    <div className="flex flex-col gap-2 px-4 pb-3">
+      {(p.opciones || []).map((o, k) => {
+        const pct = total ? Math.round((cuenta(k) * 100) / total) : 0;
+        return (
+          <button key={k} type="button" onClick={() => votar(k)} aria-pressed={mio === k} className={cx('relative overflow-hidden rounded-[14px] border px-3.5 py-2.5 text-left transition-colors', mio === k ? 'border-acento' : 'border-cardline hover:bg-soft')}>
+            {votado && <span className="absolute inset-y-0 left-0 bg-acentosoft transition-[width] duration-500" style={{ width: pct + '%' }} aria-hidden="true" />}
+            <span className="relative flex items-center gap-2.5">
+              <b className={cx('grid h-7 w-7 flex-none place-items-center rounded-full text-[12.5px]', mio === k ? 'bg-acento text-onc' : 'bg-soft text-acentodeep')}>{mio === k ? <Ic n="check" s={14} sw={2.6} /> : String.fromCharCode(65 + k)}</b>
+              <span className="min-w-0 flex-1 text-[14px] leading-snug text-ink">{o}</span>
+              {votado && <b className="flex-none text-[13px] tabular-nums text-ink2">{pct}%</b>}
+            </span>
+          </button>
+        );
+      })}
+      <p className="m-0 text-[12px] text-ink3">{total} {total === 1 ? 'voto' : 'votos'} · {votado ? 'Toca tu plan para quitar el voto. Explica por qué en una respuesta.' : d ? 'Vota el plan que harías y se revela qué se hizo.' : 'Vota el plan que harías. Los resultados se ven al votar.'}</p>
+      {d && (ve ? (
+        <div className="aparece flex flex-col gap-1.5 rounded-[16px] bg-deep px-4 py-3.5 text-panelink">
+          <p className="m-0 flex flex-wrap items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[.1em] text-menta"><Ic n="check" s={13} sw={2.6} />Lo que se hizo{plan >= 0 ? ' · Plan ' + String.fromCharCode(65 + plan) : ''}</p>
+          <p className="m-0 whitespace-pre-line text-[14.5px] leading-relaxed text-onc">{d.txt}</p>
+          <p className="m-0 text-[12px] text-panelink2">{igual !== null && votado ? (mio === plan ? 'Pensaste igual que el ' + igual + ' % de quienes votaron.' : 'El ' + igual + ' % de quienes votaron eligió este plan.') + ' ' : ''}Es lo que se hizo en este caso, no la única opción válida.</p>
+        </div>
+      ) : (
+        <div className="relative overflow-hidden rounded-[16px] bg-deep px-4 py-3.5" aria-label="Desenlace oculto hasta que votes">
+          <p className="m-0 select-none text-[14px] leading-relaxed text-panelink [filter:blur(5px)]" aria-hidden="true">Se eligió un plan y se controló en el tiempo, con un resultado que la comunidad va a conocer al votar.</p>
+          <span className="absolute inset-0 grid place-items-center"><span className="inline-flex items-center gap-2 rounded-full bg-menta px-3.5 py-1.5 text-[13px] font-semibold text-mentaink"><svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor" /><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2.4" /></svg>Vota para ver qué se hizo</span></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const leerGuardados = () => { try { return JSON.parse(localStorage.getItem('criterium-guardados') || '[]'); } catch (e) { return []; } };
 export function Publicacion({ p, pendiente = false }) {
-  const { conPerfil, perfil, abrirProto, myUid, verPerfil, siguiendo, toggleSeguir, avisar, go } = useApp();
+  const { conPerfil, perfil, abrirProto, myUid, verPerfil, siguiendo, toggleSeguir, avisar, go, abrirCasoRed, esRevisor, esDocente, esAdmin, setFeedProc } = useApp();
+  const puedeDestacar = (esRevisor ?? (esDocente || esAdmin)) && ['caso', 'discusion'].includes(p.tipo) && !pendiente;
   const [resp, setResp] = useState(false);
   const [todas, setTodas] = useState(false);
   const [largo, setLargo] = useState(false);
@@ -319,13 +448,16 @@ export function Publicacion({ p, pendiente = false }) {
   const nombre = (u, contenido, cls = '') => u ? <button type="button" onClick={() => verPerfil(u)} className={cx('text-left hover:underline', cls)}>{contenido}</button> : <span className={cls}>{contenido}</span>;
   const visibles = todas ? respuestas : respuestas.slice(-2);
   const largoTxt = (p.txt || '').length > 420 && !largo;
+  const secciones = SECCIONES_CASO.filter(([k]) => p.secciones && p.secciones[k]);
   return (
     <article className={cx('overflow-hidden rounded-[22px] bg-card shadow-sh', pendiente && 'ring-2 ring-inset', pendiente && (p.estado === 'rechazado' ? 'ring-badsoft' : 'ring-warnsoft'))}>
+      {claveEsp(esp) && !pendiente && <div className="h-1" style={{ background: `color-mix(in srgb, var(--esp-${claveEsp(esp)}-ink) 45%, var(--esp-${claveEsp(esp)}))` }} aria-hidden="true" />}
       {pendiente && (
         <div className={cx('flex flex-wrap items-center gap-2 px-4 py-2.5 text-[12.5px] font-semibold', p.estado === 'rechazado' ? 'bg-badsoft text-bad' : 'bg-warnsoft text-warn')}>
           <Ic n={p.estado === 'rechazado' ? 'alert' : 'clock'} s={15} />
           <span className="min-w-0 flex-1">{p.estado === 'rechazado' ? 'No se publicó' + (p.moderacion && p.moderacion.motivo ? ': ' + p.moderacion.motivo : '') : 'En revisión del equipo Criterium. Solo tú lo ves.'}</span>
-          {autorUid === myUid && (borrar
+          {abrirCasoRed && tipo === 'caso' && <button type="button" onClick={() => abrirCasoRed(p.id)} className="underline">Ver la revisión</button>}
+          {autorUid === myUid && !(abrirCasoRed && tipo === 'caso') && (borrar
             ? <span className="flex gap-2"><button type="button" onClick={() => borrarPendienteFS(p.id).catch(() => avisar('No se pudo borrar.', 'warn'))} className="underline">Borrar</button><button type="button" onClick={() => setBorrar(false)} className="underline">No</button></span>
             : <button type="button" onClick={() => setBorrar(true)} className="underline">{p.estado === 'rechazado' ? 'Borrar' : 'Retirar'}</button>)}
         </div>
@@ -341,17 +473,40 @@ export function Publicacion({ p, pendiente = false }) {
       {(tipo !== 'publicacion' || esp || proto) && (
         <div className="flex flex-wrap items-center gap-1.5 px-4 pt-2">
           {tipo !== 'publicacion' && <Pill tono={T.tono || 'neutro'}><Ic n={T.ic} s={12} />{T.t}</Pill>}
-          {esp && <Pill>{esp}</Pill>}
+          {esp && <PillEsp esp={esp} />}
+          {p.procedimiento && (setFeedProc
+            ? <button type="button" onClick={() => setFeedProc(p.procedimiento)} className="inline-flex items-center gap-1 rounded-full bg-soft px-2.5 py-[3px] text-[11.5px] font-semibold text-acentodeep hover:bg-acentosoft"># {p.procedimiento}</button>
+            : <Pill># {p.procedimiento}</Pill>)}
           {p.diente && <Pill>Diente {p.diente}</Pill>}
+          {p.edad && <Pill>{p.edad} años</Pill>}
           {proto && <button type="button" onClick={() => abrirProto(proto.id)} className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full bg-acentosoft px-2.5 py-[3px] text-[11.5px] font-semibold text-acentodeep hover:brightness-95"><Ic n="book" s={12} /><span className="truncate">{proto.t}</span></button>}
           {tipo === 'pregunta' && !respuestas.length && !pendiente && <Pill tono="warn">sin responder</Pill>}
         </div>
       )}
-      <div className="px-4 pb-2 pt-2.5">
-        {p.titulo && <h3 className="m-0 mb-1 text-[17px] font-bold leading-snug text-deep">{p.titulo}</h3>}
-        <p className={cx('m-0 whitespace-pre-line text-[15px] leading-[1.6] text-ink', largoTxt && 'line-clamp-6')}>{p.txt}</p>
-        {largoTxt && <button type="button" onClick={() => setLargo(true)} className="mt-1 text-[13px] font-semibold text-acento">Ver más</button>}
-      </div>
+      {p.secciones ? (
+        <div className="flex flex-col gap-2.5 px-4 pb-2 pt-2.5">
+          {p.titulo && <h3 className="m-0 text-[17px] font-bold leading-snug text-deep">{p.titulo}</h3>}
+          {secciones.slice(0, largo ? 4 : 2).map(([k, t]) => (
+            <div key={k}>
+              <p className="m-0 text-[11px] font-semibold uppercase tracking-[.1em] text-rotulo">{t}</p>
+              <p className="m-0 mt-0.5 whitespace-pre-line text-[14.5px] leading-[1.55] text-ink">{p.secciones[k]}</p>
+            </div>
+          ))}
+          {secciones.length > 2 && !largo && <button type="button" onClick={() => setLargo(true)} className="self-start text-[13px] font-semibold text-acento">Ver el caso completo</button>}
+        </div>
+      ) : (
+        <div className="px-4 pb-2 pt-2.5">
+          {p.titulo && <h3 className="m-0 mb-1 text-[17px] font-bold leading-snug text-deep">{p.titulo}</h3>}
+          <p className={cx('m-0 whitespace-pre-line text-[15px] leading-[1.6] text-ink', largoTxt && 'line-clamp-6')}>{p.txt}</p>
+          {largoTxt && <button type="button" onClick={() => setLargo(true)} className="mt-1 text-[13px] font-semibold text-acento">Ver más</button>}
+        </div>
+      )}
+      {tipo === 'discusion' && !pendiente && <Votacion p={p} />}
+      {p.revisado && (
+        <div className="mx-4 mb-2 flex items-center gap-2 rounded-rs bg-acentosoft px-3 py-2 text-[12.5px] font-semibold text-acentodeep">
+          <Ic n="stamp" s={15} /><span className="min-w-0 flex-1">Revisado por {p.revisado.por.nombre}{p.revisado.rondas > 1 ? ' · ' + p.revisado.rondas + ' rondas de revisión' : ''}</span>
+        </div>
+      )}
       {(p.adjuntos || []).length > 0 && (
         <div className={cx('grid gap-0.5', p.adjuntos.length > 1 && 'grid-cols-2')}>
           {p.adjuntos.slice(0, 4).map((a, k) => a.tipo === 'video'
@@ -373,7 +528,13 @@ export function Publicacion({ p, pendiente = false }) {
             <button type="button" onClick={() => setResp(!resp)} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft">
               <Ic n="chat" s={19} />{respuestas.length > 0 ? respuestas.length : ''} <span className="hidden sm:inline">Responder</span>
             </button>
-            <button type="button" onClick={guardar} aria-pressed={guardado} className={cx('ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold hover:bg-soft', guardado ? 'text-acento' : 'text-ink2')}>
+            {puedeDestacar && (
+              <button type="button" onClick={async () => { try { await destacarFS(p.id, p.destacado ? null : { uid: myUid, nombre: (perfil && perfil.nombre) || '' }); avisar(p.destacado ? 'Ya no es el caso de la semana' : 'Destacado como caso de la semana'); } catch (e) { avisar('No se pudo destacar.', 'warn'); } }}
+                aria-pressed={!!p.destacado} title="Caso de la semana" className={cx('ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold hover:bg-soft', p.destacado ? 'text-acento' : 'text-ink2')}>
+                <Ic n="sparkle" s={18} /><span className="hidden sm:inline">{p.destacado ? 'Destacado' : 'Destacar'}</span>
+              </button>
+            )}
+            <button type="button" onClick={guardar} aria-pressed={guardado} className={cx(puedeDestacar ? '' : 'ml-auto', 'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold hover:bg-soft', guardado ? 'text-acento' : 'text-ink2')}>
               <Ic n="guardar" s={19} className={guardado ? 'fill-current' : ''} /><span className="hidden sm:inline">{guardado ? 'Guardado' : 'Guardar'}</span>
             </button>
           </div>
@@ -458,9 +619,35 @@ function ASeguir({ horizontal = false }) {
 }
 
 /* ═════════ FEED ═════════ */
-const PESTANAS = [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Protocolos']];
-export function Feed() {
-  const { feed, perfil, myUid, siguiendo, verPerfil, feedProto, setFeedProto, editarPerfil } = useApp();
+const PESTANAS = CREATIVA
+  ? [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['caso', 'Casos'], ['discusion', 'Planes de tratamiento'], ['pregunta', 'Preguntas']]
+  : [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Protocolos']];
+// Caso de la semana: lo destaca un docente o el equipo; se muestra 7 días, el más reciente
+const SEMANA = 7 * 864e5;
+function CasoSemana({ p }) {
+  const [abierto, setAbierto] = useState(false);
+  const esp = especialidadDe(p);
+  const votos = Object.keys(p.votos || {}).length;
+  const resp = (p.respuestas || []).length;
+  return (
+    <section aria-label="Caso de la semana" className="flex flex-col gap-3">
+      <button type="button" onClick={() => setAbierto(!abierto)} aria-expanded={abierto} className="relative overflow-hidden rounded-[24px] bg-deep px-5 py-5 text-left text-onc transition-transform active:scale-[.99] sm:px-6 sm:py-6">
+        <span className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-menta opacity-20 blur-3xl" aria-hidden="true" />
+        <span className="relative inline-flex items-center gap-1.5 rounded-full bg-menta px-3 py-1 text-[11px] font-bold uppercase tracking-[.12em] text-mentaink"><Ic n="sparkle" s={13} />Caso de la semana</span>
+        <h2 className="relative m-0 mt-3 max-w-[30ch] text-[22px] font-bold leading-snug tracking-[-.02em] [text-wrap:balance] sm:text-[26px]">{p.titulo || (p.txt || '').slice(0, 90)}</h2>
+        <p className="relative m-0 mt-1.5 text-[13.5px] text-panelink2">{[p.autor && p.autor.nombre, p.revisado ? 'revisado por ' + p.revisado.por.nombre : '', esp].filter(Boolean).join(' · ')}</p>
+        <span className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-semibold text-menta">{abierto ? 'Cerrar' : p.tipo === 'discusion' ? '¿Qué harías tú? Vota y discute' : 'Ver y discutir'}<span className="text-panelink2">{resp} {resp === 1 ? 'respuesta' : 'respuestas'}{p.tipo === 'discusion' ? ' · ' + votos + (votos === 1 ? ' voto' : ' votos') : ''}</span></span>
+      </button>
+      {abierto && <div className="aparece"><Publicacion p={p} /></div>}
+    </section>
+  );
+}
+
+// arriba y lado: lo que cada edición agrega al inicio (en la completa, el mapa de protocolos y «Tu día»)
+export function Feed({ arriba = null, lado = null }) {
+  const { feed, perfil, myUid, siguiendo, verPerfil, feedProto, setFeedProto, editarPerfil, feedProc, setFeedProc } = useApp();
+  const semana = useMemo(() => feed.filter((p) => (p.estado || 'publicado') === 'publicado' && p.destacado && p.destacado.fecha && Date.now() - new Date(p.destacado.fecha).getTime() < SEMANA)
+    .sort((a, b) => b.destacado.fecha.localeCompare(a.destacado.fecha))[0], [feed]);
   const [tab, setTab] = useState('para-ti');
   const misPendientes = useMisPendientes(myUid);
   const { seguidores } = useSeguimientos(myUid);
@@ -469,11 +656,12 @@ export function Feed() {
   const nombre = ((perfil && perfil.nombre) || '').split(' ')[0];
   const fp = feedProto && protoPorId(feedProto);
   const lista = useMemo(() => {
-    let l = feed.filter((p) => (p.estado || 'publicado') === 'publicado' && (!feedProto || p.protocoloId === feedProto));
+    let l = feed.filter((p) => (p.estado || 'publicado') === 'publicado' && (!feedProto || p.protocoloId === feedProto) && (!feedProc || p.procedimiento === feedProc) && (feedProc || !semana || p.id !== semana.id));
     const deSeguidos = (p) => siguiendo.includes(p.autorUid || (p.autor && p.autor.uid));
     if (tab === 'siguiendo') l = l.filter(deSeguidos);
     if (tab === 'pregunta') l = l.filter((p) => tipoDe(p) === 'pregunta' || (!p.tipo && /\?/.test(p.txt || '')));
     if (tab === 'caso') l = l.filter((p) => tipoDe(p) === 'caso');
+    if (tab === 'discusion') l = l.filter((p) => tipoDe(p) === 'discusion');
     if (tab === 'protocolos') l = l.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)));
     if (tab === 'para-ti') {
       // Lo de quien sigues y lo de tus áreas sube; después, lo más nuevo
@@ -482,21 +670,21 @@ export function Feed() {
       return [...l].sort((a, b) => puntos(b) - puntos(a));
     }
     return [...l].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
-  }, [feed, tab, siguiendo, intereses, feedProto]);
+  }, [feed, tab, siguiendo, intereses, feedProto, feedProc, semana]);
   const enRevision = misPendientes.filter((p) => p.estado === 'revision').length;
 
   return (
     <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="mx-auto flex w-full min-w-0 max-w-[660px] flex-col gap-5">
         <h1 className="sr-only">Inicio</h1>
-        <Mapa incrustado />
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="m-0 text-[24px] font-bold tracking-[-.02em] text-deep sm:text-[28px]">{nombre ? 'Hola, ' + nombre : 'Hola'}</p>
-            <p className="m-0 mt-0.5 text-[14px] text-ink3">{intereses.length ? 'Tu inicio según ' + intereses.slice(0, 3).join(', ') : 'Cuéntanos qué te interesa y armamos tu inicio.'}</p>
+            {intereses.length > 0 && <p className="m-0 mt-0.5 text-[14px] text-ink3">Tu inicio según {intereses.slice(0, 3).join(', ')}</p>}
           </div>
-          <button type="button" onClick={editarPerfil} className="flex-none rounded-full bg-soft px-3.5 py-2 text-[12.5px] font-semibold text-acentodeep hover:bg-acentosoft">{intereses.length ? 'Cambiar intereses' : 'Elegir intereses'}</button>
         </header>
+        {arriba}
+        {semana && <CasoSemana key={semana.id} p={semana} />}
         {comp.pct < 100 && (
           <button type="button" onClick={editarPerfil} className="flex items-center gap-4 rounded-[22px] bg-deep px-5 py-4 text-left text-onc">
             <span className="relative grid h-12 w-12 flex-none place-items-center">
@@ -515,6 +703,7 @@ export function Feed() {
             <button key={k} type="button" onClick={() => setTab(k)} aria-pressed={tab === k} className={cx('flex-none rounded-full px-4 py-2 text-[13.5px] font-semibold transition-colors', tab === k ? 'bg-deep text-onc' : 'text-ink2 hover:bg-soft')}>{t}</button>
           ))}
         </nav>
+        {feedProc && <button type="button" onClick={() => setFeedProc('')} className="inline-flex items-center gap-1.5 self-start rounded-full bg-deep px-3.5 py-1.5 text-[12.5px] font-semibold text-onc"># {feedProc}<Ic n="x" s={13} /></button>}
         {fp && <button type="button" onClick={() => setFeedProto('')} className="inline-flex items-center gap-1.5 self-start rounded-full bg-acentosoft px-3 py-1 text-[12px] font-semibold text-acentodeep">Sobre: {fp.t}<Ic n="x" s={13} /></button>}
         <div className="flex flex-col gap-4">
           {lista.length === 0 ? (
@@ -537,7 +726,7 @@ export function Feed() {
           </section>
         )}
         <ASeguir />
-        <TuDia />
+        {lado}
         <section className="rounded-[22px] border border-dashed border-cardline p-4">
           <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-full bg-deep text-onc"><Ic n="edificio" s={16} /></span><b className="text-[13.5px] text-ink">Cuentas oficiales</b><Pill>Pronto</Pill></div>
           <p className="m-0 mt-2 text-[12.5px] leading-snug text-ink3">Universidades, sociedades científicas y colegios profesionales con su insignia verificada. Las crea el equipo Criterium.</p>
@@ -580,7 +769,9 @@ export function PerfilPublico() {
   if (pf === null) return <div className="mx-auto max-w-[720px]">{volver}<Vacio icon="userCheck" titulo="Este perfil no está disponible">La persona todavía no entra con la versión nueva de Criterium.</Vacio></div>;
   const oficial = pf.tipo === 'oficial';
   const publicados = posts.filter((p) => (p.estado || 'publicado') === 'publicado');
-  const TABS = [['todo', 'Publicaciones', publicados], ['caso', 'Casos', publicados.filter((p) => tipoDe(p) === 'caso')], ['protocolos', 'Protocolos y borradores', publicados.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)))], ...(yo ? [['revision', 'En revisión', pendientes]] : [])];
+  const TABS = [['todo', 'Publicaciones', publicados], ['caso', 'Casos', publicados.filter((p) => tipoDe(p) === 'caso')],
+    CREATIVA ? ['discusion', 'Planes de tratamiento', publicados.filter((p) => tipoDe(p) === 'discusion')] : ['protocolos', 'Protocolos y borradores', publicados.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)))],
+    ...(yo ? [['revision', 'En revisión', pendientes]] : [])];
   const actual = TABS.find((t) => t[0] === tab) || TABS[0];
   const comp = completitud(pf);
   const stat = (n, t, onClick) => <button type="button" onClick={onClick} disabled={!onClick} className="flex flex-col items-start rounded-rs px-1 text-left enabled:hover:bg-soft"><b className="text-[18px] font-bold tabular-nums text-ink">{n}</b><span className="text-[12px] text-ink3">{t}</span></button>;
@@ -623,8 +814,41 @@ export function PerfilPublico() {
           ? <p className="m-0 rounded-[22px] border border-dashed border-line px-6 py-10 text-center text-[14px] text-ink3">{yo ? (tab === 'revision' ? 'No tienes nada en revisión.' : 'Todavía no publicas nada aquí. Hazlo desde el inicio.') : 'Todavía no publica nada aquí.'}</p>
           : actual[2].map((p) => <Publicacion key={p.id} p={p} pendiente={tab === 'revision'} />)}
       </div>
-      {yo && logout && <button type="button" onClick={logout} className="self-start px-1 text-[13px] font-semibold text-bad hover:underline">Cerrar sesión</button>}
+      {yo && <PieCuenta logout={logout} />}
       {lista && <ListaPersonas titulo={lista[0]} uids={lista[1]} cerrar={() => setLista(null)} />}
+    </div>
+  );
+}
+
+// Al final de tu perfil: privacidad, cerrar sesión y borrar la cuenta (pide la contraseña)
+function PieCuenta({ logout }) {
+  const { go, avisar } = useApp();
+  const [borrar, setBorrar] = useState(false);
+  const [pass, setPass] = useState('');
+  const [err, setErr] = useState('');
+  const [ocupado, setOcupado] = useState(false);
+  const confirmar = async (e) => {
+    e.preventDefault(); if (!pass) { setErr('Escribe tu contraseña.'); return; }
+    setOcupado(true); setErr('');
+    try { await borrarCuenta(pass, borrarMisDatosFS); avisar('Tu cuenta se borró.'); }
+    catch (er) { setErr(er && er.code ? errorAuth(er.code) : 'No se pudo borrar la cuenta. Revisa tu conexión.'); }
+    setOcupado(false);
+  };
+  return (
+    <div className="flex flex-col gap-3 border-t border-line2 pt-5">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 px-1 text-[13px] font-semibold">
+        <button type="button" onClick={() => go('privacidad')} className="text-ink3 hover:text-ink">Privacidad y términos</button>
+        {logout && <button type="button" onClick={logout} className="text-ink3 hover:text-ink">Cerrar sesión</button>}
+        <button type="button" onClick={() => setBorrar(!borrar)} className="text-bad hover:underline">Borrar mi cuenta</button>
+      </div>
+      {borrar && (
+        <form onSubmit={confirmar} className="flex flex-col gap-2.5 rounded-[18px] bg-badsoft p-4">
+          <p className="m-0 text-[13.5px] font-semibold leading-snug text-bad">Se borran para siempre tu perfil, tus publicaciones, tus comentarios, a quién sigues y tu cuenta. No se puede deshacer.</p>
+          <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Tu contraseña, para confirmar" aria-label="Tu contraseña" autoComplete="current-password" className={inputCls} />
+          {err && <span className="text-[12.5px] text-bad">{err}</span>}
+          <div className="flex gap-2"><Btn v="danger" type="submit" disabled={ocupado}>{ocupado ? 'Borrando…' : 'Borrar para siempre'}</Btn><Btn onClick={() => setBorrar(false)}>Cancelar</Btn></div>
+        </form>
+      )}
     </div>
   );
 }

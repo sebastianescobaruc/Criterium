@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment
+  collection, doc, addDoc, getDocs, setDoc, updateDoc, deleteDoc, getDoc,
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion, arrayRemove, increment, deleteField
 } from 'firebase/firestore';
-import {
-  ref, uploadBytes, getDownloadURL, deleteObject
-} from 'firebase/storage';
-import { db, storage } from './firebase.js';
+import { db, usarStorage } from './firebase.js';
 
 /* ═══════ Rol docente ═══════ */
 
@@ -121,7 +118,7 @@ export async function eliminarCasoFS(casoId, fotos = []) {
   // Borrar fotos de Storage
   for (const f of fotos) {
     if (f.storagePath) {
-      try { await deleteObject(ref(storage, f.storagePath)); } catch (e) {}
+      try { const { deleteObject, ref, storage } = await usarStorage(); await deleteObject(ref(storage, f.storagePath)); } catch (e) {}
     }
   }
   await deleteDoc(doc(db, 'casos', casoId));
@@ -139,6 +136,7 @@ export async function leerCasoFS(casoId) {
 export async function subirFoto(casoId, fotoId, dataUrl) {
   const blob = dataUrlABlob(dataUrl);
   const path = `casos/${casoId}/fotos/${fotoId}.jpg`;
+  const { ref, uploadBytes, getDownloadURL, storage } = await usarStorage();
   const storageRef = ref(storage, path);
   await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
   const url = await getDownloadURL(storageRef);
@@ -407,6 +405,78 @@ export async function borrarPendienteFS(id) {
   await deleteDoc(doc(db, 'pendientes', id));
 }
 
+/* ═══════ Casos con revisión y corrección (Criterium Red) ═══════
+   El caso entra a pendientes/{id} (tipo 'caso', estado 'revision', version 1). Un revisor (docente o equipo Criterium,
+   nunca el autor) lo puntúa y decide: aprobar (se copia al feed con el mismo id), pedir correcciones (estado 'cambios',
+   con cada corrección ligada a un campo) o no publicar ('rechazado'). El autor corrige y reenvía (version + 1).
+   revisiones: [{ id, fecha, version, revisor: { uid, nombre, rol }, puntajes: { pertinencia, claridad, evidencia },
+     veredicto: 'aprobado' | 'cambios' | 'rechazado', correcciones: [{ campo, txt }], comentario }] */
+const porFecha = (a, b) => (b.actualizado || b.fecha || '').localeCompare(a.actualizado || a.fecha || '');
+export function useCasosRed(uid) {
+  const [lista, setLista] = useState(null);
+  useEffect(() => {
+    if (!uid) { setLista([]); return; }
+    return onSnapshot(query(collection(db, 'pendientes'), where('autorUid', '==', uid)),
+      (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((p) => p.tipo === 'caso').sort(porFecha)), () => setLista([]));
+  }, [uid]);
+  return lista;
+}
+export function useColaCasos(activo) {
+  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!activo) { setLista([]); return; }
+    return onSnapshot(query(collection(db, 'pendientes'), where('estado', '==', 'revision')),
+      (snap) => setLista(snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((p) => p.tipo === 'caso').sort((a, b) => -porFecha(a, b))), () => setLista([]));
+  }, [activo]);
+  return lista;
+}
+export function usePendiente(id) {
+  const [p, setP] = useState(undefined); // undefined = cargando, null = no existe o no se puede ver
+  useEffect(() => {
+    if (!id) { setP(null); return; }
+    setP(undefined);
+    return onSnapshot(doc(db, 'pendientes', id), (s) => setP(s.exists() ? { ...s.data(), id: s.id } : null), () => setP(null));
+  }, [id]);
+  return p;
+}
+export async function enviarCasoRedFS(caso) {
+  const ahora = new Date().toISOString();
+  const r = await addDoc(collection(db, 'pendientes'), { ...caso, tipo: 'caso', estado: 'revision', version: 1, revisiones: [], historial: [{ fecha: ahora, txt: 'Enviado a revisión' }], fecha: ahora, actualizado: ahora });
+  return r.id;
+}
+export async function corregirCasoRedFS(caso, cambios, nota) {
+  const ahora = new Date().toISOString();
+  await updateDoc(doc(db, 'pendientes', caso.id), {
+    ...cambios, estado: 'revision', version: (caso.version || 1) + 1, actualizado: ahora,
+    historial: [...(caso.historial || []), { fecha: ahora, txt: 'Versión ' + ((caso.version || 1) + 1) + ' reenviada: ' + nota }]
+  });
+}
+/** Firma una revisión. Si aprueba, el caso se copia al feed (mismo id) en la misma escritura. */
+export async function revisarCasoRedFS(caso, rev) {
+  const ahora = new Date().toISOString();
+  const txt = { aprobado: 'Aprobado y publicado', cambios: 'Correcciones pedidas', rechazado: 'No se publica' }[rev.veredicto] + ' por ' + rev.revisor.nombre;
+  const b = writeBatch(db);
+  b.update(doc(db, 'pendientes', caso.id), { estado: rev.veredicto, revisiones: [...(caso.revisiones || []), rev], historial: [...(caso.historial || []), { fecha: ahora, txt }], actualizado: ahora });
+  if (rev.veredicto === 'aprobado') {
+    const { id, estado, revisiones, historial, ...publico } = caso;
+    b.set(doc(db, 'feed', caso.id), {
+      ...publico, estado: 'publicado', fecha: ahora, likes: 0, likedBy: [], respuestas: [],
+      revisado: { por: { uid: rev.revisor.uid, nombre: rev.revisor.nombre }, version: caso.version || 1, rondas: (revisiones || []).length + 1, fecha: ahora }
+    });
+  }
+  await b.commit();
+}
+
+/** Caso de la semana: un docente o el equipo lo destaca (o lo quita con por = null). */
+export async function destacarFS(postId, por) {
+  await updateDoc(doc(db, 'feed', postId), { destacado: por ? { ...por, fecha: new Date().toISOString() } : deleteField() });
+}
+
+/** Discusión de un plan de tratamiento: cada persona vota un plan (o retira su voto). */
+export async function votarFS(postId, uid, opcion) {
+  await updateDoc(doc(db, 'feed', postId), { ['votos.' + uid]: opcion === null ? deleteField() : opcion });
+}
+
 export function usePerfilPublico(uid) {
   const [perfil, setPerfil] = useState(undefined); // undefined = cargando, null = no existe
   useEffect(() => {
@@ -530,4 +600,14 @@ export async function comentarPasoFS(c) {
 }
 export async function borrarComentarioFS(id) {
   return deleteDoc(doc(db, 'comentarios', id));
+}
+
+/* ═══════ Borrar mi cuenta (privacidad) ═══════
+   Borra lo que es de la persona: perfil público y privado, postulación, a quién sigue, sus publicaciones,
+   lo que tiene en revisión y sus comentarios. Después auth.js borra la cuenta de acceso. */
+export async function borrarMisDatosFS(uid) {
+  const de = async (col, campo) => (await getDocs(query(collection(db, col), where(campo, '==', uid)))).docs;
+  const docs = [...await de('seguimientos', 'de'), ...await de('feed', 'autorUid'), ...await de('pendientes', 'autorUid'), ...await de('comentarios', 'uid')];
+  for (const d of docs) await deleteDoc(d.ref).catch(() => {});
+  for (const ruta of ['perfiles', 'usuarios', 'postulaciones']) await deleteDoc(doc(db, ruta, uid)).catch(() => {});
 }

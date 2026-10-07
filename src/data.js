@@ -4,7 +4,7 @@ export const PROTOS = [
       t:'Cementado de corona provisional de PMMA fresado CAD/CAM',
       s:'Corona unitaria sobre diente natural, de 6 a 24 meses, cementada por vía adhesiva con cemento de resina. Solo la sesión de cementado.',
       extraTxt:'Busca revisores', n:'', abre:true,
-      k:'cementar cemento provisional pmma cadcam corona temporal eugenol adhesivo arenado primer mma resina superbond ferula larga duracion' },
+      k:'cementar cemento provisional pmma cadcam corona temporal eugenol adhesivo arenado primer mma resina superbond larga duracion' },
     { id:'resina-clase-i', corto:'Resina clase I', esp:'Rehabilitación oral', estadoTxt:'Borrador v0.2',
       t:'Restauración de resina compuesta clase I oclusal',
       s:'Caries oclusal primaria en diente permanente vital. De la marca de oclusión al pulido.',
@@ -39,7 +39,7 @@ export const DATOS = {
       // Camino a la publicación: lo redactó un estudiante y espera a los expertos (mínimo 5) y al filtro final
       flujo:{ autor:'un estudiante de Odontología', revisores:0, minimo:5 },
       titulo:'Cementado de corona provisional de PMMA fresado CAD/CAM sobre diente natural',
-      bandera:'BORRADOR DE ESTUDIANTE · NUEVE FUENTES REALES VERIFICADAS · ESPERA REVISIÓN DE EXPERTOS',
+      bandera:'BORRADOR DE ESTUDIANTE · SIETE FUENTES REALES VERIFICADAS · ESPERA REVISIÓN DE EXPERTOS',
       tags:['Provisional de larga duración','6–24 meses','v0.5 · borrador de estudiante','Vía adhesiva'],
       alcance:'la sesión de cementado de una corona unitaria de PMMA fresado sobre diente natural, con permanencia prevista entre 6 y 24 meses. Cubre solo la vía adhesiva, con cemento de resina. No cubre el diseño, el fresado ni la prueba previa del provisional, y no aplica sobre pilar de implante.',
       bandeja:[
@@ -50,13 +50,12 @@ export const DATOS = {
       ],
       evidencia:[
         { n:'01', grado:'Grado D · documentación de fabricante', txt:'PMMA fresado reticulado: 135 MPa y permanencia máxima indicada de 12 meses.' },
-        { n:'02', grado:'Grado B · revisión sistemática con metaanálisis', txt:'Férula de 2 mm o más: +165 N de resistencia a la fractura. En clínica el efecto es más débil.' },
-        { n:'05', grado:'Grado B · in vitro comparativo', txt:'Rugosidad del PMMA fresado ya bajo el umbral de 0,2 µm.' },
-        { n:'06', grado:'Grado C · in vitro', txt:'PMMA CAD/CAM sin acondicionar: casi no hay unión. El primer con MMA la levanta.' },
-        { n:'07', grado:'Sin evidencia', txt:'Fotopolimerizar o no el adhesivo del muñón: depende del sistema de cemento.' },
-        { n:'09', grado:'Grado C · población distinta', txt:'Cemento residual y enfermedad periimplantaria.' },
-        { n:'10', grado:'Grado C · in vitro', txt:'El recubrimiento de resina mejora la estabilidad de color del PMMA fresado.' },
-        { n:'11', grado:'Sin evidencia', txt:'Indicaciones al paciente: práctica habitual.' }
+        { n:'04', grado:'Grado B · in vitro comparativo', txt:'Rugosidad del PMMA fresado ya bajo el umbral de 0,2 µm.' },
+        { n:'05', grado:'Grado C · in vitro', txt:'PMMA CAD/CAM sin acondicionar: casi no hay unión. El primer con MMA la levanta.' },
+        { n:'06', grado:'Sin evidencia', txt:'Fotopolimerizar o no el adhesivo del muñón: depende del sistema de cemento.' },
+        { n:'08', grado:'Grado C · población distinta', txt:'Cemento residual y enfermedad periimplantaria.' },
+        { n:'09', grado:'Grado C · in vitro', txt:'El recubrimiento de resina mejora la estabilidad de color del PMMA fresado.' },
+        { n:'10', grado:'Sin evidencia', txt:'Indicaciones al paciente: práctica habitual.' }
       ],
       nota:'Borrador v0.5, hecho por un estudiante. Solo la vía adhesiva: la vía convencional con óxido de zinc se eliminó. Generaliza el alcance a cualquier corona unitaria de PMMA fresado. Las fuentes están verificadas y con su referencia completa; lo que falta en todas es el localizador de párrafo, y en la documentación de fabricante, el documento exacto. Dos cifras no tienen fuente y se publican como extrapolación declarada: los 50 µm y los 1–2 bar del arenado. Ninguna versión de este documento debe usarse en un paciente hasta que el panel de expertos lo revise.',
       pasos:[
@@ -68,17 +67,6 @@ export const DATOS = {
               { grado:'Grado D · documentación de fabricante', cita:'Ivoclar Vivadent. Telio CAD: bloques de PMMA reticulado para provisionales de larga duración. Documentación de producto.', url:'https://www.ivoclar.com/en_li/products/digital-processes/telio-cad', loc:'Resistencia flexural 135 MPa · permanencia máxima 12 meses en coronas · localizador pendiente' }
             ] },
             { titulo:'dónde se equivoca la gente', parrafos:['Asumir que todo provisional fresado es PMMA. Los bloques de composite CAD se fresan igual y se ven parecidos, pero se acondicionan al revés.','Empezar a arenar sin saber qué material es. El arenado sobre un composite CAD no es el error grave; el grave es el fluorhídrico sobre PMMA, que no hace nada y te hace creer que grabaste.'] }
-          ] },
-        { anim:'pmma.ferula', corto:'Mide la férula si el pilar está endodonciado', hacer:'Mide con sonda milimetrada la dentina sana que queda por debajo del margen de la corona, en todo el perímetro.',
-          cond:'→ solo si el pilar está endodonciado y llevará poste',
-          listo:'Terminaste cuando la medida está registrada en la ficha y confirmas al menos 2 mm de dentina sana en todo el contorno.',
-          porque:['La férula es ese anillo de dentina sana por debajo del margen. Reparte la carga sobre el diente en vez de concentrarla en la unión entre el poste y el muñón.','Una revisión sistemática de 2026 que reúne 33 estudios encontró que una férula de 2 mm o más aumenta la resistencia a la fractura en 165 N de media, y recomienda entre 1,5 y 2,0 mm de altura con al menos 1 mm de espesor de dentina. Si no la hay, no se arregla eligiendo mejor cemento: hay que conseguirla antes de coronar.'],
-          sub:[
-            { titulo:'ver fuentes', fuentes:[
-              { grado:'Grado B · revisión sistemática con metaanálisis', cita:'Hajeer O, Hasan A, Kanout C, Morad ML. Ferrule dimensions and restoration outcomes in endodontically treated teeth: a systematic review and meta-analysis. J Prosthodont. 2026.', loc:'Férula ≥2 mm: diferencia media +165 N (IC 95 % 110–215) · recomienda 1,5–2,0 mm de altura y ≥1 mm de espesor de dentina · DOI 10.1111/jopr.70099 · PMID 41601347 · localizador de párrafo pendiente' },
-              { grado:'Grado B · revisión sistemática de estudios clínicos', cita:'Al-Dabbagh RA, Sindi MA, Sanari MA, Manna AI, Al-Dabbagh MA. Effect of a circumferential ferrule on the survival and success of endodontically treated teeth restored with fiber posts: a systematic review and meta-analysis. J Prosthet Dent. 2024;132(6):1251-1259.', loc:'RR 1,28 (IC 95 % 1,06–1,54) en 2 estudios y 123 dientes; sin diferencia significativa al ampliar a 8 estudios y 407 dientes · DOI 10.1016/j.prosdent.2023.12.002 · localizador pendiente' }
-            ] },
-            { titulo:'ojo con esta evidencia', parrafos:['Los 165 N vienen sobre todo de ensayos de laboratorio. En pacientes el efecto es menos claro: la revisión clínica de 2024 encuentra mejor éxito con férula en 2 estudios con 123 dientes, pero al ampliar a 8 estudios y 407 dientes la diferencia desaparece.','Exige los 2 mm porque el laboratorio y la práctica lo respaldan, no porque exista un ensayo clínico grande que lo demuestre.'] }
           ] },
         { anim:'pmma.probar', corto:'Retira el provisional anterior y prueba en seco', hacer:'Retira el provisional anterior, elimina todo resto de cemento del muñón y prueba la corona en boca antes de preparar nada.',
           listo:'Terminaste cuando asienta por completo sin presión, los márgenes contactan la preparación en todo el perímetro y el punto de contacto pasa hilo dental con resistencia leve.',

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { registrar, iniciarSesion, recuperarPassword, errorAuth } from '../auth.js';
 import { AREAS } from '../logic.js';
 import { Btn, Field, Ic, Logo, inputCls, inputErr, cx } from '../ui.jsx';
+import { Privacidad } from './privacidad.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
 const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
@@ -11,11 +12,12 @@ const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
    Si no hay sesión muestra login/registro.
    Si hay sesión renderiza children.
    ═════════════════════════════════════════ */
-export default function AuthGate({ usuario, cargando, children }) {
+// portada: lo que ve quien todavía no tiene cuenta (cada edición trae la suya)
+export default function AuthGate({ usuario, cargando, portada, children }) {
   // La pantalla de carga animada vive en index.html; se va cuando ya se sabe si hay sesión
   useEffect(() => { if (!cargando) window.criteriumListo?.(); }, [cargando]);
   if (cargando) return <Cargando />;
-  if (!usuario) return <PantallaAuth />;
+  if (!usuario) return <SinSesion Portada={portada} />;
   return children;
 }
 
@@ -36,17 +38,28 @@ function Marca() {
   );
 }
 
+/* ═════════ Sin sesión: portada pública → iniciar sesión, crear cuenta o privacidad ═════════ */
+function SinSesion({ Portada }) {
+  const [pantalla, setPantalla] = useState('portada'); // 'portada' | 'login' | 'registro' | 'recuperar' | 'privacidad'
+  const [desde, setDesde] = useState('portada');
+  useEffect(() => { try { window.scrollTo(0, 0); } catch (e) {} }, [pantalla]);
+  const verPrivacidad = () => { setDesde(pantalla); setPantalla('privacidad'); };
+  if (pantalla === 'portada') return <Portada entrar={setPantalla} privacidad={verPrivacidad} />;
+  if (pantalla === 'privacidad') return <div className="fondo min-h-screen px-4 py-8 sm:px-6"><Privacidad volver={() => setPantalla(desde)} /></div>;
+  return <PantallaAuth modo={pantalla} setModo={setPantalla} volver={() => setPantalla('portada')} privacidad={verPrivacidad} />;
+}
+
 /* ═════════ Pantalla de Login / Registro ═════════ */
-function PantallaAuth() {
-  const [modo, setModo] = useState('login'); // 'login' | 'registro' | 'recuperar'
+function PantallaAuth({ modo, setModo, volver, privacidad }) {
 
   return (
     <div className="fondo flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
+        <button type="button" onClick={volver} className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Inicio</button>
         <Marca />
 
         {modo === 'login' && <FormLogin onCambiar={setModo} />}
-        {modo === 'registro' && <FormRegistro onCambiar={setModo} />}
+        {modo === 'registro' && <FormRegistro onCambiar={setModo} privacidad={privacidad} />}
         {modo === 'recuperar' && <FormRecuperar onCambiar={setModo} />}
 
         <p className="mt-6 text-center text-[11px] leading-normal text-ink3">
@@ -113,7 +126,7 @@ function FormLogin({ onCambiar }) {
 }
 
 /* ── Registro ── */
-function FormRegistro({ onCambiar }) {
+function FormRegistro({ onCambiar, privacidad }) {
   const [f, setF] = useState({ nombre: '', email: '', pass: '', rol: ROLES[0], institucion: '', area: '' });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -122,13 +135,14 @@ function FormRegistro({ onCambiar }) {
   const errores = {
     nombre: f.nombre.trim().length < 3 ? 'Escribe tu nombre y apellido.' : '',
     email: !esEmail(f.email) ? 'Escribe un correo válido.' : '',
-    pass: f.pass.length < 6 ? 'Al menos 6 caracteres.' : ''
+    pass: f.pass.length < 6 ? 'Al menos 6 caracteres.' : '',
+    acepta: !f.acepta ? 'Para crear la cuenta, acepta la privacidad y los términos.' : ''
   };
 
   const enviar = async (e) => {
     e.preventDefault();
     setIntento(true);
-    if (errores.nombre || errores.email || errores.pass) return;
+    if (errores.nombre || errores.email || errores.pass || errores.acepta) return;
     setCargando(true);
     setError('');
     try {
@@ -166,6 +180,12 @@ function FormRegistro({ onCambiar }) {
         <input id="reg-pass" type="password" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })} placeholder="Al menos 6 caracteres" autoComplete="new-password"
           className={cx(inputCls, intento && errores.pass && inputErr)} />
       </Field>
+
+      <label className="flex items-start gap-2.5 text-[13px] leading-snug text-ink2">
+        <input type="checkbox" checked={!!f.acepta} onChange={(e) => setF({ ...f, acepta: e.target.checked })} className="mt-0.5 accent-[var(--acento)]" />
+        <span>Acepto la <button type="button" onClick={privacidad} className="font-semibold text-acento underline">privacidad y los términos</button>. Nunca subiré datos que identifiquen a un paciente.</span>
+      </label>
+      {intento && errores.acepta && <span className="-mt-2 text-[12px] text-bad">{errores.acepta}</span>}
 
       {error && <div className="rounded-rs bg-badsoft px-3.5 py-2.5 text-[13px] font-semibold text-bad">{error}</div>}
 

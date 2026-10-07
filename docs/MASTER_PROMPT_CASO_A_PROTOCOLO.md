@@ -92,7 +92,7 @@ anim: {
 - La app valida cada receta. Una receta con errores no se dibuja.
 
 <!-- catalogo:inicio (lo escribe npm run catalogo; no lo edites a mano) -->
-### Escenas hechas a mano (49)
+### Escenas hechas a mano (48)
 
 - `molar.papel` — El diente antagonista cierra sobre el papel de articular y deja marcas azules en las cúspides.
 - `molar.dique` — El dique de goma baja con el clamp hasta el cuello del diente y lo deja aislado.
@@ -134,7 +134,6 @@ anim: {
 - `endo.medicacion` — Si el tratamiento sigue otro día, el hidróxido de calcio llena el conducto hasta 1 o 2 mm antes de la longitud de trabajo; encima, una torunda estéril, 2 mm de provisorio e ionómero.
 - `endo.obturar` — El cono maestro llega a la longitud de trabajo con retención; con sellador, el espaciador abre espacio y se suman al menos tres conos accesorios hasta llenar el conducto.
 - `endo.sellar` — La gutapercha se corta 1 mm bajo el cuello del diente, la cámara se limpia con alcohol y se hace el doble sellado coronario: ionómero y resina.
-- `pmma.ferula` — En un pilar endodonciado, la sonda milimetrada mide la dentina sana sobre la línea de terminación, a cada lado del muñón.
 - `pmma.probar` — Sale el provisional anterior, se limpian los restos de cemento del muñón y la corona nueva se prueba en seco: asienta sin presión con los márgenes en contacto.
 - `pmma.oclusion` — Con la corona puesta sin cemento, el papel de articular marca el contacto alto y la fresa lo ajusta.
 - `pmma.pulir` — El pulidor trabaja solo la zona que se ajustó; el resto del provisional no se toca.

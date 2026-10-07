@@ -1,7 +1,7 @@
 {
   "name": "criterium",
   "private": true,
-  "version": "0.3.0-beta.4",
+  "version": "0.3.0-beta.5",
   "type": "module",
   "description": "Criterium: protocolos odontológicos con evidencia trazable, casos clínicos y revisión por pares.",
   "scripts": {
@@ -14,7 +14,10 @@
     "deploy": "vite build && firebase deploy --only hosting",
     "pdfs": "node scripts/pdfs.mjs",
     "voces": "node scripts/voces.mjs",
-    "catalogo": "node scripts/catalogo-anim.mjs"
+    "catalogo": "node scripts/catalogo-anim.mjs",
+    "dev:creativa": "vite --mode creativa",
+    "build:creativa": "vite build --mode creativa --outDir dist-creativa",
+    "deploy:creativa": "vite build --mode creativa --outDir dist-creativa && firebase hosting:channel:deploy creativa --expires 30d --config firebase.creativa.json"
   },
   "dependencies": {
     "@capacitor/core": "^7.6.9",
