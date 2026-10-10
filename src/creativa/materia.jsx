@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../ctx.js';
 import { useMateria, useClaseMateria } from '../db.js';
-import { Ic, Vacio, cx } from '../ui.jsx';
+import { Ic, Vacio, cx, AvisoGuia } from '../ui.jsx';
 
 const fechaCorta = (f) => { try { return new Date(f + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return f; } };
 
@@ -90,6 +90,8 @@ export function ClaseMateria() {
         {clase && <span className="text-[12.5px] text-ink3">v{clase.version} · {fechaCorta(clase.fecha)} · {clase.fuentes} fuentes · huella {String(clase.sha256 || '').slice(0, 8)}</span>}
         {clase && <button type="button" onClick={entrar} className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-[13px] font-semibold text-acento shadow-sh hover:bg-soft"><Ic n="expand" s={15} />Pantalla completa</button>}
       </div>
+      {clase && <AvisoGuia tipo="materia" />}
+      {clase && clase.validadoPor && clase.validadoPor.length > 0 && <p className="m-0 text-[12.5px] text-ink2"><b className="text-ink">Validado por:</b> {clase.validadoPor.join(', ')}</p>}
       {clase === null ? <div className="h-[60vh] animate-pulse rounded-[22px] bg-soft" />
         : clase === false ? <Vacio icon="book" titulo="No encontramos esta clase">Vuelve a Materia y elígela de nuevo.</Vacio>
         : (

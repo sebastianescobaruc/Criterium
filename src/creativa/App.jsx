@@ -34,6 +34,10 @@ const Biblioteca = vista(() => import('../views/protocolos.jsx'), 'Biblioteca');
 const Protocolo = vista(() => import('../views/protocolos.jsx'), 'Protocolo');
 const InvestigacionesV = vista(() => import('./investigacion.jsx'), 'Investigaciones');
 const ConcursosV = vista(() => import('./concursos.jsx'), 'Concursos');
+const RevisoresV = vista(() => import('./revisores.jsx'), 'Revisores');
+const VistaBorradorV = vista(() => import('./revisores.jsx'), 'VistaBorrador');
+const EditarBorradorV = vista(() => import('./revisores.jsx'), 'EditarBorrador');
+const TabsRevisoresV = vista(() => import('./revisores.jsx'), 'TabsRevisores');
 const AgendaC = vista(() => import('../clinica/clinica.jsx'), 'Agenda');
 const PacientesC = vista(() => import('../clinica/clinica.jsx'), 'Pacientes');
 const PacienteC = vista(() => import('../clinica/clinica.jsx'), 'Paciente');
@@ -47,9 +51,11 @@ const EspacioC = vista(() => import('../clinica/espacio.jsx'), 'EspacioClinica')
 
 const VISTAS_CLINICA = ['clinica', 'hoy', 'agenda', 'pacientes', 'paciente', 'seguimiento', 'caja', 'gestion', 'ajustes'];
 // Universidad › Investigaciones reúne publicaciones, casos, concursos y rondas en vivo (pestañas arriba)
-const HUB_INV = [['investigaciones', 'Publicaciones'], ['casos', 'Casos'], ['concursos', 'Concursos'], ['rondas', 'Rondas en vivo']];
-const EN_INV = ['investigaciones', 'casos', 'caso', 'subir', 'concursos', 'rondas', 'ronda'];
-const VISTAS = ['feed', 'biblioteca', 'proto', 'casos', 'caso', 'subir', 'chat', 'materia', 'clase', 'herramientas', 'investigaciones', 'concursos', ...VISTAS_CLINICA, 'grupos', 'grupo', 'rondas', 'ronda', 'perfil', 'privacidad', 'contacto'];
+const HUB_INV = [['investigaciones', 'Publicaciones'], ['casos', 'Casos'], ['concursos', 'Concursos']];
+const EN_INV = ['investigaciones', 'casos', 'caso', 'subir', 'concursos'];
+// Universidad › Revisores: cola de revisión, rondas en vivo, mi tramo y borradores (creativa/revisores.jsx)
+const EN_REV = ['revisores', 'borrador', 'editarBorrador', 'rondas', 'ronda'];
+const VISTAS = ['revisores', 'borrador', 'editarBorrador', 'feed', 'biblioteca', 'proto', 'casos', 'caso', 'subir', 'chat', 'materia', 'clase', 'herramientas', 'investigaciones', 'concursos', ...VISTAS_CLINICA, 'grupos', 'grupo', 'rondas', 'ronda', 'perfil', 'privacidad', 'contacto'];
 // Invita a tu curso: el enlace trae ?i=<uid de quien invita>; se guarda hasta que la persona tenga perfil
 try { const g = new URLSearchParams(location.search).get('g'); if (g && /^[\w-]{4,128}$/.test(g)) { sessionStorage.setItem('criterium-grupo', g); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
 // El espacio al que lleva el enlace (?g=): se abre después de entrar o crear la cuenta
@@ -57,15 +63,15 @@ const GRUPO_INICIAL = (() => { try { return sessionStorage.getItem('criterium-gr
 try { const i = new URLSearchParams(location.search).get('i'); if (i && /^[\w-]{4,128}$/.test(i)) { sessionStorage.setItem('criterium-invita', i); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
 // Dos áreas: Universidad (aprender, investigar, concursar) y Clínica (gestión clínica, solo para miembros de una clínica)
 const NAV_GENERAL = [['feed', 'home', 'Inicio'], ['chat', 'chat', 'Chat']];
-const NAV_UNI = [['biblioteca', 'book', 'Protocolos'], ['materia', 'birrete', 'Materia'], ['herramientas', 'tool', 'Herramientas'], ['investigaciones', 'sparkle', 'Investigaciones']];
+const NAV_UNI = [['biblioteca', 'book', 'Protocolos'], ['materia', 'birrete', 'Materia'], ['herramientas', 'tool', 'Herramientas'], ['investigaciones', 'sparkle', 'Investigaciones'], ['revisores', 'stamp', 'Revisores']];
 const NAV_CLINICA = [['hoy', 'home', 'Hoy'], ['agenda', 'calendario', 'Agenda'], ['pacientes', 'personas', 'Pacientes'], ['seguimiento', 'send', 'Seguimiento'], ['caja', 'dinero', 'Caja'], ['gestion', 'grafico', 'Gestión']];
 const NAV_AJUSTES = [['ajustes', 'edit', 'Ajustes']];
 // Barra lateral de escritorio (íconos de creativa/iconos.jsx)
-const RAIL_UNI = [['feed', 'inicio', 'Inicio'], ['biblioteca', 'protocolos', 'Protocolos'], ['materia', 'materia', 'Materia'], ['herramientas', 'herramientas', 'Herramientas'], ['investigaciones', 'investigaciones', 'Investigaciones'], ['chat', 'chat', 'Chat']];
+const RAIL_UNI = [['feed', 'inicio', 'Inicio'], ['biblioteca', 'protocolos', 'Protocolos'], ['materia', 'materia', 'Materia'], ['herramientas', 'herramientas', 'Herramientas'], ['investigaciones', 'investigaciones', 'Investigaciones'], ['revisores', 'revisores', 'Revisores'], ['chat', 'chat', 'Chat']];
 const RAIL_CLINICA = [['hoy', 'hoy', 'Hoy'], ['agenda', 'agenda', 'Agenda'], ['pacientes', 'pacientes', 'Pacientes'], ['seguimiento', 'seguimiento', 'Seguimiento'], ['caja', 'caja', 'Caja'], ['gestion', 'gestion', 'Gestión']];
 const NAV_SIN_CLINICA = [['clinica', 'diente', 'Para clínicas']];
 const NAV_SECUNDARIO = [['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
-const activo = (view, v) => view === v || (v === 'investigaciones' && EN_INV.includes(view)) || (v === 'hoy' && view === 'clinica') || (v === 'casos' && (view === 'caso' || view === 'subir')) || (v === 'grupos' && view === 'grupo') || (v === 'rondas' && view === 'ronda') || (v === 'materia' && view === 'clase') || (v === 'biblioteca' && view === 'proto') || (v === 'pacientes' && view === 'paciente');
+const activo = (view, v) => view === v || (v === 'investigaciones' && EN_INV.includes(view)) || (v === 'revisores' && EN_REV.includes(view)) || (v === 'hoy' && view === 'clinica') || (v === 'casos' && (view === 'caso' || view === 'subir')) || (v === 'grupos' && view === 'grupo') || (v === 'rondas' && view === 'ronda') || (v === 'materia' && view === 'clase') || (v === 'biblioteca' && view === 'proto') || (v === 'pacientes' && view === 'paciente');
 
 export default function AppRed() {
   const { usuario, perfil, setPerfil, cargando } = useUsuario();
@@ -103,6 +109,9 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   const [herrTab, setHerrTab] = useState('perio');
   const [grupoId, setGrupoId] = useState(GRUPO_INICIAL);
   const [rondaId, setRondaId] = useState(null);
+  const [borradorId, setBorradorId] = useState(null);
+  const [borradorTipo, setBorradorTipo] = useState('protocolo');
+  const [revTab, setRevTab] = useState('');
   const [materiaSel, setMateriaSel] = useState(null);
   const [chatCon, setChatCon] = useState(null);
   // Clínica: las clínicas donde soy miembro; trabajo en la primera (o la que elegí en este navegador)
@@ -186,7 +195,8 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   const guardarMensaje = async (msg) => { if (!myUid) throw new Error('sin sesión'); await enviarMensajeFS(myUid, msg); };
 
   const badgeCasos = misCasos.filter((c) => c.estado === 'cambios').length + cola.length;
-  const badge = { casos: badgeCasos, investigaciones: badgeCasos, chat: contarNoLeidos(chats, myUid) };
+  const misCambios = misCasos.filter((c) => c.estado === 'cambios').length;
+  const badge = { casos: badgeCasos, investigaciones: misCambios, revisores: cola.length, chat: contarNoLeidos(chats, myUid) };
   const ctx = {
     view, go, myUid, usuario, perfil, setPerfil, conPerfil, avisar, logout,
     feed, feedProto: '', setFeedProto: () => {}, abrirProto, protoId, protoLibre, protoTodo, protoFoco, q, setQ, esp, setEsp, checks, setChecks, verFoto: setFoto, piloto,
@@ -194,6 +204,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
     feedProc, setFeedProc: (v) => { setFeedProcRaw(v); if (v) go('feed'); },
     perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'),
     herrTab, setHerrTab, grupoId, abrirGrupo: (id) => { setGrupoId(id); go('grupo'); }, rondaId, abrirRonda: (id) => { setRondaId(id); go('ronda'); },
+    borradorId, borradorTipo, revTab, colaCasos: cola, irRevisores: (tab) => { setRevTab(tab || ''); go('revisores'); }, abrirBorrador: (id) => { setBorradorId(id); go('borrador'); }, editarBorrador: ({ id, tipo } = {}) => { setBorradorId(id || null); setBorradorTipo(tipo || 'protocolo'); go('editarBorrador'); },
     materiaSel, abrirClase: (ramo, id) => { setMateriaSel([ramo, id]); go('clase'); },
     clinica, rolClinica, misClinicas, tabClinica, irClinica: (v, tab) => go(v, { tab }), elegirClinica: (id) => { setClinicaSel(id); try { localStorage.setItem('criterium-clinica', id); } catch (e) {} }, pacienteId, abrirPaciente: (pid, tab) => { if (!pid) return; setPacienteId(pid); go('paciente', { tab }); },
     seguidores, chats, chatCon, setChatCon, abrirChat: (uid) => { if (!uid || uid === myUid) return; go('chat'); setChatCon(uid); },
@@ -202,7 +213,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
   };
 
   const pantalla = !feedListo ? <div className="h-64 animate-pulse rounded-[22px] bg-soft" /> : ({
-    feed: <Feed saludo={false} arriba={<Hoy />} lado={<><Invitar compacto /><LigaMini /></>} movil={<Invitar />} />, grupos: <Grupos />, grupo: <Grupo key={grupoId} />, rondas: <Rondas />, ronda: <Ronda key={rondaId} />, concursos: <ConcursosV />, investigaciones: <InvestigacionesV />, chat: <ChatV />,
+    feed: <Feed saludo={false} arriba={<Hoy />} lado={<><Invitar compacto /><LigaMini /></>} movil={<Invitar />} />, grupos: <Grupos />, grupo: <Grupo key={grupoId} />, rondas: <Rondas />, revisores: <RevisoresV />, borrador: <VistaBorradorV key={borradorId} />, editarBorrador: <EditarBorradorV key={(borradorId || 'nuevo') + borradorTipo} />, ronda: <Ronda key={rondaId} />, concursos: <ConcursosV />, investigaciones: <InvestigacionesV />, chat: <ChatV />,
     ...(clinica ? { clinica: <HoyC />, hoy: <HoyC />, agenda: <AgendaC />, pacientes: <PacientesC />, paciente: <PacienteC key={pacienteId} />, seguimiento: <SeguimientoC />, caja: <CajaC />, gestion: <GestionC />, ajustes: <AjustesC /> } : Object.fromEntries(VISTAS_CLINICA.map((v) => [v, <SinClinicaC key={v} />]))), materia: <MateriaV />, clase: <ClaseMateriaV key={materiaSel ? materiaSel.join('/') : ''} />, casos: <Casos />, caso: <CasoRed key={casoRedId} />, subir: <SubirCaso key={corrigiendo ? corrigiendo.id + (corrigiendo.version || 1) : 'nuevo'} caso={corrigiendo} />,
     herramientas: <Herramientas />, perfil: <PerfilPublico key={perfilUid} />, privacidad: <Privacidad />, contacto: <Contacto />,
     biblioteca: protosListo ? <Biblioteca /> : <div className="h-64 animate-pulse rounded-[22px] bg-soft" />, proto: protosListo ? <Protocolo key={protoId} /> : <div className="h-64 animate-pulse rounded-[22px] bg-soft" />
@@ -287,7 +298,8 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
               </div>
             </div>
           </div>
-          <main className="mx-auto max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"><Suspense fallback={<div className="h-64 animate-pulse rounded-[22px] bg-soft" />}>
+          <main className={cx('mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10', view === 'herramientas' && herrTab === 'periodonto' ? 'max-w-none' : 'max-w-[1180px]')}><Suspense fallback={<div className="h-64 animate-pulse rounded-[22px] bg-soft" />}>
+            {view === 'rondas' && <TabsRevisoresV />}
             {HUB_INV.some(([v]) => v === view) && (
               <nav className="scroll-x -mx-4 mb-5 flex gap-1 overflow-x-auto px-4" aria-label="Investigaciones">
                 {HUB_INV.map(([v, t]) => <button key={v} type="button" onClick={() => go(v)} aria-current={view === v ? 'page' : undefined} className={cx('relative flex-none rounded-full px-4 py-2 text-[13.5px] font-semibold', view === v ? 'bg-deep text-onc' : 'text-ink2 hover:bg-soft')}>{t}{badge[v] > 0 && v !== 'investigaciones' && <span className="ml-1.5 rounded-full bg-menta px-1.5 text-[11px] font-bold text-mentaink">{badge[v]}</span>}</button>)}

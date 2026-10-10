@@ -220,6 +220,13 @@ h1,h2,h3{letter-spacing:-.02em}
 .perio-th{position:sticky;left:0;z-index:2;background:var(--card);padding:0 10px 0 12px;text-align:left;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rotulo);border-right:1px solid var(--line)}
 .perio-th-dibujo{vertical-align:middle;color:var(--ink-3)}
 .perio-td{width:72px;min-width:72px;padding:1.5px 0;border-right:1px solid var(--line-2)}
+/* Periodontograma a todo el ancho, sin scroll horizontal: columnas fluidas */
+.perio-ancha{width:100%;table-layout:fixed}
+.perio-ancha .perio-col-th{width:142px}
+.perio-ancha .perio-td{width:auto;min-width:0}
+.perio-ancha .perio-num{width:100%;max-width:62px}
+.perio-ancha .perio-chip{width:100%;max-width:46px}
+@media (max-width:520px){.perio-ancha .perio-col-th{width:66px}.perio-ancha .perio-th{padding:0 4px 0 6px;font-size:9px;letter-spacing:.03em;white-space:normal}}
 .perio-td > .flex{justify-content:center;gap:1px}
 .perio-in{width:22px;height:22px;border:1px solid var(--line);border-radius:5px;background:var(--input);text-align:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);outline:none;padding:0}
 .perio-in:focus{border-color:var(--acento);box-shadow:0 0 0 2px var(--acento-soft);background:var(--card)}

@@ -5,7 +5,7 @@ import { registrarUso, leerPdfProtocolo, fechaTxt } from '../piloto.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { ComentariosProvider, ComentariosPaso, useNComentarios } from './comentarios.jsx';
-import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar, Vacio } from '../ui.jsx';
+import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar, Vacio, AvisoGuia } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
 import { hablar, callar, useHablando, lecturaDisponible } from '../voz.js';
 import { textoPorqueCompleto } from '../lectura.js';
@@ -669,7 +669,14 @@ export function Protocolo() {
       <Vacio icon="book" titulo="Este protocolo no está disponible" accion={<Btn v="primary" onClick={() => go('biblioteca')}>Ir a la Biblioteca</Btn>}>No existe o tu cuenta todavía no tiene acceso a él.</Vacio>
     </div>
   );
-  return <ComentariosProvider id={protoId} d={DATOS[protoId]}><VistaProtocolo /></ComentariosProvider>;
+  const val = DATOS[protoId].validadoPor;
+  return (<>
+    <div className="mx-auto mb-4 flex max-w-[1100px] flex-col gap-2">
+      <AvisoGuia />
+      {val && val.length > 0 && <p className="m-0 text-[12.5px] text-ink2"><b className="text-ink">Validado por panel de especialistas:</b> {val.join(', ')}</p>}
+    </div>
+    <ComentariosProvider id={protoId} d={DATOS[protoId]}><VistaProtocolo /></ComentariosProvider>
+  </>);
 }
 
 // Versión, fecha y huella SHA-256 del texto publicado (el estudiante lee un texto fijo y verificable)

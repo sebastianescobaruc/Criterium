@@ -26,6 +26,7 @@ const I = {
   accesos: { d: 'M7.5 10.5h9a2 2 0 0 1 2 2V19a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-6.5a2 2 0 0 1 2-2z', det: 'M12 14.5v2.5', extra: 'M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5' },
   buscar: { abierto: true, extra: 'M10.8 4a6.8 6.8 0 1 1 0 13.6 6.8 6.8 0 0 1 0-13.6zM16 16l4.5 4.5' },
   volver: { abierto: true, extra: 'M10 7 5 12l5 5M5.5 12H15a4.5 4.5 0 0 1 0 9h-1.5' },
+  revisores: { d: 'M12 3a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z', det: 'm9.3 9.6 1.9 1.9 3.6-3.8', extra: 'M8.6 15.1 7.6 21l4.4-2.4 4.4 2.4-1-5.9' },
   mas: { abierto: true, extra: 'M4 6.5h16M4 12h16M4 17.5h10' },
   areas: { abierto: true, extra: 'M5 8.5h12.5M14.5 5.5l3 3-3 3M19 15.5H6.5M9.5 12.5l-3 3 3 3' }
 };

@@ -215,6 +215,16 @@ export function Lightbox({ foto, onClose }) {
   );
 }
 
+// Aviso visible en cada protocolo y cada material publicado: son guías, no protocolos rígidos
+export function AvisoGuia({ tipo = 'protocolo', className = '' }) {
+  return (
+    <p role="note" className={cx('m-0 flex items-start gap-2.5 rounded-[14px] border border-[color-mix(in_srgb,var(--acento)_28%,transparent)] bg-acentosoft px-4 py-2.5 text-[13px] leading-snug text-acentodeep', className)}>
+      <Ic n="alert" s={15} className="mt-[1px]" />
+      <span><b>{tipo === 'materia' ? 'Este material es una guía de estudio, no un protocolo rígido.' : 'Esta es una guía de procedimiento, no un protocolo rígido.'}</b> El criterio de cada profesional es clave para el éxito del tratamiento. Criterium es una herramienta complementaria.</span>
+    </p>
+  );
+}
+
 export function Vacio({ icon = 'folder', titulo, children, accion }) {
   return (
     <div className="ui-vacio flex flex-col items-center gap-3 rounded-r border-2 border-dashed border-line bg-[color-mix(in_srgb,var(--card)_70%,transparent)] px-6 py-12 text-center">

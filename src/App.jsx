@@ -436,7 +436,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               </form>
             )}
           </div>
-          <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10"><Suspense fallback={<div className="h-64 animate-pulse rounded-[22px] bg-soft" />}>{pantalla}</Suspense></main>
+          <main className={cx('mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10', view === 'herramientas' && herrTab === 'periodonto' ? 'max-w-none' : 'max-w-[1320px]')}><Suspense fallback={<div className="h-64 animate-pulse rounded-[22px] bg-soft" />}>{pantalla}</Suspense></main>
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { registrarUso } from '../piloto.js';
-import { Ic, cx } from '../ui.jsx';
+import { Ic, cx, AvisoGuia } from '../ui.jsx';
 import { fichaDe, Sub, Escuchar, FlujoPublicacion, Huella } from './protocolos.jsx';
 import { ComentariosPaso, useNComentarios } from './comentarios.jsx';
 import { Animacion } from './animaciones.jsx';
@@ -289,6 +289,7 @@ function BandejaLibre({ d, onPdf, bajando }) {
       <p className="m-0 text-[13px] font-semibold uppercase tracking-[.12em] text-rotulo">Antes de empezar</p>
       <h2 className="m-0 mt-3 text-[34px] font-bold leading-[1.1] tracking-[-.025em] text-deep sm:text-[46px]">Monta la bandeja.</h2>
       <p className="m-0 mt-4 max-w-[60ch] text-[16px] leading-[1.55] text-ink2 sm:text-[17px]">{d.alcance.charAt(0).toUpperCase() + d.alcance.slice(1)}</p>
+      <AvisoGuia className="mt-5 max-w-[720px]" />
       <div className="mt-7 flex items-baseline justify-between gap-3 px-1">
         <span className="text-[13px] font-semibold text-ink3">Toca cada instrumento cuando esté en la bandeja</span>
         <span className="flex-none text-[13px] font-semibold tabular-nums text-acento">{listos.length} de {total}</span>

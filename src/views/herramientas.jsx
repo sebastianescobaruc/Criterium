@@ -124,7 +124,7 @@ export function Herramientas() {
   const actual = HERR.find((h) => h.v === tab) || HERR[0];
 
   return (
-    <div className="mx-auto flex max-w-[1040px] flex-col gap-7">
+    <div className={cx('mx-auto flex flex-col gap-7', actual.v === 'periodonto' ? 'max-w-none' : 'max-w-[1040px]')}>
       <header>
         <p className="rotulo m-0 mb-1.5">Herramientas</p>
         <h1 className="m-0 max-w-[24ch] text-[28px] font-extrabold leading-[1.1] tracking-[-.03em] text-deep sm:text-[36px]">Calcula en el box, con el razonamiento a la vista.</h1>
