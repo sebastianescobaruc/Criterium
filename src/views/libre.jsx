@@ -38,7 +38,7 @@ export function PantallaLibre({ d, cur, visto, hechos, ir, siguiente, anterior, 
       {/* Arriba: cerrar, avance por pasos y voz */}
       <header className="flex-none px-4 pt-[calc(12px+env(safe-area-inset-top,0px))] sm:px-8">
         <div className="mx-auto flex max-w-[920px] items-center gap-3">
-          <button type="button" onClick={salir} aria-label="Salir de manos libres" title="Salir (Esc)"
+          <button type="button" onClick={salir} aria-label="Salir del modo atención en box" title="Salir (Esc)"
             className="grid h-9 w-9 flex-none place-items-center rounded-full bg-soft text-ink2 transition-colors hover:bg-acentosoft"><Ic n="x" s={17} sw={2.2} /></button>
           <Segmentos d={d} cur={cur} visto={visto} hechos={hechos} ir={ir} />
           {(lecturaDisponible() || vozDisponible()) && <BotonVoz voz={voz} />}
@@ -187,7 +187,7 @@ function Preparando({ prep, onTocar, onSinMicro, salir }) {
   const e = prep === 'permiso' ? 'espera' : prep === 'tocar' ? 'escucha' : 'apagado';
   return (
     <div className="velo absolute inset-0 z-[65] flex flex-col items-center justify-center bg-[color-mix(in_srgb,var(--bg)_82%,transparent)] px-8 text-center backdrop-blur-2xl" role="dialog" aria-modal="true" aria-label={T[0]}>
-      <button type="button" onClick={salir} aria-label="Salir de manos libres"
+      <button type="button" onClick={salir} aria-label="Salir del modo atención en box"
         className="absolute left-4 top-[calc(12px+env(safe-area-inset-top,0px))] grid h-9 w-9 place-items-center rounded-full bg-soft text-ink2 sm:left-8"><Ic n="x" s={17} sw={2.2} /></button>
       {prep === 'tocar' ? (
         <button type="button" onClick={onTocar} aria-label="Empezar" className="rounded-full transition-transform active:scale-95"><Orbe size={176} e={e} /></button>

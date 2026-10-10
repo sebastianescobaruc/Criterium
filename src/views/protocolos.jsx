@@ -308,7 +308,7 @@ export function Biblioteca() {
           <h2 className="rotulo m-0">{g.esp}</h2>
           {g.items.map((p) => (
             <article key={p.id} id={'proto-' + p.id} className={cx('flex scroll-mt-28 items-center gap-3 tarjeta px-5 py-4 transition-colors', p.abre && 'hover:bg-soft', foco === p.id && 'foco-proto')}>
-              <button type="button" onClick={() => p.abre && abrirProto(p.id, { libre: true })} disabled={!p.abre} className="min-w-0 flex-1 text-left">
+              <button type="button" onClick={() => p.abre && abrirProto(p.id)} disabled={!p.abre} className="min-w-0 flex-1 text-left">
                 <h3 className="m-0 text-[16.5px] font-bold leading-snug tracking-[-.015em] text-deep">{p.t}</h3>
                 <p className="m-0 mt-0.5 line-clamp-2 text-[14px] leading-normal text-ink3">{p.s}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5"><Pill tono={p.abre ? 'warn' : 'neutro'}>{p.abre ? p.estadoTxt : 'Planificado'}</Pill>{p.extraTxt && p.abre && <Pill>{p.extraTxt}</Pill>}</div>
@@ -317,7 +317,7 @@ export function Biblioteca() {
                 <button type="button" onClick={() => pdf(p.id)} disabled={bajando === p.id} aria-label={'PDF de box de ' + p.t} title="PDF de box para imprimir"
                   className="grid h-11 w-11 flex-none place-items-center rounded-full bg-soft text-acento hover:bg-acentosoft disabled:opacity-50"><Ic n="download" s={18} /></button>
               )}
-              {p.abre && <button type="button" onClick={() => abrirProto(p.id, { libre: true })} className="hidden h-11 flex-none rounded-full bg-acento px-5 text-[14px] font-semibold text-onc hover:bg-acentodeep sm:block">Abrir</button>}
+              {p.abre && <button type="button" onClick={() => abrirProto(p.id)} className="hidden h-11 flex-none rounded-full bg-acento px-5 text-[14px] font-semibold text-onc hover:bg-acentodeep sm:block">Abrir</button>}
             </article>
           ))}
         </section>
@@ -705,7 +705,8 @@ function VistaProtocolo() {
   const marcar = (i) => setChecks((c) => { const l = c[id] || []; return l.includes(i) ? c : { ...c, [id]: [...l, i].sort((a, b) => a - b) }; });
   const [modo, setModoRaw] = useState(() => protoTodo ? 'todo' : protoLibre ? 'guiado' : leerModo());
   const setModo = (m) => { setModoRaw(m); guardarModo(m); setLibreAlEntrar(false); window.scrollTo({ top: 0 }); };
-  const [libreAlEntrar, setLibreAlEntrar] = useState(protoLibre); // solo la primera vez: al volver de «Ver todo» no se reabre
+  // El modo atención en box (pantalla completa, micrófono y voz) se abre solo cuando la persona lo pide: nunca al abrir
+  const [libreAlEntrar, setLibreAlEntrar] = useState(false);
   const [bajando, setBajando] = useState(false);
   const aprobadores = useAprobadoresProtocolo(id, esDocente);
   const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
@@ -760,6 +761,7 @@ function VistaProtocolo() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <button type="button" onClick={() => go('biblioteca')} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-[12.5px] text-ink2 hover:bg-soft"><Ic n="back" s={14} />Biblioteca</button>
           <Btn sm v="primary" icon="sparkle" onClick={() => setModo('guiado')}>Modo guiado · paso a paso</Btn>
+          <Btn sm icon="expand" onClick={() => { setLibreAlEntrar(true); setModoRaw('guiado'); guardarModo('guiado'); }} title="Pantalla completa, voz y lectura de cada paso. Pide el micrófono al tocarlo.">Modo atención en box</Btn>
         </div>
         <Aviso className="mb-5 !text-[12px]">{d.bandera}</Aviso>
         <FlujoPublicacion d={d} />

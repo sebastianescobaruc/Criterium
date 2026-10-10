@@ -191,8 +191,8 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
     };
   }, [libre]);
   useEffect(() => () => { try { if (bloqueo.current) bloqueo.current.release(); } catch (e) {} }, []);
-  // Abierto desde la Biblioteca: entra directo a manos libres. Corre justo después del toque en «Abrir»,
-  // así el navegador todavía cuenta el gesto y deja abrir la pantalla completa, el audio y el micrófono.
+  // Desde «Ver todo» › «Modo atención en box»: entra justo después de ese toque, así el navegador todavía cuenta el
+  // gesto y deja abrir la pantalla completa, el audio y el micrófono. Al abrir un procedimiento nunca entra solo.
   useEffect(() => { if (libreInicial) entrarLibre(); }, []);
 
   const pct = Math.round((hechos.length / N) * 100);
@@ -240,13 +240,13 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
           )}
           <button type="button" onClick={onVerTodo} aria-label="Ver todo el procedimiento" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
             <Ic n="book" s={16} /><span className="hidden sm:inline">Ver todo</span>
-          </button>}
+          </button>
           {libre
             ? <button type="button" onClick={salirLibre} className="inline-flex items-center gap-2 rounded-full bg-acento px-4 py-2 text-[13px] font-bold text-onc shadow-sh hover:bg-acentodeep"><Ic n="shrink" s={16} />Salir</button>
-            : <button type="button" onClick={entrarLibre} aria-label="Manos libres: pantalla completa, voz y lectura de cada paso"
-                title={vozDisponible() ? 'Pantalla completa, voz y lectura de cada paso' : 'Pantalla completa y lectura de cada paso (este navegador no reconoce la voz)'}
+            : <button type="button" onClick={entrarLibre} aria-label="Modo atención en box: pantalla completa, voz y lectura de cada paso"
+                title={vozDisponible() ? 'Pantalla completa, voz y lectura de cada paso. Pide el micrófono al tocarlo.' : 'Pantalla completa y lectura de cada paso (este navegador no reconoce la voz)'}
                 className="inline-flex items-center gap-2 rounded-full bg-acento px-3.5 py-2 text-[13px] font-bold text-onc shadow-sh hover:bg-acentodeep">
-                <Ic n="expand" s={16} /><span className="hidden sm:inline">Manos libres</span>
+                <Ic n="expand" s={16} /><span className="hidden sm:inline">Modo atención en box</span>
               </button>}
         </div>
       </div>
