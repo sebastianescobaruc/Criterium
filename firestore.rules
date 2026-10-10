@@ -138,10 +138,10 @@ service cloud.firestore {
       allow read, write: if soy(uid);
     }
 
-    // Lista de revisores verificados. Nadie la escribe desde la app.
+    // Lista de revisores verificados (especialistas o docentes con título o cargo revisado). Solo el equipo la escribe.
     match /revisores/{uid} {
       allow read: if conSesion();
-      allow write: if false;
+      allow write: if esAdmin();
     }
 
     // ═══ Revisores: borradores de protocolos y de materia ═══

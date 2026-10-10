@@ -83,3 +83,9 @@ test('tramos: cada revisor verificado elige el suyo, con valores válidos', asyn
   await assertFails(setDoc(doc(como(DEN), 'tramos', DEN), { protocolo: 3, materia: 0, cicloInicio: '2026-10-01' }));
   await assertFails(getDoc(doc(como(REV2), 'tramos', REV)));
 });
+
+test('la lista de revisores la escribe solo el equipo', async () => {
+  await assertFails(setDoc(doc(como(DEN), 'revisores', DEN), { nombre: 'Yo', especialidades: ['Endodoncia'] }));
+  await assertFails(setDoc(doc(como(DOC), 'revisores', DOC), { nombre: 'Yo', especialidades: ['Endodoncia'] }));
+  await assertSucceeds(setDoc(doc(como(EQ), 'revisores', DEN), { nombre: 'Dentista', especialidades: ['Endodoncia'] }));
+});

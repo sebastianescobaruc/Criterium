@@ -99,16 +99,14 @@ export function Periodontograma({ chart, setChart, onUsar }) {
   const [borrar, setBorrar] = useState(false);
   const r = resumenPeriodontograma(chart);
   const raiz = useRef(null);
-  // Ocupa todo el ancho y nunca se desliza hacia el lado: si no caben los 16 dientes, la arcada se reparte en bloques
-  // de 8 o de 4 dientes, uno debajo del otro (se recorre hacia abajo)
+  // Ocupa todo el ancho y nunca se desliza hacia el lado: dos tablas (arcada superior e inferior) de 16 dientes cuyas
+  // casillas se achican con el ancho. En un teléfono vertical no caben: se sugiere girarlo.
   const [ancho, setAncho] = useState(1400);
   useEffect(() => {
     if (!raiz.current || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(([e]) => setAncho(e.contentRect.width));
     ro.observe(raiz.current); return () => ro.disconnect();
   }, []);
-  const porBloque = ancho >= 1180 ? 16 : ancho >= 620 ? 8 : 4;
-  const bloques = (l) => Array.from({ length: Math.ceil(l.length / porBloque) }, (_, k) => l.slice(k * porBloque, (k + 1) * porBloque));
   const espera = useRef(null);
 
   const upd = (d, fn) => setChart((c) => ({ ...c, [d]: fn(c[d] || {}) }));
@@ -232,35 +230,31 @@ export function Periodontograma({ chart, setChart, onUsar }) {
         <span>Líneas guía cada 3 mm desde el límite amelocementario</span>
       </div>
 
-      {[['Arcada superior', sup, 'sup'], ['Arcada inferior', inf, 'inf']].map(([titulo, todos, arc]) => (
-        <section key={arc} className="flex flex-col gap-3">
+      {ancho < 640 && <p className="m-0 flex items-center gap-2 rounded-[12px] bg-acentosoft px-3 py-2 text-[12.5px] font-semibold text-acentodeep">Gira el teléfono para anotar más cómodo: cada arcada muestra sus 16 dientes.</p>}
+      {[['Arcada superior', sup, 'sup'], ['Arcada inferior', inf, 'inf']].map(([titulo, dientes, arc]) => (
+        <section key={arc} className="flex flex-col gap-2">
           <p className="rotulo m-0">{titulo}</p>
-          {bloques(todos).map((dientes) => (
-            <div key={dientes[0]} className="flex flex-col gap-1">
-              {porBloque < 16 && <p className="m-0 text-[11.5px] font-semibold text-ink3">Dientes {dientes[0]} a {dientes[dientes.length - 1]}</p>}
-              <table className="perio-tabla perio-ancha">
-                <colgroup><col className="perio-col-th" />{dientes.map((d) => <col key={d} />)}</colgroup>
-                <tbody>
-                  {arc === 'sup' ? <>
-                    {filaDiente(dientes, 'n')}{filaDiente(dientes, 'imp')}{filaDiente(dientes, 'mov')}{filaDiente(dientes, 'furca')}
-                    {filas(dientes, 'v', arc, ['sg', 'pl', 'mg', 'ps'])}
-                    {dibujo(dientes, 'v', 1)}
-                    {dibujo(dientes, 'l', 1)}
-                    {filas(dientes, 'l', arc, ['ps', 'mg', 'pl', 'sg'])}
-                  </> : <>
-                    {filas(dientes, 'l', arc, ['sg', 'pl', 'mg', 'ps'])}
-                    {dibujo(dientes, 'l', -1)}
-                    {dibujo(dientes, 'v', -1)}
-                    {filas(dientes, 'v', arc, ['ps', 'mg', 'pl', 'sg'])}
-                    {filaDiente(dientes, 'furca')}{filaDiente(dientes, 'mov')}{filaDiente(dientes, 'imp')}{filaDiente(dientes, 'n')}
-                  </>}
-                </tbody>
-              </table>
-            </div>
-          ))}
+          <table className="perio-tabla perio-ancha">
+            <colgroup><col className="perio-col-th" />{dientes.map((d) => <col key={d} />)}</colgroup>
+            <tbody>
+              {arc === 'sup' ? <>
+                {filaDiente(dientes, 'n')}{filaDiente(dientes, 'imp')}{filaDiente(dientes, 'mov')}{filaDiente(dientes, 'furca')}
+                {filas(dientes, 'v', arc, ['sg', 'pl', 'mg', 'ps'])}
+                {dibujo(dientes, 'v', 1)}
+                {dibujo(dientes, 'l', 1)}
+                {filas(dientes, 'l', arc, ['ps', 'mg', 'pl', 'sg'])}
+              </> : <>
+                {filas(dientes, 'l', arc, ['sg', 'pl', 'mg', 'ps'])}
+                {dibujo(dientes, 'l', -1)}
+                {dibujo(dientes, 'v', -1)}
+                {filas(dientes, 'v', arc, ['ps', 'mg', 'pl', 'sg'])}
+                {filaDiente(dientes, 'furca')}{filaDiente(dientes, 'mov')}{filaDiente(dientes, 'imp')}{filaDiente(dientes, 'n')}
+              </>}
+            </tbody>
+          </table>
         </section>
       ))}
-      <p className="m-0 text-[12px] text-ink3">No se guarda: si recargas la página o sales de Herramientas, se borra. Si la pantalla es angosta, cada arcada se divide en bloques: desliza hacia abajo.</p>
+      <p className="m-0 text-[12px] text-ink3">No se guarda: si recargas la página o sales de Herramientas, se borra. Las dos arcadas ocupan todo el ancho; recórrelas deslizando hacia abajo.</p>
     </div>
   );
 }

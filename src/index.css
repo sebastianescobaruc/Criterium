@@ -220,13 +220,16 @@ h1,h2,h3{letter-spacing:-.02em}
 .perio-th{position:sticky;left:0;z-index:2;background:var(--card);padding:0 10px 0 12px;text-align:left;white-space:nowrap;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rotulo);border-right:1px solid var(--line)}
 .perio-th-dibujo{vertical-align:middle;color:var(--ink-3)}
 .perio-td{width:72px;min-width:72px;padding:1.5px 0;border-right:1px solid var(--line-2)}
-/* Periodontograma a todo el ancho, sin scroll horizontal: columnas fluidas */
+/* Periodontograma a todo el ancho, sin scroll horizontal: 16 columnas fluidas por arcada; las casillas se achican */
 .perio-ancha{width:100%;table-layout:fixed}
 .perio-ancha .perio-col-th{width:142px}
-.perio-ancha .perio-td{width:auto;min-width:0}
-.perio-ancha .perio-num{width:100%;max-width:62px}
-.perio-ancha .perio-chip{width:100%;max-width:46px}
-@media (max-width:520px){.perio-ancha .perio-col-th{width:66px}.perio-ancha .perio-th{padding:0 4px 0 6px;font-size:9px;letter-spacing:.03em;white-space:normal}}
+.perio-ancha .perio-td{width:auto;min-width:0;padding:1.5px 1px}
+.perio-ancha .perio-td > .flex > *{flex:1 1 0;min-width:0}
+.perio-ancha .perio-in,.perio-ancha .perio-punto{width:100%;max-width:22px;min-width:0}
+.perio-ancha .perio-num{width:100%;max-width:62px;min-width:0;font-size:clamp(9px,1vw,12.5px)}
+.perio-ancha .perio-chip{width:100%;max-width:46px;min-width:0;font-size:clamp(9px,.9vw,11.5px)}
+@media (max-width:1100px){.perio-ancha .perio-col-th{width:104px}.perio-ancha .perio-th{font-size:9.5px;letter-spacing:.04em;white-space:normal;line-height:1.15}.perio-ancha .perio-in{font-size:10.5px}}
+@media (max-width:640px){.perio-ancha .perio-col-th{width:52px}.perio-ancha .perio-th{padding:0 3px 0 4px;font-size:7.5px;letter-spacing:0}.perio-ancha .perio-in{font-size:8.5px;border-radius:3px}.perio-ancha .perio-punto span{width:6px;height:6px}}
 .perio-td > .flex{justify-content:center;gap:1px}
 .perio-in{width:22px;height:22px;border:1px solid var(--line);border-radius:5px;background:var(--input);text-align:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);outline:none;padding:0}
 .perio-in:focus{border-color:var(--acento);box-shadow:0 0 0 2px var(--acento-soft);background:var(--card)}
