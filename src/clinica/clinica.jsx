@@ -7,12 +7,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../ctx.js';
 import { usePacientes, usePaciente, useFicha, useSub, useCitas, useColeccionClinica, guardarPacienteFS, guardarFichaFS, agregarEvolucionFS, emitirDocumentoFS, guardarCitaFS, guardarPresupuestoFS, registrarPagoFS, registrarAccesoFS, nuevoIdEvolucion, firmarEvolucionProtocoloFS } from './db.js';
 import { protocolosClinica, datosProtocolo, metaProtocolo } from './protocolos.js';
-import { ESTADOS_PASO_EVOL, pideNota, versionTxt, pasosIniciales, insumosIniciales, pasosSinNota, borradorNota, avisosStock, insumosUsados, resumenPasos } from './protocolo-evolucion.js';
+import { ESTADOS_PASO_EVOL, pideNota, versionTxt, pasosIniciales, insumosIniciales, pasosSinNota, borradorNota, avisosStock, insumosUsados, resumenPasos, itemsBandeja, insumosDeBandeja, combinarInsumos, involucradosCita } from './protocolo-evolucion.js';
 import { Odontograma, cpod } from './odontograma.jsx';
 import { PlanTratamiento, PerioFicha, LaboratorioPaciente, ControlPaciente } from './plan.jsx';
 import { PLANTILLAS, imprimirHoja, textoHtml, firmasHtml, tablaHtml } from './documentos.js';
 import { Ic, Btn, Modal, Field, Seg, Vacio, Avatar, inputCls, cx } from '../ui.jsx';
-import { iso, hoy, sumar, lunesDe, fechaCorta, fechaLarga, diasHasta, clp, edad, nombreDe, telefonoWa, ROLES, clinico, ESTADOS_CITA, estadoCita, mins, hhmm, colorProf, profDe, Cabecera, Panel, PanelLateral, Insignia, Kpis, CabTabla, Tarjeta } from './comun.jsx';
+import { iso, hoy, sumar, lunesDe, fechaCorta, fechaLarga, diasHasta, clp, edad, nombreDe, telefonoWa, yoComo, ROLES, clinico, ESTADOS_CITA, estadoCita, mins, hhmm, colorProf, profDe, Cabecera, Pestanas, Panel, PanelLateral, Insignia, Kpis, CabTabla, Tarjeta } from './comun.jsx';
 export { ESTADOS_CITA } from './comun.jsx';
 
 /* ── Utilidades (las comunes viven en comun.jsx) ── */
@@ -171,7 +171,7 @@ export function Agenda() {
                       <button key={c.id} type="button" onClick={() => setVer(c.id)} onMouseMove={(e) => e.stopPropagation()} data-e={c.estado}
                         className="cl-cita absolute z-[2] overflow-hidden rounded-[6px] px-2 py-1 text-left leading-tight"
                         style={{ top: top + 1, height: alto, left: `calc(${(l / n) * 100}% + 3px)`, width: `calc(${100 / n}% - 6px)`, '--pc': colorProf(clinica, c.profesionalId) }}>
-                        <span className="flex items-center gap-1.5"><span className={cx('h-1.5 w-1.5 flex-none rounded-full', estadoCita(c.estado).dot)} /><b className="truncate text-[12px]">{corto ? `${c.hora} ${c.pacienteNombre}` : c.pacienteNombre}</b></span>
+                        <span className="flex items-center gap-1.5"><span className={cx('h-1.5 w-1.5 flex-none rounded-full', estadoCita(c.estado).dot)} /><b className="truncate text-[12px]">{corto ? `${c.hora} ${c.pacienteNombre}` : c.pacienteNombre}</b>{c.protocoloId && <Ic n="book" s={11} className="flex-none text-acento" />}{c.bandeja && c.bandeja.items && c.bandeja.items.length > 0 && <Ic n="check" s={11} sw={2.5} className="flex-none text-ok" />}</span>
                         {!corto && <span className="block truncate text-[11.5px] tabular-nums text-ink3">{c.hora}–{hhmm(mins(c.hora) + (c.duracion || 30))} · {c.motivo || 'Atención'}</span>}
                         {alto > 64 && <span className="block truncate text-[11px] text-ink3">{modo === 'semana' || agrupar === 'box' ? (p ? p.nombre.replace(/\s*\(fictici[oa]\)/, '') : '') : c.box}</span>}
                       </button>
@@ -198,6 +198,8 @@ export function ModalCita({ inicial, cerrar }) {
   const [q, setQ] = useState('');
   const [nuevoP, setNuevoP] = useState(null);
   const [err, setErr] = useState('');
+  const protos = protocolosClinica();
+  const asistentes = Object.entries(clinica.miembros || {}).filter(([, r]) => r === 'asistente').map(([uid]) => ({ uid, nombre: (clinica.equipo || {})[uid] || 'Asistente' }));
   const calzan = pacientes.filter((p) => !q || (nombreDe(p) + ' ' + (p.rut || '')).toLowerCase().includes(q.toLowerCase())).slice(0, 6);
   const elegido = pacientes.find((p) => p.id === f.pacienteId);
   const guardar = async () => {
@@ -209,7 +211,9 @@ export function ModalCita({ inicial, cerrar }) {
     }
     if (!pid) { setErr('Elige un paciente o crea uno nuevo.'); return; }
     if (!f.fecha || !f.hora) { setErr('Falta la fecha o la hora.'); return; }
-    try { await guardarCitaFS(clinica.id, { ...f, pacienteId: pid, pacienteNombre: pnombre || f.pacienteNombre, duracion: +f.duracion }); avisar(inicial.id ? 'Cita actualizada' : 'Cita agendada'); cerrar(); }
+    const cita = { ...f, pacienteId: pid, pacienteNombre: pnombre || f.pacienteNombre, duracion: +f.duracion, protocoloId: f.protocoloId || '', pieza: (f.pieza || '').trim() };
+    cita.involucrados = involucradosCita(cita, clinica.profesionales);
+    try { await guardarCitaFS(clinica.id, cita); avisar(inicial.id ? 'Cita actualizada' : 'Cita agendada'); cerrar(); }
     catch (e) { setErr('No se pudo guardar. Revisa tu conexión.'); }
   };
   return (
@@ -236,7 +240,11 @@ export function ModalCita({ inicial, cerrar }) {
           <Field label="Profesional" id="ci-p"><select id="ci-p" value={f.profesionalId} onChange={(e) => setF({ ...f, profesionalId: e.target.value })} className={inputCls}>{(clinica.profesionales || []).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></Field>
           <Field label="Box" id="ci-b"><select id="ci-b" value={f.box} onChange={(e) => setF({ ...f, box: e.target.value })} className={inputCls}>{(clinica.boxes || []).map((b) => <option key={b}>{b}</option>)}</select></Field>
           <Field label="Duración" id="ci-d"><select id="ci-d" value={f.duracion} onChange={(e) => setF({ ...f, duracion: +e.target.value })} className={inputCls}>{DURACIONES.map((d) => <option key={d} value={d}>{d} min</option>)}</select></Field>
+          <Field label="Prestación del arancel" id="ci-pr"><select id="ci-pr" value={(clinica.arancel || []).some((a) => a.nombre === f.motivo) ? f.motivo : ''} onChange={(e) => { const a = (clinica.arancel || []).find((x) => x.nombre === e.target.value); setF({ ...f, motivo: a ? a.nombre : f.motivo, protocoloId: a && a.protocoloId && protos.some((x) => x.id === a.protocoloId) ? a.protocoloId : (a ? '' : f.protocoloId) }); }} className={inputCls}><option value="">Elige o escribe el motivo…</option>{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre}>{a.nombre}{a.protocoloId ? ' · con protocolo' : ''}</option>)}</select></Field>
           <Field label="Motivo" id="ci-m"><input id="ci-m" value={f.motivo} onChange={(e) => setF({ ...f, motivo: e.target.value })} placeholder="Control, urgencia, endodoncia…" className={inputCls} /></Field>
+          {protos.length > 0 && <Field label="Protocolo" id="ci-pt" hint="El odontólogo o el asistente marcan su bandeja desde la cita"><select id="ci-pt" value={f.protocoloId || ''} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} className={inputCls}><option value="">Sin protocolo</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>}
+          <Field label="Pieza (FDI)" id="ci-pz"><input id="ci-pz" value={f.pieza || ''} onChange={(e) => setF({ ...f, pieza: e.target.value })} placeholder="Ej.: 3.6" className={inputCls} /></Field>
+          {asistentes.length > 0 && <Field label="Asistente" id="ci-as"><select id="ci-as" value={(f.asistente && f.asistente.uid) || ''} onChange={(e) => { const x = asistentes.find((y) => y.uid === e.target.value); setF({ ...f, asistente: x || null }); }} className={inputCls}><option value="">Sin asistente</option>{asistentes.map((x) => <option key={x.uid} value={x.uid}>{x.nombre}</option>)}</select></Field>}
         </div>
         {err && <p className="m-0 text-[13px] font-semibold text-bad">{err}</p>}
         <div className="flex gap-2"><Btn v="primary" onClick={guardar}>Guardar</Btn><Btn onClick={cerrar}>Cancelar</Btn></div>
@@ -246,8 +254,11 @@ export function ModalCita({ inicial, cerrar }) {
 }
 
 function DetalleCita({ c, cerrar, abrirFicha }) {
-  const { clinica, avisar } = useApp();
+  const { clinica, avisar, rolClinica } = useApp();
   const [editar, setEditar] = useState(false);
+  const [verProto, setVerProto] = useState(false);
+  const [evolucion, setEvolucion] = useState(false);
+  const proto = c.protocoloId && protocolosClinica().find((x) => x.id === c.protocoloId);
   const pacientes = usePacientes(clinica.id) || [];
   const pac = pacientes.find((x) => x.id === c.pacienteId);
   const p = profDe(clinica, c.profesionalId);
@@ -256,6 +267,8 @@ function DetalleCita({ c, cerrar, abrirFicha }) {
     try { await guardarCitaFS(clinica.id, { id: c.id, estado: v, ...marca }); avisar(estadoCita(v).t); } catch (e) { avisar('No se pudo cambiar.', 'warn'); }
   };
   if (editar) return <ModalCita inicial={c} cerrar={() => { setEditar(false); cerrar(); }} />;
+  if (verProto) return <PanelProtocoloCita cita={c} cerrar={() => setVerProto(false)} registrar={() => { setVerProto(false); setEvolucion(true); }} />;
+  if (evolucion) return <EvolucionProtocolo pacienteId={c.pacienteId} pacienteNombre={c.pacienteNombre} cita={c} cerrar={() => { setEvolucion(false); cerrar(); }} />;
   const tel = pac && telefonoWa(pac.telefono);
   const msg = `Hola ${c.pacienteNombre.split(' ')[0]}, te recordamos tu hora en ${clinica.nombre} el ${fechaLarga(c.fecha)} a las ${c.hora}. Responde SÍ para confirmar.`;
   const fila = (t, v) => <div className="flex justify-between gap-4 border-b border-[var(--cl-line-2)] py-2 text-[13.5px] last:border-0"><span className="text-[var(--cl-muted)]">{t}</span><span className="text-right text-ink">{v}</span></div>;
@@ -267,9 +280,18 @@ function DetalleCita({ c, cerrar, abrirFicha }) {
         {fila('Hora', <span className="tabular-nums">{c.hora} – {hhmm(mins(c.hora) + (c.duracion || 30))} · {c.duracion || 30} min</span>)}
         {fila('Profesional', p ? <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: colorProf(clinica, c.profesionalId) }} />{p.nombre}</span> : '—')}
         {fila('Box', c.box || '—')}
-        {fila('Motivo', c.motivo || 'Atención')}
+        {fila('Procedimiento', c.motivo || 'Atención')}
+        {c.pieza && fila('Pieza', c.pieza)}
+        {c.asistente && fila('Asistente', c.asistente.nombre)}
         {c.llegada && fila('Llegó', new Date(c.llegada).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }))}
       </div>
+      {proto && (
+        <div className="mt-4 rounded-[10px] border border-[color-mix(in_srgb,var(--acento)_30%,transparent)] bg-acentosoft px-3.5 py-3">
+          <p className="m-0 flex items-start gap-1.5 text-[13px] font-semibold text-acentodeep"><Ic n="book" s={14} className="mt-[2px]" />{proto.t || proto.corto}</p>
+          <p className="m-0 mt-1 text-[12.5px] text-ink2">{c.bandeja && c.bandeja.items && c.bandeja.items.length ? `Bandeja lista: ${c.bandeja.items.length} materiales marcados por ${c.bandeja.por && c.bandeja.por.nombre}.` : 'Bandeja sin preparar.'}{c.evolucionId ? ' Evolución registrada.' : ''}</p>
+          <div className="mt-2 flex flex-wrap gap-2"><Btn sm v="primary" icon="book" onClick={() => setVerProto(true)}>Ver protocolo y bandeja</Btn>{clinico(rolClinica) && !c.evolucionId && <Btn sm icon="edit" onClick={() => setEvolucion(true)}>Registrar evolución</Btn>}</div>
+        </div>
+      )}
       <p className="rotulo m-0 mb-2 mt-5">Estado</p>
       <div className="grid grid-cols-2 gap-1.5">{ESTADOS_CITA.map((e) => <button key={e.v} type="button" onClick={() => estado(e.v)} aria-pressed={c.estado === e.v} className={cx('flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] font-semibold', c.estado === e.v ? 'border-[var(--cl-pri)] bg-[var(--cl-sel)] text-deep' : 'border-[var(--cl-line)] text-ink2 hover:bg-[var(--cl-hover)]')}><span className={cx('h-2 w-2 rounded-full', e.dot)} />{e.t}</button>)}</div>
     </PanelLateral>
@@ -507,7 +529,8 @@ function Evoluciones({ p }) {
               <details className="mt-2 rounded-[8px] border border-[var(--cl-line-2)] px-3 py-2 text-[13px]">
                 <summary className="cursor-pointer font-semibold text-acento">Pasos e insumos</summary>
                 <ol className="m-0 mt-2 flex list-none flex-col gap-1 p-0">{(e.pasos || []).map((x) => <li key={x.i} className="flex gap-2"><span className="w-6 flex-none text-right tabular-nums text-ink3">{x.i + 1}.</span><span className="min-w-0 flex-1 text-ink">{x.corto}{x.nota ? <span className="block text-[12px] text-ink3">{x.nota}</span> : null}</span><span className={cx('flex-none text-[12px] font-semibold', { hecho: 'text-ok', modificado: 'text-warn', omitido: 'text-bad' }[x.estado] || 'text-ink3')}>{(ESTADOS_PASO_EVOL.find((s) => s.v === x.estado) || {}).t || x.estado}</span></li>)}</ol>
-                <p className="m-0 mt-2 text-[12.5px] text-ink2"><b>Insumos:</b> {(e.insumos || []).length ? e.insumos.map((x) => `${x.nombre} ×${x.cantidad}`).join(', ') : 'no se registraron'}</p>
+                {(e.bandeja || []).length > 0 && <p className="m-0 mt-2 text-[12.5px] text-ink2"><b>Bandeja:</b> {e.bandeja.join(', ')}</p>}
+                <p className="m-0 mt-1 text-[12.5px] text-ink2"><b>Insumos:</b> {(e.insumos || []).length ? e.insumos.map((x) => `${x.nombre} ×${x.cantidad}`).join(', ') : 'no se registraron'}</p>
                 {e.protocolo.sha256 && <p className="m-0 mt-1 text-[11px] text-ink3">Texto del protocolo usado: {versionTxt(e.protocolo.version)} · huella {String(e.protocolo.sha256).slice(0, 12)}…</p>}
               </details>
             )}
@@ -515,24 +538,90 @@ function Evoluciones({ p }) {
           </article>
         ))}
       </section>
-      {conProtocolo && <EvolucionProtocolo p={p} inicial={f} ciclos={ciclos} cerrar={() => setConProtocolo(false)} />}
+      {conProtocolo && <EvolucionProtocolo pacienteId={pacienteId} pacienteNombre={nombreDe(p)} inicial={f} cerrar={() => setConProtocolo(false)} />}
     </div>
   );
 }
 
-/* ── Evolución con protocolo: pasos (como en Mis casos), insumos usados, borrador de la nota y firma en un solo guardado ── */
-function EvolucionProtocolo({ p, inicial, ciclos, cerrar }) {
-  const { clinica, pacienteId, myUid, perfil, avisar } = useApp();
+/* ── Protocolo de la cita: sus pasos para leer y su bandeja para marcar. Marcan solo los involucrados (el odontólogo y
+   el asistente de la cita); lo marcado se precarga en la evolución y se descuenta al firmarla ── */
+function PanelProtocoloCita({ cita, cerrar, registrar }) {
+  const { clinica, myUid, perfil, avisar, rolClinica, abrirProto } = useApp();
+  const datos = datosProtocolo(cita.protocoloId);
+  const meta = metaProtocolo(cita.protocoloId);
+  const inventario = useColeccionClinica(clinica.id, 'inventario') || [];
+  const mapa = (clinica.bandejaInsumos || {})[cita.protocoloId] || {};
+  const [tab, setTab] = useState('bandeja');
+  const [marcados, setMarcados] = useState((cita.bandeja && cita.bandeja.items) || []);
+  const [guardando, setGuardando] = useState(false);
+  const puede = (cita.involucrados || []).includes(myUid);
+  const cambiado = JSON.stringify([...marcados].sort()) !== JSON.stringify([...((cita.bandeja && cita.bandeja.items) || [])].sort());
+  const items = itemsBandeja(datos);
+  const toggle = (m) => setMarcados(marcados.includes(m) ? marcados.filter((x) => x !== m) : [...marcados, m]);
+  const guardar = async () => {
+    setGuardando(true);
+    try { await guardarCitaFS(clinica.id, { id: cita.id, bandeja: { items: marcados, por: yoComo(myUid, perfil), fecha: new Date().toISOString() } }); avisar('Bandeja guardada'); }
+    catch (e) { avisar('No se pudo guardar la bandeja.', 'warn'); }
+    setGuardando(false);
+  };
+  if (!datos) return <PanelLateral titulo="Protocolo" cerrar={cerrar}><Vacio icon="book" titulo="Este protocolo no está disponible para tu cuenta" /></PanelLateral>;
+  const unido = (m) => { const u = mapa[m]; const it = u && inventario.find((y) => y.id === u.insumoId); return it ? `${it.nombre} ×${u.cantidad}` : ''; };
+  return (
+    <PanelLateral ancho={720} titulo={datos.titulo} cerrar={cerrar}
+      pie={<>{tab === 'bandeja' && puede && <Btn v="primary" icon="check" disabled={!cambiado || guardando} onClick={guardar}>{guardando ? 'Guardando…' : 'Guardar bandeja'}</Btn>}{clinico(rolClinica) && !cita.evolucionId && registrar && <Btn icon="edit" onClick={registrar}>Registrar evolución</Btn>}<Btn v="ghost" onClick={() => abrirProto(cita.protocoloId)}>Abrir el protocolo completo</Btn></>}>
+      <div className="flex flex-col gap-4">
+        <div className="rounded-[10px] border border-[var(--cl-line)] px-3.5 py-2.5 text-[13px] text-ink2">
+          <b className="text-ink">{cita.pacienteNombre}</b> · {fechaLarga(cita.fecha)} · {cita.hora}{cita.pieza ? ' · pieza ' + cita.pieza : ''}<br />
+          {(profDe(clinica, cita.profesionalId) || {}).nombre || 'Profesional'}{cita.asistente ? ' · asistente ' + cita.asistente.nombre : ''}{meta.version ? ' · protocolo ' + versionTxt(meta.version) : ''}
+        </div>
+        <Pestanas items={[['bandeja', 'Bandeja', marcados.length], ['pasos', 'Pasos', 0]]} valor={tab} onChange={setTab} />
+        {tab === 'bandeja' && (<>
+          {!puede && <p className="m-0 rounded-[8px] bg-[var(--cl-line-2)] px-3 py-2 text-[12.5px] text-ink2">Solo el odontólogo y el asistente de esta cita pueden marcar la bandeja.</p>}
+          {cita.bandeja && cita.bandeja.por && <p className="m-0 text-[12px] text-ink3">Última vez marcada por {cita.bandeja.por.nombre} · {new Date(cita.bandeja.fecha).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>}
+          {!items.length ? <p className="m-0 text-[13px] text-ink3">Este protocolo no trae bandeja.</p> : (datos.bandeja || []).map((f, k) => (
+            <section key={k} className="flex flex-col gap-1">
+              <p className="rotulo m-0">{f.fase}</p>
+              {(f.items || []).map((m) => (
+                <label key={m} className={cx('flex items-start gap-3 rounded-[8px] border px-3 py-2', marcados.includes(m) ? 'border-[color-mix(in_srgb,var(--ok)_40%,transparent)] bg-oksoft' : 'border-[var(--cl-line)]', puede ? 'cursor-pointer hover:bg-[var(--cl-hover)]' : 'opacity-80')}>
+                  <input type="checkbox" checked={marcados.includes(m)} disabled={!puede} onChange={() => toggle(m)} className="mt-0.5 h-4 w-4 flex-none accent-[var(--ok)]" />
+                  <span className="min-w-0 flex-1 text-[13.5px] text-ink">{m}{unido(m) && <span className="block text-[11.5px] text-ink3">Inventario: {unido(m)}</span>}</span>
+                </label>
+              ))}
+            </section>
+          ))}
+          {puede && items.length > 0 && <div className="flex gap-2 text-[12.5px]"><button type="button" onClick={() => setMarcados(items.map((x) => x.clave))} className="font-semibold text-acento">Marcar todo</button><span className="text-ink3">·</span><button type="button" onClick={() => setMarcados([])} className="font-semibold text-acento">Desmarcar todo</button></div>}
+          <p className="m-0 text-[12px] text-ink3">Marcar no descuenta nada: el inventario baja recién al firmar la evolución, donde todavía puedes corregir las cantidades.</p>
+        </>)}
+        {tab === 'pasos' && (
+          <ol className="m-0 flex list-none flex-col gap-2 p-0">
+            {(datos.pasos || []).map((x, i) => (
+              <li key={i} className="rounded-[8px] border border-[var(--cl-line)] px-3 py-2.5">
+                <div className="flex gap-2"><b className="w-6 flex-none text-right text-[13px] tabular-nums text-acento">{i + 1}</b><div className="min-w-0"><b className="block text-[13.5px] text-ink">{x.corto}</b>{x.hacer && <p className="m-0 mt-0.5 text-[13px] leading-relaxed text-ink2">{x.hacer}</p>}{x.listo && <p className="m-0 mt-1 text-[12.5px] text-ok"><b>Terminaste cuando:</b> {x.listo}</p>}</div></div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </PanelLateral>
+  );
+}
+
+/* ── Evolución con protocolo: pasos (como en Mis casos), bandeja, insumos usados, borrador de la nota y firma en un
+   solo guardado. Desde la ficha o desde una cita (trae su protocolo, pieza y lo marcado en la bandeja) ── */
+function EvolucionProtocolo({ pacienteId, pacienteNombre, inicial = {}, cita, cerrar }) {
+  const { clinica, myUid, perfil, avisar } = useApp();
   const protos = protocolosClinica();
   const inventario = useColeccionClinica(clinica.id, 'inventario') || [];
+  const ciclos = (useColeccionClinica(clinica.id, 'esterilizacion') || []).filter((c) => c.quimico === 'ok' && c.biologico !== 'falla').slice(0, 15);
   const [eid] = useState(() => nuevoIdEvolucion(clinica.id, pacienteId));
   const arancelDe = (nombre) => (clinica.arancel || []).find((a) => a.nombre === nombre && a.protocoloId && protos.some((x) => x.id === a.protocoloId));
-  const [procedimiento, setProcedimiento] = useState(inicial.procedimiento || '');
-  const [pid, setPid] = useState(() => (arancelDe(inicial.procedimiento) || {}).protocoloId || '');
-  const [elegidoAMano, setElegidoAMano] = useState(false);
-  const [diente, setDiente] = useState(inicial.diente || '');
+  const [procedimiento, setProcedimiento] = useState((cita ? cita.motivo : inicial.procedimiento) || '');
+  const [pid, setPid] = useState(() => (cita && cita.protocoloId) || (arancelDe(inicial.procedimiento) || {}).protocoloId || '');
+  const [elegidoAMano, setElegidoAMano] = useState(!!(cita && cita.protocoloId));
+  const [diente, setDiente] = useState((cita ? cita.pieza : inicial.diente) || '');
   const [lote, setLote] = useState(inicial.lote || '');
   const [pasos, setPasos] = useState(() => pasosIniciales(datosProtocolo(pid)));
+  const [marcados, setMarcados] = useState((cita && cita.bandeja && cita.bandeja.items) || []);
   const [insumos, setInsumos] = useState([]);
   const [insumosListos, setInsumosListos] = useState(false);
   const [nota, setNota] = useState('');
@@ -542,11 +631,23 @@ function EvolucionProtocolo({ p, inicial, ciclos, cerrar }) {
   const enviando = useRef(false);
   const datos = datosProtocolo(pid);
   const meta = metaProtocolo(pid);
-  // Al elegir un protocolo: pasos en «Hecho» e insumos estándar de la clínica
-  const elegir = (id, aMano = true) => { setPid(id); if (aMano) setElegidoAMano(true); setPasos(pasosIniciales(datosProtocolo(id))); setInsumos(insumosIniciales((clinica.consumos || {})[id], inventario)); setInsumosListos(true); };
-  useEffect(() => { if (pid && !insumosListos && inventario.length) { setInsumos(insumosIniciales((clinica.consumos || {})[pid], inventario)); setInsumosListos(true); } }, [inventario.length]);
+  const mapaDe = (id) => (clinica.bandejaInsumos || {})[id] || {};
+  const insumosPara = (id, marc) => combinarInsumos(insumosIniciales((clinica.consumos || {})[id], inventario), insumosDeBandeja(marc, mapaDe(id), inventario));
+  // Al elegir un protocolo: pasos en «Hecho», bandeja vacía e insumos que siempre gasta
+  const elegir = (id, aMano = true) => { setPid(id); if (aMano) setElegidoAMano(true); setPasos(pasosIniciales(datosProtocolo(id))); setMarcados([]); setInsumos(insumosPara(id, [])); setInsumosListos(true); };
+  useEffect(() => { if (pid && !insumosListos && inventario.length) { setInsumos(insumosPara(pid, marcados)); setInsumosListos(true); } }, [inventario.length]);
   const cambiarProcedimiento = (v) => { setProcedimiento(v); const a = arancelDe(v); if (a && !elegidoAMano && a.protocoloId !== pid) elegir(a.protocoloId, false); };
-  const borrador = borradorNota({ procedimiento: procedimiento || (datos && datos.titulo), protocoloId: pid, version: meta.version, diente, pasos, insumos, lote });
+  // Marcar o desmarcar un material de la bandeja suma o resta su insumo unido (si tiene)
+  const toggle = (m) => {
+    const u = mapaDe(pid)[m]; const on = !marcados.includes(m);
+    setMarcados(on ? [...marcados, m] : marcados.filter((x) => x !== m));
+    if (!u || !u.insumoId) return;
+    const it = inventario.find((y) => y.id === u.insumoId); if (!it) return;
+    const q = Math.round(+u.cantidad || 0);
+    if (on) setInsumos(combinarInsumos(insumos, [{ insumoId: it.id, nombre: it.nombre, unidad: it.unidad || '', cantidad: q }]));
+    else setInsumos(insumos.map((y) => (y.insumoId === it.id ? { ...y, cantidad: Math.max(0, y.cantidad - q) } : y)));
+  };
+  const borrador = borradorNota({ procedimiento: procedimiento || (datos && datos.titulo), protocoloId: pid, version: meta.version, diente, pasos, insumos, lote, bandeja: marcados });
   useEffect(() => { if (!notaEditada) setNota(borrador); }, [borrador, notaEditada]);
   const faltan = pasosSinNota(pasos);
   const avisos = avisosStock(insumos, inventario);
@@ -564,15 +665,17 @@ function EvolucionProtocolo({ p, inicial, ciclos, cerrar }) {
       diente: diente.trim(), procedimiento: (procedimiento || datos.titulo || '').trim(), nota: nota.trim(), lote, firmada: true, profesional: por,
       protocolo: { id: pid, version: meta.version || '', sha256: meta.sha256 || '', titulo: datos.titulo || '' },
       pasos: pasos.map((x) => ({ i: x.i, corto: x.corto, estado: x.estado, nota: String(x.nota || '').trim() })),
-      insumos: usados
+      insumos: usados, bandeja: marcados, ...(cita ? { citaId: cita.id } : {})
     };
-    try { await firmarEvolucionProtocoloFS(clinica.id, pacienteId, eid, evolucion, usados, por); avisar(usados.length ? 'Evolución firmada · inventario descontado' : 'Evolución firmada'); cerrar(); }
+    try { await firmarEvolucionProtocoloFS(clinica.id, pacienteId, eid, evolucion, usados, por, cita && cita.id); avisar(usados.length ? 'Evolución firmada · inventario descontado' : 'Evolución firmada'); cerrar(); }
     catch (e) { enviando.current = false; setGuardando(false); setErr(e && e.code === 'permission-denied' ? 'Esta evolución ya estaba firmada o no tienes permiso. Revisa la lista antes de volver a intentar.' : 'No se pudo guardar. Revisa tu conexión y vuelve a intentar: no se guardó nada.'); }
   };
+  const bandeja = (datos && datos.bandeja) || [];
   return (
-    <PanelLateral ancho={760} titulo={'Evolución con protocolo · ' + nombreDe(p)} cerrar={() => { if (!guardando) cerrar(); }}
+    <PanelLateral ancho={760} titulo={'Evolución con protocolo · ' + pacienteNombre} cerrar={() => { if (!guardando) cerrar(); }}
       pie={<><Btn v="primary" icon="check" disabled={guardando || !pid} onClick={firmar}>{guardando ? 'Firmando…' : 'Firmar evolución'}</Btn><Btn disabled={guardando} onClick={cerrar}>Cancelar</Btn><span className="self-center text-[12px] text-ink3">Queda a tu nombre y no se puede editar ni borrar.</span></>}>
       <div className="flex flex-col gap-5">
+        {cita && <p className="m-0 rounded-[8px] bg-[var(--cl-line-2)] px-3 py-2 text-[12.5px] text-ink2">Desde la cita del {fechaLarga(cita.fecha)} a las {cita.hora}. Al firmar, la cita queda como atendida.</p>}
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Procedimiento" id="ep-proc" className="sm:col-span-2"><input id="ep-proc" list="arancel-ep" value={procedimiento} onChange={(e) => cambiarProcedimiento(e.target.value)} placeholder="Del arancel o escrito" className={inputCls} /><datalist id="arancel-ep">{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre} />)}</datalist></Field>
           <Field label="Protocolo" id="ep-p" className="sm:col-span-2"><select id="ep-p" value={pid} onChange={(e) => elegir(e.target.value)} className={inputCls}><option value="">Elige un protocolo…</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>
@@ -591,9 +694,22 @@ function EvolucionProtocolo({ p, inicial, ciclos, cerrar }) {
               ))}
             </ol>
           </section>
+          {bandeja.length > 0 && (
+            <section className="flex flex-col gap-2">
+              <p className="rotulo m-0">Bandeja · {marcados.length} {marcados.length === 1 ? 'material usado' : 'materiales usados'}</p>
+              <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
+                {bandeja.flatMap((f) => (f.items || []).map((m) => (
+                  <label key={m} className="flex cursor-pointer items-start gap-2 rounded-md px-1.5 py-1 text-[13px] hover:bg-[var(--cl-hover)]">
+                    <input type="checkbox" checked={marcados.includes(m)} onChange={() => toggle(m)} className="mt-0.5 h-4 w-4 flex-none accent-[var(--ok)]" />
+                    <span className="min-w-0 text-ink">{m}{mapaDe(pid)[m] && <span className="ml-1 text-[11px] text-acento">· inventario</span>}</span>
+                  </label>
+                )))}
+              </div>
+            </section>
+          )}
           <section className="flex flex-col gap-2">
             <p className="rotulo m-0">Insumos usados</p>
-            {!insumos.length && <p className="m-0 text-[13px] text-ink3">{(clinica.consumos || {})[pid] ? 'Sin insumos.' : 'Este protocolo aún no tiene consumo definido en Ajustes › Consumo por protocolo.'}</p>}
+            {!insumos.length && <p className="m-0 text-[13px] text-ink3">{(clinica.consumos || {})[pid] || Object.keys(mapaDe(pid)).length ? 'Sin insumos.' : 'Este protocolo aún no tiene consumo definido en Ajustes › Consumo por protocolo.'}</p>}
             {insumos.map((x) => (
               <div key={x.insumoId} className="flex items-center gap-2 text-[13.5px]">
                 <span className="min-w-0 flex-1 truncate text-ink">{x.nombre}</span>

@@ -117,9 +117,11 @@ export async function moverStockFS(cid, itemId, tipo, cantidad, nota, por) {
 // guarda la evolución, descuenta cada insumo usado y deja su movimiento ({evolucionId}_{insumoId}). Si el batch se
 // repitiera (doble clic, reintento), esas escrituras serían ediciones y las reglas las rechazan: no se duplica nada.
 export const nuevoIdEvolucion = (cid, pid) => doc(collection(db, 'clinicas', cid, 'pacientes', pid, 'evoluciones')).id;
-export async function firmarEvolucionProtocoloFS(cid, pid, eid, evolucion, insumos, por) {
+// Si viene de una cita, la cita queda atendida y unida a la evolución en el mismo batch.
+export async function firmarEvolucionProtocoloFS(cid, pid, eid, evolucion, insumos, por, citaId) {
   const b = writeBatch(db); const fecha = ahora();
   b.set(doc(db, 'clinicas', cid, 'pacientes', pid, 'evoluciones', eid), { ...evolucion, fecha });
+  if (citaId) b.update(doc(db, 'clinicas', cid, 'citas', citaId), { evolucionId: eid, estado: 'atendida', fin: fecha, actualizado: fecha });
   (insumos || []).filter((x) => x.cantidad > 0).forEach((x) => {
     b.update(doc(db, 'clinicas', cid, 'inventario', x.insumoId), { stock: increment(-x.cantidad), actualizado: fecha });
     b.set(doc(db, 'clinicas', cid, 'inventario', x.insumoId, 'movimientos', eid + '_' + x.insumoId), { tipo: 'salida', cantidad: x.cantidad, nota: 'Consumo en atención clínica', por, evolucionId: eid, fecha });

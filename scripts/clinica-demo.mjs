@@ -144,8 +144,9 @@ if (clin) {
   if (sin.length) { const bp = writeBatch(db); sin.forEach((d, i) => bp.update(d.ref, { profesionalId: ['yo', 'p3', 'p2'][i % 3] })); await bp.commit(); console.log('· presupuestos con profesional:', sin.length); }
 }
 
-// --protocolos: conecta la demo con los protocolos para probar «Evolución con protocolo»: las resinas del arancel apuntan a
-// resina-clase-i, su consumo es resina A2 ×1 y ácido ×1, y deja esos stocks en 5 y 3 (los de los criterios de aceptación).
+// --protocolos: conecta la demo con los protocolos para probar «Evolución con protocolo» y la bandeja de la cita: las
+// resinas del arancel apuntan a resina-clase-i; el ácido y la resina se unen a su material de la bandeja; las citas de
+// resina llevan el protocolo; todas las citas, sus involucrados; y deja esos stocks en 5 y 3.
 if (clin && process.argv.includes('--protocolos')) {
   const inv = (await getDocs(collection(db, 'clinicas', CID, 'inventario'))).docs.map((d) => ({ id: d.id, ...d.data() }));
   const res = inv.find((x) => /resina compuesta a2/i.test(x.nombre)), aci = inv.find((x) => /ortofosf/i.test(x.nombre));
@@ -153,13 +154,64 @@ if (clin && process.argv.includes('--protocolos')) {
   else {
     const actual = (await getDoc(doc(db, 'clinicas', CID))).data();
     const arancel = (actual.arancel || []).map((a) => (/^resina compuesta/i.test(a.nombre) ? { ...a, protocoloId: 'resina-clase-i' } : a));
-    await setDoc(doc(db, 'clinicas', CID), { arancel, consumos: { ...(actual.consumos || {}), 'resina-clase-i': [{ insumoId: res.id, cantidad: 1 }, { insumoId: aci.id, cantidad: 1 }] } }, { merge: true });
+    // Lo que siempre gasta va en consumos; la resina y el ácido se unen a su material de la bandeja (se descuentan si se marcan)
+    const eye = inv.find((x) => /eyector/i.test(x.nombre));
+    await setDoc(doc(db, 'clinicas', CID), {
+      arancel,
+      consumos: { ...(actual.consumos || {}), 'resina-clase-i': eye ? [{ insumoId: eye.id, cantidad: 1 }] : [] },
+      bandejaInsumos: { ...(actual.bandejaInsumos || {}), 'resina-clase-i': { 'Ácido fosfórico en jeringa': { insumoId: aci.id, cantidad: 1 }, 'Resina compuesta del color elegido': { insumoId: res.id, cantidad: 1 } } }
+    }, { merge: true });
+    // Citas: las de resina con su protocolo; todas con sus involucrados (el odontólogo con cuenta y el asistente)
+    const profs = actual.profesionales || [];
+    const citas = (await getDocs(collection(db, 'clinicas', CID, 'citas'))).docs;
+    const bc = writeBatch(db);
+    citas.forEach((d) => { const c = d.data(); const prof = profs.find((p) => p.id === c.profesionalId); const cambio = { involucrados: [prof && prof.uid, c.asistente && c.asistente.uid].filter(Boolean) }; if (/^resina/i.test(c.motivo || '')) Object.assign(cambio, { motivo: 'Resina compuesta una cara', protocoloId: 'resina-clase-i' }); bc.update(d.ref, cambio); });
+    await bc.commit();
     const bs = writeBatch(db);
     bs.update(doc(db, 'clinicas', CID, 'inventario', res.id), { stock: 5 });
     bs.update(doc(db, 'clinicas', CID, 'inventario', aci.id), { stock: 3 });
     await bs.commit();
-    console.log('· protocolos conectados: resina-clase-i (resina ×1, ácido ×1); stocks 5 y 3');
+    console.log('· protocolos conectados: resina-clase-i (bandeja: ácido ×1 y resina ×1; siempre: eyector ×1); citas de resina con protocolo; stocks 5 y 3');
   }
+}
+
+// --materiales: todos los materiales de las bandejas de los protocolos (src/data.js) entran al inventario de la demo.
+// Lo que se gasta queda unido a su material de la bandeja (×1: se descuenta al marcarlo y firmar); el instrumental y los
+// equipos entran como «Instrumental» sin unir (se reutilizan); lo que no es material (radiografías, ficha, consentimiento,
+// indicaciones) se queda solo en la bandeja. Lo que ya existe en el inventario se reutiliza. Se puede correr varias veces.
+if (clin && process.argv.includes('--materiales')) {
+  const { DATOS, PROTOS } = await import('../src/data.js');
+  const NO_MATERIAL = /radiograf|ficha|consentimiento|indicaciones|periodontograma vigente|registro del bloque/i;
+  const INSTRUMENTAL = /^(espejo|sonda|radi[oó]metro|l[aá]mpara|fresa|cuchareta|jeringa triple|lentes|esp[aá]tula|elevador|f[oó]rceps|cureta|regla|localizador|loseta|espaciador|fuente de calor|ultrasonido|hoz|piedra de afilar|aspiraci[oó]n|instrumento de aplicaci[oó]n|clamps|arenador|baño ultras|discos y puntas)/i;
+  const ALIAS = [[/ácido (orto)?fosfórico/i, /ortofosf/i], [/^resina compuesta del color/i, /resina compuesta a2/i], [/^lidocaína/i, /lidoca/i], [/^hipoclorito/i, /hipoclorito/i], [/^limas k/i, /limas k/i], [/^campo estéril/i, /campo est/i]];
+  const CATEG = [[/anest|lidoca|carpule|aguja/i, 'Anestesia'], [/lima|gutapercha|conducto|hipoclorito|edta|hidróxido de calcio|cemento sellador|conos de papel|irrigaci|topes|gates|endo/i, 'Endodoncia'], [/sutura|campo estéril|fórceps|elevador|sindesm|lucas|hueso/i, 'Cirugía'], [/cureta|ultrasonido|hoz|revelador|periodont/i, 'Periodoncia'], [/resina|adhesivo|ácido|ionómero|sellante|primer|cemento de resina|matriz|teflón|pulido|recubrimiento|obturación provisional|barniz|vaselina|microbrush|microaplicador/i, 'Restauración'], [/clorhexidina|lentes|barrera|alcohol/i, 'Bioseguridad'], [/gasa|torunda|algodón|hilo|dique|eyector|cánula|papel|suero|cepillo|spray/i, 'Desechables']];
+  const limpiar = (t) => t.replace(/, si corresponde$/i, '').replace(/, si hay que reconstruir$/i, '').replace(/ por si hay que afrontar bordes$/i, '').replace(/, al menos 4 tubos disponibles$/i, '').trim();
+  let inv = (await getDocs(collection(db, 'clinicas', CID, 'inventario'))).docs.map((d) => ({ id: d.id, ...d.data() }));
+  const actual = (await getDoc(doc(db, 'clinicas', CID))).data();
+  const bandejaInsumos = { ...(actual.bandejaInsumos || {}) };
+  let creados = 0, unidos = 0, instr = 0;
+  for (const pr of PROTOS) {
+    const d = DATOS[pr.id]; if (!d) continue;
+    const mapa = { ...(bandejaInsumos[pr.id] || {}) };
+    for (const f of d.bandeja || []) for (const item of f.items || []) {
+      if (NO_MATERIAL.test(item)) continue;
+      const esInstr = INSTRUMENTAL.test(item);
+      const nombre = limpiar(item);
+      const alias = ALIAS.find(([a]) => a.test(item));
+      let it = (alias && inv.find((x) => alias[1].test(x.nombre))) || inv.find((x) => x.nombre.toLowerCase() === nombre.toLowerCase());
+      if (!it) {
+        const cat = esInstr ? 'Instrumental' : ((CATEG.find(([r]) => r.test(item)) || [])[1] || 'Otros');
+        const nuevo = { nombre, categoria: cat, unidad: 'unidades', stock: esInstr ? 2 : 20, minimo: esInstr ? 1 : 5, costo: 0, proveedor: 'Proveedor dental (ficticio)', vence: '', origen: 'bandeja', tipo: esInstr ? 'instrumental' : 'consumible', fecha: new Date().toISOString() };
+        const r = await addDoc(collection(db, 'clinicas', CID, 'inventario'), nuevo);
+        it = { id: r.id, ...nuevo }; inv.push(it); creados++;
+      }
+      if (esInstr) { instr++; continue; }
+      if (!mapa[item]) { mapa[item] = { insumoId: it.id, cantidad: 1 }; unidos++; }
+    }
+    bandejaInsumos[pr.id] = mapa;
+  }
+  await setDoc(doc(db, 'clinicas', CID), { bandejaInsumos }, { merge: true });
+  console.log(`· materiales de las bandejas: ${creados} insumos nuevos, ${unidos} materiales unidos al inventario, ${instr} de instrumental (sin descontar)`);
 }
 
 if (process.argv.includes('--investigacion')) {

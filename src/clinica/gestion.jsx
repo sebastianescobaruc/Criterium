@@ -60,7 +60,7 @@ function Laboratorio({ lista }) {
 
 /* ── Inventario: cada insumo con stock, mínimo y vencimiento; el stock cambia solo con entradas y salidas registradas ── */
 const PLI = 'minmax(220px,2fr) minmax(110px,1fr) minmax(140px,1.2fr) 120px 80px 120px';
-const CATEGORIAS_INV = ['Anestesia', 'Restauración', 'Endodoncia', 'Periodoncia', 'Cirugía', 'Prótesis', 'Bioseguridad', 'Desechables', 'Otros'];
+const CATEGORIAS_INV = ['Anestesia', 'Restauración', 'Endodoncia', 'Periodoncia', 'Cirugía', 'Prótesis', 'Bioseguridad', 'Desechables', 'Instrumental', 'Otros'];
 function Inventario({ lista, admin }) {
   const { clinica, avisar } = useApp();
   const [q, setQ] = useState('');
