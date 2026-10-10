@@ -144,6 +144,59 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ═══ Revisores: borradores de protocolos y de materia ═══
+    // Revisor verificado = especialista o docente cuyo título o cargo revisó el equipo: existe revisores/{uid}
+    // { nombre, especialidades [] }. Los borradores los ven solo revisores verificados, docentes, el equipo y su autor.
+    function esRevisorVerificado() { return conSesion() && exists(/databases/$(database)/documents/revisores/$(request.auth.uid)); }
+    function revisorDe(esp) { return esRevisorVerificado() && esp in get(/databases/$(database)/documents/revisores/$(request.auth.uid)).data.get('especialidades', []); }
+    function veBorradores() { return esRevisorVerificado() || esDocente() || esAdmin(); }
+    function borradorDe(bid) { return get(/databases/$(database)/documents/borradores/$(bid)).data; }
+
+    // borradores/{id}: tipo 'protocolo' | 'materia', titulo, especialidad, autor { uid, nombre, rol }, contenido, estado
+    // 'borrador' | 'revision' | 'correcciones' | 'aprobado', ronda (0, 1 o 2). Protocolo: lo sube quien declara haber hecho
+    // el procedimiento. Materia: solo revisores verificados o docentes. El autor edita en borrador o con correcciones y lo
+    // envía a la ronda siguiente (máximo 2); cerrar rondas y publicar lo hace el equipo.
+    match /borradores/{id} {
+      allow read: if conSesion() && (veBorradores() || resource.data.autor.uid == request.auth.uid);
+      allow create: if conSesion() && request.resource.data.autor.uid == request.auth.uid && request.resource.data.estado == 'borrador'
+        && request.resource.data.ronda == 0 && request.resource.data.tipo in ['protocolo', 'materia']
+        && (request.resource.data.tipo == 'protocolo' ? request.resource.data.declaracion == true : (esRevisorVerificado() || esDocente()))
+        && request.resource.data.get('contenido', {}).get('html', '').size() < 900000;
+      allow update: if esAdmin() || (conSesion() && resource.data.autor.uid == request.auth.uid
+        && resource.data.estado in ['borrador', 'correcciones']
+        && request.resource.data.estado in ['borrador', 'correcciones', 'revision']
+        && !cambia().hasAny(['autor', 'tipo', 'publicadoId', 'aprobadoPor'])
+        && (request.resource.data.estado != 'revision' || request.resource.data.ronda == resource.data.ronda + 1)
+        && (request.resource.data.estado == 'revision' || request.resource.data.ronda == resource.data.ronda)
+        && request.resource.data.ronda <= 2
+        && request.resource.data.get('contenido', {}).get('html', '').size() < 900000);
+      allow delete: if conSesion() && resource.data.autor.uid == request.auth.uid && resource.data.estado == 'borrador';
+    }
+
+    // revisionesBorrador/{borradorId}_{ronda}_{uid}: una por revisor y ronda, del panel de esa especialidad, nunca del autor.
+    // puntajes [{ i, pertinencia, claridad, respaldo }] (1 a 5), correcciones, comentario (≥ 40). No se editan ni se borran.
+    match /revisionesBorrador/{id} {
+      allow read: if conSesion() && (veBorradores() || resource.data.autorUid == request.auth.uid);
+      allow create: if conSesion() && request.resource.data.revisor.uid == request.auth.uid
+        && id == request.resource.data.borradorId + '_' + string(request.resource.data.ronda) + '_' + request.auth.uid
+        && revisorDe(borradorDe(request.resource.data.borradorId).especialidad)
+        && borradorDe(request.resource.data.borradorId).autor.uid != request.auth.uid
+        && request.resource.data.autorUid == borradorDe(request.resource.data.borradorId).autor.uid
+        && borradorDe(request.resource.data.borradorId).estado == 'revision'
+        && borradorDe(request.resource.data.borradorId).ronda == request.resource.data.ronda
+        && request.resource.data.tipo == borradorDe(request.resource.data.borradorId).tipo
+        && request.resource.data.puntajes is list && request.resource.data.puntajes.size() <= 80
+        && request.resource.data.comentario is string && request.resource.data.comentario.size() >= 40;
+      allow update, delete: if false;
+    }
+
+    // tramos/{uid}: el tramo que elige cada revisor verificado para su ciclo de 3 meses (los montos están en config/revisores)
+    match /tramos/{uid} {
+      allow read: if soy(uid) || esAdmin();
+      allow write: if esAdmin() || (soy(uid) && esRevisorVerificado()
+        && request.resource.data.protocolo in [0, 3, 5, 10, 15] && request.resource.data.materia in [0, 1, 2, 4]);
+    }
+
     // Casos clínicos: solo docentes. Los estudiantes no leen ni escriben casos.
     match /casos/{casoId} {
       function esAutor() { return soy(resource.data.autorUid); }

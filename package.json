@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "emuladores": "firebase emulators:start --only auth,firestore",
-    "test:reglas": "firebase emulators:exec --only firestore --project demo-criterium \"node --test --test-concurrency=1 tests-reglas/piloto.reglas.mjs tests-reglas/chat.reglas.mjs tests-reglas/clinica.reglas.mjs\"",
+    "test:reglas": "firebase emulators:exec --only firestore --project demo-criterium \"node --test --test-concurrency=1 tests-reglas/piloto.reglas.mjs tests-reglas/chat.reglas.mjs tests-reglas/clinica.reglas.mjs tests-reglas/revisores.reglas.mjs\"",
     "ios": "vite build && cap sync ios && cap open ios",
     "ios:sync": "vite build && cap sync ios",
     "deploy": "vite build && firebase deploy --only hosting",
