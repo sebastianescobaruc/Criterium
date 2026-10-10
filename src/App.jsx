@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { PROTOS } from './data.js';
+import { suscribirProtocolos } from './protocolos-remotos.js';
+import { usePiloto, useProtocolosRemotos, registrarUso, inicioDeSesionUso } from './piloto.js';
 import { ESTADOS, chequeoCaso, leer, escribir, uid } from './logic.js';
 import { casosIniciales } from './seeds.js';
 import { Ctx } from './ctx.js';
@@ -17,6 +19,7 @@ const Herramientas = vista(() => import('./views/herramientas.jsx'), 'Herramient
 const Postular = vista(() => import('./views/comunidad.jsx'), 'Postular');
 const Contacto = vista(() => import('./views/comunidad.jsx'), 'Contacto');
 const Privacidad = vista(() => import('./views/privacidad.jsx'), 'Privacidad');
+const PanelPiloto = vista(() => import('./views/piloto.jsx'), 'PanelPiloto');
 import { Feed, PerfilPublico, Bienvenida, Moderacion } from './views/red.jsx';
 import { useUsuario, cerrarSesion, actualizarPerfil } from './auth.js';
 import { useEsDocente, useMisCasos, useColaRevision, useFeedFS, guardarCasoFS, actualizarCasoFS, eliminarCasoFS, subirFoto, publicarPostFS, guardarPostulacionFS, leerPostulacionFS, enviarMensajeFS, guardarPerfilPublicoFS, useSeguimientos, seguirFS, dejarDeSeguirFS, useEsAdmin, useColaModeracion } from './db.js';
@@ -25,7 +28,7 @@ import { Portada } from './views/portada.jsx';
 import { Mapa } from './views/mapa.jsx';
 import Migracion from './views/migracion.jsx';
 
-const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion', 'privacidad'];
+const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion', 'piloto', 'privacidad'];
 // Secciones guardadas para más adelante (el código sigue en views/): no aparecen en el menú y go() las manda al inicio
 const OCULTAS = ['mapa', 'agenda', 'calificaciones', 'evaluaciones', 'asistente'];
 const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
@@ -37,7 +40,7 @@ const NAV_DIARIO = [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Bibliote
 const NAV_DOCENTE = [['casos', 'folder', 'Mis casos'], ['revision', 'stamp', 'Revisión de casos']];
 const VISTAS_DOCENTE = ['casos', 'caso', 'editor', 'revision'];
 // Equipo Criterium: el filtro de lo que se publica (admins/{uid}, agregado a mano en la consola)
-const NAV_EQUIPO = [['moderacion', 'stamp', 'Filtro de publicación']];
+const NAV_EQUIPO = [['moderacion', 'stamp', 'Filtro de publicación'], ['piloto', 'personas', 'Piloto START']];
 const NAV_SECUNDARIO = [['inicio', 'Sobre Criterium'], ['postular', 'Postular a revisor'], ['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
 const activo = (view, v) => view === v || (v === 'biblioteca' && view === 'proto') || (v === 'casos' && (view === 'caso' || view === 'editor'));
 
@@ -72,6 +75,15 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   const [colaRevision, colaRevisionListo] = useColaRevision(rolListo && esDocente);
   const [feedFS, setFeedFS, feedListo] = useFeedFS();
 
+  /* ── Modo piloto y protocolos (llegan de Firestore según el grupo; ver piloto.js) ── */
+  const piloto = usePiloto(myUid);
+  const protosListo = useProtocolosRemotos(myUid, piloto);
+  const [, setVueltaProtos] = useState(0);
+  useEffect(() => suscribirProtocolos(setVueltaProtos), []);
+  // Participantes del piloto: sin la red ni los módulos nuevos hasta la apertura; su inicio es la Biblioteca
+  const bloqueados = piloto.bloqueados;
+  useEffect(() => { if (piloto.listo && piloto.part) inicioDeSesionUso(); }, [piloto.listo, piloto.part]);
+
   // Combinar: casos propios + cola de revisión (sin duplicados)
   const todos = useMemo(() => {
     const ids = new Set(casosPropios.map((c) => c.id));
@@ -88,7 +100,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     leerPostulacionFS(myUid).then((p) => { setPostulacion(p); setPostCargado(true); });
   }, [myUid]);
 
-  const listo = rolListo && casosPropiosListo && feedListo && postCargado;
+  const listo = rolListo && casosPropiosListo && feedListo && postCargado && piloto.listo && protosListo;
 
   /* ── Perfil (viene de auth) ── */
   const perfil = perfilAuth;
@@ -110,7 +122,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 
   /* ── Navegación ── */
   // Enlace directo a un protocolo (#proto/<id>): lo usan los PDF de box para llevar a las fuentes
-  const protoHash = (() => { try { const m = (location.hash || '').match(/^#proto\/([\w-]+)/); return m && PROTOS.some((p) => p.id === m[1] && p.abre) ? m[1] : null; } catch (e) { return null; } })();
+  // (los protocolos todavía no llegan: si el id no existe o no está disponible, Protocolo lo dice)
+  const protoHash = (() => { try { const m = (location.hash || '').match(/^#proto\/([\w-]+)/); return m ? m[1] : null; } catch (e) { return null; } })();
   const hashIni = (() => { try { const h = (location.hash || '').slice(1); if (protoHash) return 'proto'; return VISTAS.includes(h) && !['proto', 'caso', 'editor', 'perfil'].includes(h) ? h : 'feed'; } catch (e) { return 'feed'; } })();
   const [view, setView] = useState(hashIni);
   const [protoId, setProtoId] = useState(protoHash || 'cementado-pmma');
@@ -149,7 +162,8 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   /* ── Acciones ── */
   const go = (v, extra = {}) => {
     if (VISTAS_DOCENTE.includes(v) && !esDocente) v = 'feed'; // las secciones del portal docente no existen para estudiantes
-    if (OCULTAS.includes(v) || (v === 'moderacion' && !esAdmin)) v = 'feed';
+    if (OCULTAS.includes(v) || (['moderacion', 'piloto'].includes(v) && !esAdmin)) v = 'feed';
+    if (bloqueados && v === 'feed') v = 'biblioteca';
     setView(v); setMenu(false); setBuscarMovil(false);
     if (v === 'revision' && !('revisando' in extra)) setRevisando(null);
     if ('filtroCasos' in extra) setFiltroCasos(extra.filtroCasos);
@@ -160,7 +174,10 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     if (!extra.foco) { try { window.scrollTo(0, 0); } catch (e) {} }
   };
   useEffect(() => { if (rolListo && !esDocente && VISTAS_DOCENTE.includes(view)) setView('feed'); }, [rolListo, esDocente, view]);
-  const abrirProto = (id, opc = {}) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; setProtoId(id); setProtoLibre(!!opc.libre); setProtoTodo(false); go('proto'); try { history.replaceState(null, '', '#proto/' + id); } catch (e) {} };
+  useEffect(() => { if (bloqueados && view === 'feed') setView('biblioteca'); }, [bloqueados, view]);
+  // Llegó por enlace directo (#proto/<id>): cuenta como protocolo abierto cuando ya cargaron
+  useEffect(() => { if (listo && protoHash && view === 'proto' && PROTOS.some((p) => p.id === protoHash && p.abre)) registrarUso('protocolo_abierto', protoHash); }, [listo]);
+  const abrirProto = (id, opc = {}) => { const p = PROTOS.find((x) => x.id === id); if (!p || !p.abre) return; registrarUso('protocolo_abierto', id); setProtoId(id); setProtoLibre(!!opc.libre); setProtoTodo(false); go('proto'); try { history.replaceState(null, '', '#proto/' + id); } catch (e) {} };
   const abrirCaso = (id) => { setDesde(view === 'revision' ? 'revision' : 'casos'); setCasoId(id); go('caso'); };
   const verPerfil = (uid) => { if (!uid) return; setPerfilUid(uid); go('perfil'); };
   const toggleSeguir = async (uid) => {
@@ -311,7 +328,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
     q, setQ, esp, setEsp, filtroCasos, setFiltroCasos, feedProto, setFeedProto, asisTab, setAsisTab, herrTab, setHerrTab,
     casos: todos, setCasos, feed, setFeed, perfil, setPerfil, conPerfil, perfilCallback, postulacion, setPostulacion: guardarPostulacion, mensajes, setMensajes: guardarMensaje,
     checks, setChecks, avisar, verFoto: setFoto,
-    usuario, myUid, logout, perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'), esAdmin
+    usuario, myUid, logout, perfilUid, verPerfil, siguiendo, toggleSeguir, editarPerfil: () => setBienvenida('editar'), esAdmin, piloto
   };
 
   /* ── Render ── */
@@ -327,7 +344,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   );
   const navegacion = (oscuro) => (
     <nav className="flex flex-col gap-0.5">
-      {NAV_DIARIO.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
+      {NAV_DIARIO.filter(([v]) => !(bloqueados && v === 'feed')).map(([v, i, t]) => navBtn(v, i, t, oscuro))}
       {esDocente && <>
         <div className={cx('rotulo px-3 pb-1.5 pt-4', oscuro && '!text-navink3')}>Portal docente</div>
         {NAV_DOCENTE.map(([v, i, t]) => navBtn(v, i, t, oscuro))}
@@ -374,7 +391,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
   ) : ({
     inicio: <Inicio />, biblioteca: <Biblioteca />, proto: <Protocolo />, casos: <CasosLista />, caso: <CasoDetalle />,
     editor: editando ? <CasoEditor key={editando.id} /> : <CasosLista />, revision: <Revision />, herramientas: <Herramientas />,
-    feed: <Feed key={feedProto} arriba={<Mapa incrustado />} lado={<TuDia />} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />, moderacion: <Moderacion />, privacidad: <Privacidad />
+    feed: <Feed key={feedProto} arriba={<Mapa incrustado />} lado={<TuDia />} />, postular: <Postular />, contacto: <Contacto />, perfil: <PerfilPublico key={perfilUid} />, moderacion: <Moderacion />, piloto: <PanelPiloto />, privacidad: <Privacidad />
   })[view];
 
   return (
@@ -424,9 +441,9 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
-        <div className="mx-auto grid max-w-lg grid-cols-5">
+        <div className={cx('mx-auto grid max-w-lg', bloqueados ? 'grid-cols-4' : 'grid-cols-5')}>
           {(esDocente ? [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['casos', 'folder', 'Casos'], ['revision', 'stamp', 'Revisar']]
-            : [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['herramientas', 'tool', 'Herramientas'], ['perfil', 'userCheck', 'Perfil']]).map(([v, i, t]) => (
+            : [['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Biblioteca'], ['herramientas', 'tool', 'Herramientas'], ['perfil', 'userCheck', 'Perfil']]).filter(([v]) => !(bloqueados && v === 'feed')).map(([v, i, t]) => (
             <button key={v} type="button" onClick={() => (v === 'perfil' ? verPerfil(myUid) : go(v))} aria-current={activo(view, v) ? 'page' : undefined}
               className={cx('relative flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-semibold', activo(view, v) ? 'text-ink' : 'text-ink3')}>
               {activo(view, v) && <span className="absolute top-0 h-[3px] w-8 rounded-b-full bg-menta" aria-hidden="true" />}
@@ -461,3 +478,4 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
 }
 
 export default AppWrapper;
+

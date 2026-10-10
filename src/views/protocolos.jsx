@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { PROTOS, DATOS } from '../data.js';
+import { META } from '../protocolos-remotos.js';
+import { registrarUso, leerPdfProtocolo, fechaTxt } from '../piloto.js';
 import { ORDEN_ESP, norm, nn, diasHasta, fechaCorta, descargar, ESTADOS } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { ComentariosProvider, ComentariosPaso, useNComentarios } from './comentarios.jsx';
-import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar } from '../ui.jsx';
+import { Ic, Pill, Btn, cx, Aviso, EstadoPill, Avatar, Vacio } from '../ui.jsx';
 import { useAprobadoresProtocolo } from '../db.js';
 import { hablar, callar, useHablando, lecturaDisponible } from '../voz.js';
 import { textoPorqueCompleto } from '../lectura.js';
@@ -20,7 +22,8 @@ const leerModo = () => { try { return localStorage.getItem('criterium-modo-proto
 const guardarModo = (m) => { try { localStorage.setItem('criterium-modo-proto', m); } catch (e) {} };
 
 // Solo las especialidades que tienen al menos un protocolo en el catálogo
-const CHIPS = ['todas', ...ORDEN_ESP.filter((e) => PROTOS.some((p) => p.esp === e))];
+// Se calcula al dibujar: los protocolos llegan de Firestore después de cargar el módulo
+const chips = () => ['todas', ...ORDEN_ESP.filter((e) => PROTOS.some((p) => p.esp === e))];
 
 export function filtrarProtos(q, esp) {
   const nq = norm(q.trim());
@@ -31,7 +34,7 @@ export function ChipsEsp({ className = '' }) {
   const { esp, setEsp } = useApp();
   return (
     <div className={cx('flex flex-wrap gap-1.5', className)}>
-      {CHIPS.map((c) => (
+      {chips().map((c) => (
         <button key={c} type="button" aria-pressed={esp === c} onClick={() => setEsp(c)}
           className={cx('rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors', esp === c ? 'border-acento bg-acento font-semibold text-onc' : 'border-line bg-card text-ink2 hover:border-acento')}>
           {c === 'todas' ? 'Todas' : c}
@@ -269,10 +272,28 @@ export function Biblioteca() {
     return () => clearTimeout(t);
   }, [protoFoco]);
   const [bajando, setBajando] = useState(''); // id del protocolo cuyo PDF se está preparando
-  const pdf = async (id) => { setBajando(id); await bajarPdf(DATOS[id].pdf, avisar); setBajando(''); };
+  const pdf = async (id) => { setBajando(id); await bajarPdf(id, avisar); setBajando(''); };
+  const { piloto } = useApp();
+  const enEstudio = piloto && piloto.part && !piloto.abierto;
+  // Modo piloto: el grupo habitual no tiene protocolos hasta la apertura (las reglas tampoco se los entregan)
+  if (enEstudio && piloto.part.grupo === 'habitual') return (
+    <div className="flex flex-col gap-6">
+      <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
+      <Vacio icon="clock" titulo={'Los protocolos se abren el ' + fechaTxt(piloto.apertura)}>
+        Participas en un estudio de Criterium. Mientras dure, tu grupo trabaja como siempre, sin los protocolos. Ese día se abren para ti. Gracias por ser parte.
+      </Vacio>
+    </div>
+  );
+  if (!PROTOS.length) return (
+    <div className="flex flex-col gap-6">
+      <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
+      <Vacio icon="book" titulo="No pudimos cargar los protocolos">Revisa tu conexión y vuelve a entrar.</Vacio>
+    </div>
+  );
   return (
     <div className="flex flex-col gap-6">
       <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
+      {enEstudio && <p className="suave m-0 rounded-rs px-4 py-3 text-[13.5px] leading-snug text-ink2"><b className="text-ink">Participas en un estudio de Criterium.</b> Mientras dure, ves los {PROTOS.length} protocolos del estudio. El resto se abre el {fechaTxt(piloto.apertura)}.</p>}
       <div className="flex flex-col gap-3">
         <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento md:hidden">
           <Ic n="search" s={16} className="text-ink3" />
@@ -387,11 +408,13 @@ export function Sub({ x }) {
   );
 }
 
-// Descarga el PDF de box de un protocolo (archivo en public/)
-async function bajarPdf(archivo, avisar) {
+// Descarga el PDF de box de un protocolo: está en Firestore, con las mismas reglas que el protocolo
+// (quien no puede ver el protocolo tampoco puede bajar su PDF)
+async function bajarPdf(id, avisar) {
   try {
-    const r = await fetch(archivo); if (!r.ok) throw new Error();
-    await descargar(archivo, await r.blob(), avisar);
+    const { nombre, blob } = await leerPdfProtocolo(id);
+    await descargar(nombre, blob, avisar);
+    registrarUso('pdf_descargado', id);
   } catch (e) { avisar('No se pudo obtener el PDF.', 'warn'); }
 }
 
@@ -482,8 +505,11 @@ export function Escuchar({ s, onEmpezar, className = '', suave = false }) {
 export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorque, autoPorque, mapa }) {
   const [ficha, setFicha] = useState(null);
   const [mas, setMas] = useState(false); // nivel 2 desplegable: cerrado de partida
+  const { protoId } = useApp();
+  // Registro de uso (piloto): solo cuenta lo que abre la persona (toque o voz), no el recorrido automático
+  const usoNivel2 = () => { if (!mas) registrarUso('nivel_2_abierto', protoId); };
   // Una orden externa (la voz: «por qué») abre el desplegable
-  useEffect(() => { if (abrirPorque) setMas(true); }, [abrirPorque]);
+  useEffect(() => { if (abrirPorque) { usoNivel2(); setMas(true); } }, [abrirPorque]);
   const porque = s.porque || [];
   const subs = s.sub || [];
   // Comentarios del paso: la última ficha, siempre presente (el botón para comentar este paso)
@@ -562,7 +588,7 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
       {porque.length > 0 && (
         <div ref={refPorque} className={cx('suave scroll-mb-[110px] scroll-mt-24 overflow-hidden', nivel(1).className)} style={nivel(1).style}>
           <div className={cx('flex items-center', grande ? 'pr-5 sm:pr-9' : 'pr-5 sm:pr-6')}>
-          <button type="button" onClick={() => { detener(); setMas(!mas); }} aria-expanded={mas}
+          <button type="button" onClick={() => { detener(); usoNivel2(); setMas(!mas); }} aria-expanded={mas}
             className={cx('group relative flex min-w-0 flex-1 items-center gap-3 py-4 pl-5 pr-3 text-left', grande ? 'sm:py-5 sm:pl-9' : 'sm:pl-6')}>
             <span className="rotulo flex-1">¿Por qué?</span>
             {!mas && <span className="hidden min-w-0 flex-[3] truncate text-[13px] text-ink3 sm:block">{porque[0]}</span>}
@@ -571,7 +597,7 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </span>
           </button>
-          <Escuchar s={s} onEmpezar={() => { detener(); setMas(true); }} />
+          <Escuchar s={s} onEmpezar={() => { detener(); usoNivel2(); setMas(true); }} />
           </div>
           <div className={cx('despliega', mas && 'abierto')}>
             <div className={cx('min-h-0', grande ? 'px-5 sm:px-9' : 'px-5 sm:px-6')}>
@@ -590,7 +616,7 @@ export function Paso({ s, i, hecho, onToggle, grande, animar, leyendo, abrirPorq
             {fichas.map((f) => {
               const on = ficha === f.k;
               return (
-                <button key={f.k} type="button" onClick={() => { detener(); setFicha(on ? null : f.k); }} aria-expanded={on}
+                <button key={f.k} type="button" onClick={() => { detener(); if (!on && f.k !== 'com') registrarUso('nivel_3_abierto', protoId); setFicha(on ? null : f.k); }} aria-expanded={on}
                   className={cx('inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', on ? 'bg-panel text-panelink' : 'bg-soft text-ink2 hover:bg-acentosoft hover:text-acentodeep')}>
                   <Ic n={f.ic} s={14} className={on ? 'text-menta' : 'text-rotulo'} />{f.t}
                 </button>
@@ -636,15 +662,36 @@ function ModoBox({ d, hechos, toggle, reiniciar }) {
 
 // El protocolo abierto, con los comentarios de sus pasos al alcance de cada paso (también en modo guiado y manos libres)
 export function Protocolo() {
-  const { protoId } = useApp();
-  const id = DATOS[protoId] ? protoId : 'cementado-pmma';
-  return <ComentariosProvider id={id} d={DATOS[id]}><VistaProtocolo /></ComentariosProvider>;
+  const { protoId, go } = useApp();
+  // Puede no estar: el protocolo no existe o no está disponible para esta cuenta (modo piloto)
+  if (!DATOS[protoId]) return (
+    <div className="mx-auto max-w-[620px] pt-6">
+      <Vacio icon="book" titulo="Este protocolo no está disponible" accion={<Btn v="primary" onClick={() => go('biblioteca')}>Ir a la Biblioteca</Btn>}>No existe o tu cuenta todavía no tiene acceso a él.</Vacio>
+    </div>
+  );
+  return <ComentariosProvider id={protoId} d={DATOS[protoId]}><VistaProtocolo /></ComentariosProvider>;
+}
+
+// Versión, fecha y huella SHA-256 del texto publicado (el estudiante lee un texto fijo y verificable)
+export function Huella({ id, className = '', claro = false }) {
+  const [ver, setVer] = useState(false);
+  const m = META[id];
+  if (!m || !m.sha256) return null;
+  const f = m.fecha ? fechaTxt(new Date(m.fecha + 'T12:00:00')) : '';
+  return (
+    <p className={cx('m-0 text-[12px] leading-snug', claro ? 'text-panelink2' : 'text-ink3', className)}>
+      Versión {m.version || 's/n'}{f ? ' · ' + f : ''} · Huella SHA-256{' '}
+      <button type="button" onClick={() => setVer(!ver)} title={m.sha256} className={cx('font-semibold underline decoration-dotted underline-offset-2 [overflow-wrap:anywhere]', claro ? 'text-panelink' : 'text-ink2')}>
+        {ver ? m.sha256 : m.sha256.slice(0, 12) + '…'}
+      </button>
+    </p>
+  );
 }
 
 function VistaProtocolo() {
   const { protoId, protoLibre, protoTodo, go, checks, setChecks, nuevoCaso, avisar, casos, abrirCaso, myUid, verPerfil, esDocente } = useApp();
-  const d = DATOS[protoId] || DATOS['cementado-pmma'];
-  const id = DATOS[protoId] ? protoId : 'cementado-pmma';
+  const d = DATOS[protoId];
+  const id = protoId;
   const hechos = checks[id] || [];
   const toggle = (i) => setChecks((c) => { const l = c[id] || []; return { ...c, [id]: l.includes(i) ? l.filter((x) => x !== i) : [...l, i].sort((a, b) => a - b) }; });
   const reiniciar = () => setChecks((c) => ({ ...c, [id]: [] }));
@@ -655,7 +702,7 @@ function VistaProtocolo() {
   const [bajando, setBajando] = useState(false);
   const aprobadores = useAprobadoresProtocolo(id, esDocente);
   const casosDeEste = casos.filter((c) => c.protocoloId === id && (c.autorUid === myUid || c.autor?.id === myUid));
-  const bajarPdfProto = async () => { setBajando(true); await bajarPdf(d.pdf, avisar); setBajando(false); };
+  const bajarPdfProto = async () => { setBajando(true); await bajarPdf(protoId, avisar); setBajando(false); };
   const lado = (
     <>
       <div className="flex flex-col gap-2">
@@ -724,6 +771,7 @@ function VistaProtocolo() {
             </div>
           )}
           <p className="m-0 font-serif text-[15px] leading-relaxed text-ink2"><b className="font-sans text-[13.5px] text-ink">Alcance:</b> {d.alcance}</p>
+          <Huella id={id} className="mt-3" />
         </header>
 
         <details className="mt-5 tarjeta xl:hidden">

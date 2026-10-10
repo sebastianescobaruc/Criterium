@@ -1,12 +1,12 @@
 // Portada pública: lo que ve alguien que todavía no tiene cuenta. Pocas palabras, un paso real de muestra
 // (con su animación, cuándo terminaste y su porqué) y los protocolos disponibles.
 import React, { useState } from 'react';
-import { PROTOS, DATOS } from '../data.js';
+import { MUESTRA, LISTA } from '../muestra.js';
 import { Ic, Logo, Pill, cx } from '../ui.jsx';
 import { Animacion } from './protocolos.jsx';
 
-// El paso de muestra: «Abre y remueve la caries» de la resina clase I
-const MUESTRA = { proto: 'resina-clase-i', paso: 2 };
+// El paso de muestra («Abre y remueve la caries» de la resina clase I) y la lista vienen de src/muestra.js:
+// los protocolos completos ya no van en el código y se ven solo con cuenta.
 const PUNTOS = [
   ['check', 'Qué hacer y cuándo terminaste', 'Cada paso es una acción que se puede comprobar.'],
   ['book', 'La evidencia de cada paso', 'Con su grado. Lo que no tiene respaldo se dice.'],
@@ -15,10 +15,9 @@ const PUNTOS = [
 
 export function Portada({ entrar, privacidad }) {
   const [porque, setPorque] = useState(false);
-  const d = DATOS[MUESTRA.proto]; const s = d.pasos[MUESTRA.paso];
-  const grado = ((s.sub || []).flatMap((x) => x.fuentes || [])[0] || {}).grado;
+  const s = MUESTRA; const grado = s.grado;
   const pre = 'Terminaste cuando';
-  const protos = PROTOS.filter((p) => p.abre && DATOS[p.id]);
+  const protos = LISTA;
   return (
     <div className="fondo min-h-screen">
       <header className="sticky top-0 z-20 border-b border-cardline bg-[color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur-xl" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -41,18 +40,18 @@ export function Portada({ entrar, privacidad }) {
         </section>
 
         <section id="muestra" className="scroll-mt-24">
-          <p className="m-0 mb-3 text-center text-[13px] font-semibold text-ink3">Un paso real · {d.titulo}</p>
+          <p className="m-0 mb-3 text-center text-[13px] font-semibold text-ink3">Un paso real · {s.titulo}</p>
           <div className="mx-auto grid max-w-[920px] items-center gap-5 overflow-hidden rounded-[28px] bg-card p-4 shadow-shlg sm:p-6 md:grid-cols-[1.05fr_1fr]">
             <Animacion id={s.anim} />
             <div className="flex flex-col gap-3 px-1 sm:px-2">
-              <p className="m-0 text-[12.5px] font-semibold uppercase tracking-[.12em] text-rotulo">Paso {MUESTRA.paso + 1} de {d.pasos.length}</p>
+              <p className="m-0 text-[12.5px] font-semibold uppercase tracking-[.12em] text-rotulo">Paso {s.paso + 1} de {s.total}</p>
               <h2 className="m-0 text-[22px] font-bold leading-snug tracking-[-.02em] text-deep sm:text-[26px]">{s.hacer}</h2>
               <p className="m-0 text-[15px] leading-relaxed text-ink2">{(s.listo || '').startsWith(pre) ? <><b className="font-semibold text-acento">{pre}</b>{s.listo.slice(pre.length)}</> : s.listo}</p>
               {grado && <Pill tono="acento" className="self-start">{grado}</Pill>}
               <button type="button" onClick={() => setPorque(!porque)} aria-expanded={porque} className="inline-flex items-center gap-1.5 self-start rounded-full bg-soft px-4 py-2 text-[14px] font-semibold text-acentodeep hover:bg-acentosoft">
                 ¿Por qué?<svg className={cx('transition-transform duration-300', porque && 'rotate-180')} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
               </button>
-              {porque && <p className="aparece m-0 text-[14.5px] leading-relaxed text-ink2">{(s.porque || [])[0]}</p>}
+              {porque && <p className="aparece m-0 text-[14.5px] leading-relaxed text-ink2">{s.porque}</p>}
             </div>
           </div>
         </section>

@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Terminación e instalación en prótesis removible</title>
+<!--
+  Criterium · Materia · Geriatría
+  Texto propio de Criterium, escrito desde las fuentes citadas al final. Cada afirmación lleva su fuente;
+  lo que no tiene estudio que lo respalde va marcado como «práctica habitual». Sin revisión de especialista todavía.
+  Paleta del ramo Geriatría: azul petróleo y menta de Criterium, en tonos suaves (rosa solo para encía y acrílico). Solo tema claro.
+-->
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F2F6F8; --surface:#FFFFFF; --surface-2:#EAF2F5; --ink:#0F2530; --muted:#56707C; --line:#D5E3E9;
+  --acr:#2F6A78; --acr-soft:#DDEEF1; --rosa:#EFC9D2; --malva:#2C8C82; --malva-soft:#DDF3EF; --durazno:#9A6A1E; --durazno-soft:#F9EDD9;
+  --muc:#EDB3C2; --bone:#EADFD4; --bone-line:#B5A491; --tooth:#FCF7EC; --tooth-line:#8C7C64; --red:#B4343F; --blue:#5767B0;
+  --wax:#F2C4D0; --metal:#C9C3CB; --yeso:#F1EBE1; --model:#D9CBB3; --water:#DCE7F3; --sil:#CFE7DC;
+  --ok:#3C7A5A; --ok-soft:#E1F0E7; --warn:#946320; --warn-soft:#F9EDD9; --bad:#A12A3B; --bad-soft:#F8DEE3;
+  --font:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16.5px;line-height:1.55}
+.wrap{max-width:1060px;margin:0 auto;padding:0 16px 72px}
+h1,h2,h3{text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5.5vw,3.1rem);font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+h2{font-size:clamp(1.45rem,3.4vw,2rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+a{color:var(--acr)}
+.eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acr)}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.lead{font-size:1.1rem;max-width:62ch}
+sup.c{font-size:.68em;line-height:0;margin-left:1px}
+sup.c a{text-decoration:none;font-weight:700;color:var(--malva);padding:0 1px}
+sup.c a:hover{text-decoration:underline}
+
+header.hero{padding:32px 0 18px;display:grid;gap:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.meta span.rev{background:var(--durazno-soft);border-color:transparent;color:var(--durazno)}
+.goals{display:flex;flex-wrap:wrap;gap:8px}
+.goal{font-size:.9rem;background:var(--acr-soft);color:var(--acr);border-radius:999px;padding:4px 12px;font-weight:600}
+
+nav.toc{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin:0 -16px;padding:8px 16px}
+.toc-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.toc-row::-webkit-scrollbar{display:none}
+.toc a{flex:none;font-weight:600;font-size:.86rem;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.toc a:hover,.toc a:focus-visible{border-color:var(--acr);color:var(--acr);outline:none}
+
+section{padding:44px 0 8px;scroll-margin-top:64px;display:grid;gap:16px}
+.sec-head{display:grid;gap:6px;max-width:70ch}
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:16px}
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:780px){.split{grid-template-columns:minmax(0,1fr)}}
+.svgbox{width:100%;overflow-x:auto}
+.svgbox svg{display:block;width:100%;height:auto}
+.wide svg{min-width:680px}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.btn{font:inherit;font-weight:600;font-size:.88rem;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--acr);color:#fff;border-color:var(--acr)}
+.seg button:focus-visible,.btn:focus-visible,.opt:focus-visible,summary:focus-visible{outline:2px solid var(--malva);outline-offset:2px}
+.btn.primary{background:var(--acr);border-color:var(--acr);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.nav2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nav2 .count{font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
+.ctrl{display:grid;gap:6px}
+.ctrl label{font-weight:600;font-size:.92rem;display:flex;justify-content:space-between;gap:8px}
+.ctrl output{font-variant-numeric:tabular-nums;color:var(--acr);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--acr)}
+
+.facts{display:grid;gap:12px}
+.fact h4{margin:0 0 3px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fact ul{margin:0;padding-left:18px}
+.fact li{margin:2px 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.acr{background:var(--acr-soft);color:var(--acr)}
+.tag.sinev{background:var(--malva-soft);color:var(--malva);text-transform:none;letter-spacing:0}
+.tip{border-left:3px solid var(--acr);background:var(--acr-soft);padding:10px 14px;border-radius:0 12px 12px 0;font-size:.95rem}
+.tip b{color:var(--acr)}
+.tip.malva{border-color:var(--malva);background:var(--malva-soft)}
+.tip.malva b{color:var(--malva)}
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px;align-content:start}
+.card ul,.card ol{margin:0;padding-left:18px;font-size:.94rem}
+table.cmp{width:100%;border-collapse:collapse;font-size:.95rem}
+table.cmp th,table.cmp td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line)}
+table.cmp th{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+table.cmp td:first-child{font-weight:700}
+.tablebox{overflow-x:auto}
+
+details.err{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+details.err summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.err summary::-webkit-details-marker{display:none}
+details.err summary::after{content:"Ver causa";font-size:.78rem;color:var(--acr);font-weight:700;flex:none}
+details.err[open] summary::after{content:"Ocultar"}
+details.err p{margin-top:8px;font-size:.95rem}
+
+.checklist{display:grid;gap:6px}
+.checklist label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer;font-size:.95rem}
+.checklist input{margin-top:4px;accent-color:var(--ok);width:18px;height:18px;flex:none}
+.checklist label:has(input:checked){background:var(--ok-soft);border-color:transparent}
+.progress{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.progress span{display:block;height:100%;background:var(--ok);width:0;transition:width .25s}
+.steplist{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.steplist button{width:100%;text-align:left;font:inherit;font-size:.95rem;display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 10px;cursor:pointer}
+.steplist button .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;background:var(--surface);border:1px solid var(--line)}
+.steplist button[aria-pressed="true"]{border-color:var(--acr);background:var(--acr-soft)}
+.steplist button[aria-pressed="true"] .n{background:var(--acr);color:#fff;border-color:var(--acr)}
+.stepdetail{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface-2);display:grid;gap:8px}
+
+.faq{display:grid;gap:8px}
+.faq details{border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.faq summary{cursor:pointer;padding:10px 14px;font-weight:700;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"Paciente: ";color:var(--muted);font-weight:600}
+.faq details p{padding:0 14px 12px;font-size:.95rem}
+.faq details p::before{content:"Tú: ";color:var(--acr);font-weight:700}
+
+.sorter{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:8px}
+.sitem{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:10px 12px;display:grid;gap:8px}
+.sitem .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.sitem .row span{font-weight:600;font-size:.95rem}
+.sitem .yn{display:flex;gap:6px;flex:none}
+.sitem .yn button{font:inherit;font-weight:700;font-size:.82rem;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
+.sitem.right{border-color:var(--ok);background:var(--ok-soft)}
+.sitem.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.sitem .fb{font-size:.9rem}
+
+.numgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px}
+.num{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:10px 12px;display:grid;gap:2px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.num .k{font-size:.88rem;color:var(--muted)}
+.num .v{font-weight:800;font-size:1.1rem;color:var(--acr);font-variant-numeric:tabular-nums}
+.num .s{font-size:.78rem;color:var(--malva);font-weight:700}
+.hidevals .num:not(.shown) .v{color:transparent;background:var(--surface-2);border-radius:6px}
+.hidevals .num:not(.shown) .v::after{content:"toca para ver";color:var(--muted);font-size:.8rem;font-weight:600}
+
+.grit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.grit div{height:10px;border-radius:4px;background:var(--line)}
+.grit div.on{background:var(--acr)}
+.gritlab{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+
+/* SVG */
+.s-lab{fill:var(--muted);font-family:var(--font);font-size:11px}
+.s-labb{fill:var(--ink);font-family:var(--font);font-size:12px;font-weight:700}
+.s-labacr{fill:var(--acr);font-family:var(--font);font-size:12px;font-weight:700}
+.s-labred{fill:var(--red);font-family:var(--font);font-size:11px;font-weight:700}
+.s-line{stroke:var(--line);stroke-width:1.5;fill:none}
+.s-grid{stroke:var(--line);stroke-width:1;fill:none}
+.s-tooth{fill:var(--tooth);stroke:var(--tooth-line);stroke-width:1.3;stroke-linejoin:round}
+.s-bone{fill:var(--bone);stroke:var(--bone-line);stroke-width:1.2}
+.s-muc{fill:none;stroke:var(--muc);stroke-width:6;stroke-linejoin:round}
+.s-base{fill:var(--rosa);fill-opacity:.92;stroke:var(--acr);stroke-width:1}
+.s-wax{fill:var(--wax);stroke:var(--acr);stroke-width:1;stroke-dasharray:3 2}
+.s-metal{fill:var(--metal);stroke:var(--ink);stroke-width:1.2}
+.s-yeso{fill:var(--yeso);stroke:var(--bone-line);stroke-width:.8}
+.s-model{fill:var(--model);stroke:var(--bone-line);stroke-width:1}
+.s-water{fill:var(--water)}
+.s-sil{fill:var(--sil);stroke:var(--ok);stroke-width:.8}
+.s-iso{fill:none;stroke:var(--blue);stroke-width:2.5;stroke-dasharray:5 3}
+.s-arrow{stroke:var(--ink);stroke-width:2;fill:none}
+.s-arrowhead{fill:var(--ink)}
+.node{cursor:pointer}
+.node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:fill .15s,stroke .15s}
+.node text{fill:var(--ink);font-family:var(--font);font-size:12px;pointer-events:none}
+.node.l2 rect{fill:var(--acr-soft);stroke:var(--acr);stroke-width:1.2}
+.node.l2 text{font-weight:700;font-size:12.5px;fill:var(--acr)}
+.node.root rect{fill:var(--acr);stroke:var(--acr)}
+.node.root text{fill:#fff;font-weight:800;font-size:14px}
+.node.lab rect{fill:var(--durazno-soft)}
+.node.sel rect{stroke:var(--acr);stroke-width:2.5}
+.node:hover rect,.node:focus-visible rect{stroke:var(--malva);stroke-width:2}
+.node:focus{outline:none}
+
+.quiz{display:grid;gap:14px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.q p.qt{font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.93rem;color:var(--muted)}
+.score{font-weight:800;font-size:1.1rem;color:var(--acr)}
+ol.refs{margin:0;padding-left:26px;display:grid;gap:8px;font-size:.92rem}
+ol.refs li{scroll-margin-top:70px;padding:4px 6px;border-radius:8px}
+ol.refs li.flash{background:var(--acr-soft)}
+ol.refs .lk{white-space:nowrap}
+footer{margin-top:28px;font-size:.88rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Geriatría · Prótesis removible · Laboratorio y clínica</span>
+  <h1>Terminación e instalación en prótesis removible</h1>
+  <p class="lead">Del patrón de cera hasta el alta del paciente: qué hace el laboratorio, qué errores buscar al recibir la prótesis, cómo terminarla, instalarla y qué indicarle al paciente.</p>
+  <div class="meta"><span>Criterium · Materia</span><span>v1.0 · 8 de octubre de 2026</span><span>18 fuentes</span><span class="rev">Sin revisión de especialista todavía</span></div>
+  <div class="goals">
+    <span class="goal">Procesamiento del acrílico</span><span class="goal">Errores al recibir</span><span class="goal">Terminación y pulido</span><span class="goal">Instalación</span><span class="goal">Higiene y controles</span>
+  </div>
+  <div class="bench" style="margin-top:6px">
+    <div class="svgbox wide"><svg id="map" viewBox="0 0 820 300" role="img" aria-label="Mapa de los temas"></svg></div>
+    <p class="muted small">Toca un tema para ir a él. Los números morados <sup class="c"><a href="#fuentes">n</a></sup> llevan a la fuente.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Secciones">
+  <div class="toc-row">
+    <a href="#s-flujo">Recorrido</a>
+    <a href="#s-lab">1 · Mufla</a>
+    <a href="#s-curado">2 · Curado</a>
+    <a href="#s-errores">3 · Errores</a>
+    <a href="#s-pulido">4 · Terminación y pulido</a>
+    <a href="#s-previas">5 · Antes de instalar</a>
+    <a href="#s-instal">6 · Instalación</a>
+    <a href="#s-paciente">7 · Paciente</a>
+    <a href="#s-higiene">8 · Higiene</a>
+    <a href="#s-controles">9 · Controles</a>
+    <a href="#s-cifras">Cifras</a>
+    <a href="#s-quiz">Autoevaluación</a>
+    <a href="#fuentes">Fuentes</a>
+  </div>
+</nav>
+
+<!-- Recorrido -->
+<section id="s-flujo">
+  <div class="sec-head">
+    <span class="eyebrow">Vista general</span>
+    <h2>El recorrido de la prótesis</h2>
+    <p>Cuando se aprueba la prueba de dientes en cera, el patrón va al laboratorio. Ahí se cambia la cera por acrílico de termocurado y la prótesis vuelve a la clínica para terminarla e instalarla.<sup class="c"><a href="#f1">1</a></sup> Toca cada paso.</p>
+  </div>
+  <div class="bench">
+    <div class="svgbox wide"><svg id="flow" viewBox="0 0 980 175" role="img" aria-label="Recorrido entre clínica y laboratorio"></svg></div>
+    <div class="stepdetail" id="flowTxt"></div>
+  </div>
+</section>
+
+<!-- 1 Mufla -->
+<section id="s-lab">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 1 · Laboratorio</span>
+    <h2>Enmuflado: de cera a acrílico</h2>
+    <p><b>Enmuflar</b> es revestir el patrón (los dientes en cera sobre el modelo) en yeso dentro de una <b>mufla</b>, para formar el molde donde entra el acrílico.<sup class="c"><a href="#f2">2</a></sup> El acrílico en estado de masa se prensa dentro de la mufla (moldeo por compresión) y se polimeriza con calor.<sup class="c"><a href="#f1">1</a></sup> Lo que no se puede perder: la posición de los dientes y el detalle del encerado.</p>
+  </div>
+  <div class="bench">
+    <div class="split">
+      <div>
+        <div class="svgbox"><svg id="mufla" viewBox="0 0 380 290" role="img" aria-label="Corte de la mufla"></svg></div>
+        <p class="muted small" style="margin-top:6px">Leyenda: <span style="color:var(--acr);font-weight:700">cera / acrílico</span> · yeso claro · modelo más oscuro · <span style="color:var(--blue);font-weight:700">separador</span>. Esquema, no a escala.</p>
+      </div>
+      <div class="facts">
+        <div class="nav2"><button type="button" class="btn" id="mPrev">← Anterior</button><span class="count" id="mCount">1 / 8</span><button type="button" class="btn primary" id="mNext">Siguiente →</button></div>
+        <div class="stepdetail" id="mTxt"></div>
+      </div>
+    </div>
+  </div>
+  <div class="cards3">
+    <div class="card"><h3>Acrílico de termocurado</h3><ul><li>Viene en polvo y líquido y se usa para bases de prótesis.<sup class="c"><a href="#f1">1</a></sup></li><li>Polimeriza mejor que el de autocurado: este último deja más monómero residual, que tiende a liberarse.<sup class="c"><a href="#f1">1</a></sup></li><li>El autocurado hoy se usa para cubetas, provisionales y reparaciones.<sup class="c"><a href="#f1">1</a></sup></li></ul></div>
+    <div class="card"><h3>Las fases de la mezcla</h3><ul><li>Arenosa, filamentosa, de <b>masa</b>, gomosa y rígida.<sup class="c"><a href="#f1">1</a></sup></li><li>Se prensa en la fase de masa: ya no es pegajosa y todavía se puede moldear.<sup class="c"><a href="#f1">1</a></sup></li><li>Poco polvo para el líquido aumenta la contracción y los cambios de dimensión.<sup class="c"><a href="#f1">1</a></sup></li></ul></div>
+    <div class="card"><h3>Por qué no está «para mañana»</h3><ul><li>Un ciclo de curado típico dura horas (por ejemplo, unas 8 a 9 h a 74 °C).<sup class="c"><a href="#f1">1</a></sup></li><li>Después hay que enfriar de a poco antes de abrir la mufla, y recién ahí terminar y pulir.<sup class="c"><a href="#f1">1</a></sup></li></ul></div>
+  </div>
+</section>
+
+<!-- 2 Curado -->
+<section id="s-curado">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 2 · Laboratorio</span>
+    <h2>Ciclo de curado</h2>
+    <p>La mufla prensada se calienta en agua. La temperatura se sube <b>de a poco</b>: si la mufla entra directo a agua hirviendo, el monómero (hierve a 100,3 °C) se evapora antes de polimerizar y el acrílico queda poroso.<sup class="c"><a href="#f1">1</a></sup><sup class="c"><a href="#f4">4</a></sup> Mueve el tiempo para recorrer un ciclo de dos etapas.</p>
+  </div>
+  <div class="bench">
+    <div class="svgbox"><svg id="cure" viewBox="0 0 540 270" role="img" aria-label="Temperatura de un ciclo de curado de dos etapas"></svg></div>
+    <div class="ctrl"><label for="tcure">Momento del ciclo <output id="tcureOut">calentando</output></label><input type="range" id="tcure" min="0" max="100" step="1" value="12"></div>
+    <div class="stepdetail" id="cureTxt"></div>
+    <div class="tablebox">
+      <table class="cmp">
+        <thead><tr><th>Ciclos publicados (ejemplos)</th><th>Etapa larga</th><th>Final a 100 °C</th></tr></thead>
+        <tbody>
+          <tr><td>Largo</td><td>74 °C · 8 h</td><td>Sin final, o 1 h</td></tr>
+          <tr><td>Corto</td><td>70–74 °C · 3 h</td><td>1 h</td></tr>
+          <tr><td>Acrílico de curado rápido</td><td>—</td><td>100 °C · 20 min</td></tr>
+        </tbody>
+      </table>
+      <p class="muted small" style="margin-top:6px">Fuente de la tabla: revisión de Zafar.<sup class="c"><a href="#f1">1</a></sup> El ciclo que corresponde lo indica el fabricante de cada acrílico.</p>
+    </div>
+  </div>
+  <div class="tip"><b>La etapa final a 100 °C sirve:</b> después de la etapa intermedia, un período a 100 °C baja bastante el monómero residual.<sup class="c"><a href="#f3">3</a></sup> Y si nunca se llega a 100 °C, queda más monómero, que ablanda el acrílico.<sup class="c"><a href="#f4">4</a></sup></div>
+</section>
+
+<!-- 3 Errores -->
+<section id="s-errores">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 3 · Al recibir la prótesis</span>
+    <h2>Errores del procesamiento</h2>
+    <p>Cuando la prótesis llega del laboratorio, se abre y se revisa antes de citar al paciente. Intenta adivinar la causa antes de abrir cada tarjeta.</p>
+  </div>
+  <div class="cards3">
+    <details class="err"><summary>Dimensión vertical aumentada</summary><p>Tras procesar, la dimensión vertical oclusal subió en todos los grupos estudiados, con cualquier método de enmuflado y de curado.<sup class="c"><a href="#f6">6</a></sup> Por eso se revisa y se ajusta la oclusión al instalar.</p></details>
+    <details class="err"><summary>Porosidades</summary><p>Hervir de golpe aumentó la porosidad y bajó la resistencia al impacto.<sup class="c"><a href="#f4">4</a></sup> El monómero se evapora si la mufla entra directo a agua hirviendo.<sup class="c"><a href="#f1">1</a></sup></p></details>
+    <details class="err"><summary>Dientes movidos</summary><p>Los dientes artificiales cambian de posición durante el procesamiento. La técnica de doble enmuflado fue la que menos los movió.<sup class="c"><a href="#f7">7</a></sup></p></details>
+    <details class="err"><summary>Acrílico menos duro</summary><p>Más monómero residual cuando no se alcanzó la temperatura final: el acrílico queda menos duro.<sup class="c"><a href="#f4">4</a></sup><sup class="c"><a href="#f3">3</a></sup> El enfriamiento también influye en cuánto monómero se libera.<sup class="c"><a href="#f5">5</a></sup></p></details>
+    <details class="err"><summary>Base deformada</summary><p>El acrílico y el yeso se contraen distinto: por eso la mufla se enfría de a poco, unos 30 minutos en el mesón y 15 minutos en agua de la llave antes de abrirla.<sup class="c"><a href="#f1">1</a></sup></p></details>
+  </div>
+  <div class="tip malva"><b>Si encuentras un error del laboratorio,</b> se repite el trabajo. <span class="tag sinev">Práctica habitual</span></div>
+</section>
+
+<!-- 4 Pulido -->
+<section id="s-pulido">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 4 · Clínica</span>
+    <h2>Terminación y pulido</h2>
+    <p>La prótesis se termina y pule antes de usarla en boca.<sup class="c"><a href="#f1">1</a></sup> Sobre unos 0,2 µm de rugosidad, más rugosidad retiene más placa; bajo ese umbral, seguir puliendo ya no la reduce.<sup class="c"><a href="#f10">10</a></sup> El pulido mecánico deja la superficie más lisa que el pulido químico (sumergir en monómero caliente).<sup class="c"><a href="#f8">8</a></sup><sup class="c"><a href="#f9">9</a></sup></p>
+  </div>
+  <div class="bench">
+    <div class="seg" role="group" aria-label="Fase">
+      <button type="button" data-pol="0" aria-pressed="true">Desgaste</button>
+      <button type="button" data-pol="1" aria-pressed="false">Alisado</button>
+      <button type="button" data-pol="2" aria-pressed="false">Pulido</button>
+      <button type="button" data-pol="3" aria-pressed="false">Brillo</button>
+    </div>
+    <div><div class="grit" id="grit"><div></div><div></div><div></div><div></div></div><div class="gritlab"><span>Grano grueso</span><span>Superficie espejo</span></div></div>
+    <div class="facts" id="polTxt"></div>
+  </div>
+
+  <div class="bench">
+    <h3>¿Dónde puedo desgastar?</h3>
+    <p class="muted small">Corte frontal de una prótesis total superior sobre el reborde. Elige una zona.</p>
+    <div class="seg" role="group" aria-label="Zona">
+      <button type="button" data-zone="int" aria-pressed="true">Cara interna</button>
+      <button type="button" data-zone="flanco" aria-pressed="false">Bordes de los flancos</button>
+      <button type="button" data-zone="cerv" aria-pressed="false">Contornos cervicales</button>
+      <button type="button" data-zone="ext" aria-pressed="false">Superficie externa</button>
+    </div>
+    <div class="split">
+      <div class="svgbox"><svg id="zones" viewBox="0 0 360 215" role="img" aria-label="Zonas de la prótesis"></svg></div>
+      <div class="facts" id="zoneTxt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 Antes de instalar -->
+<section id="s-previas">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 5 · Clínica</span>
+    <h2>Antes de que llegue el paciente</h2>
+  </div>
+  <div class="split">
+    <div class="bench">
+      <h3>Revisión de lo que llegó</h3>
+      <span class="tag sinev">Práctica habitual · sin estudio que la compare</span>
+      <div class="progress" aria-hidden="true"><span id="chkBar"></span></div>
+      <div class="checklist" id="chk">
+        <label><input type="checkbox"> Forma general correcta</label>
+        <label><input type="checkbox"> Superficies lisas, sin nódulos ni perlas de yeso</label>
+        <label><input type="checkbox"> Escotaduras de los frenillos presentes</label>
+        <label><input type="checkbox"> Dientes en la posición aprobada en la prueba</label>
+        <label><input type="checkbox"> Encía tallada igual al encerado aprobado</label>
+      </div>
+      <p class="small muted" id="chkTxt">0 de 5 revisados.</p>
+    </div>
+    <div class="bench">
+      <h3>Limpiar y guardar en agua</h3>
+      <div class="seg" role="group" aria-label="Estado del acrílico">
+        <button type="button" data-hyd="0" aria-pressed="true">Seca</button>
+        <button type="button" data-hyd="1" aria-pressed="false">En agua</button>
+      </div>
+      <div class="svgbox"><svg id="sorcion" viewBox="0 0 320 150" role="img" aria-label="Agua entre las cadenas del polímero"></svg></div>
+      <p class="small" id="hydTxt"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 Instalación -->
+<section id="s-instal">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 6 · Clínica</span>
+    <h2>Instalación paso a paso</h2>
+    <p>Un orden de trabajo para la cita de instalación. Toca cada paso.</p>
+  </div>
+  <div class="bench">
+    <div class="split">
+      <ol class="steplist" id="inst"></ol>
+      <div class="stepdetail" id="instTxt"></div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <h3>Pasta indicadora de presión</h3>
+    <p class="muted small">Se aplica y se lleva a boca: donde se borra, esa zona comprime o sobra. En los bordes, su uso está descrito para encontrar y corregir sobreextensiones.<sup class="c"><a href="#f12">12</a></sup><sup class="c"><a href="#f13">13</a></sup> En la cara interna es práctica habitual. Corte del reborde con la base encima.</p>
+    <div class="nav2"><button type="button" class="btn" id="sPrev">← Anterior</button><span class="count" id="sCount">1 / 4</span><button type="button" class="btn primary" id="sNext">Siguiente →</button></div>
+    <div class="split">
+      <div class="svgbox"><svg id="silSvg" viewBox="0 0 360 240" role="img" aria-label="Prueba con indicador de presión"></svg></div>
+      <div class="stepdetail" id="silTxt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 Paciente -->
+<section id="s-paciente">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 7 · Paciente</span>
+    <h2>Indicaciones y adaptación</h2>
+    <p>Las indicaciones se dan de forma oral y escrita, también a quien acompaña o cuida a la persona.</p>
+  </div>
+  <div class="split">
+    <div class="faq">
+      <details open><summary>¿Puedo dormir con la prótesis?</summary><p>No. Sáquela de noche y déjela en agua fría.<sup class="c"><a href="#f14">14</a></sup> Dormir con ella se asoció a más del doble de riesgo de neumonía en personas muy mayores<sup class="c"><a href="#f16">16</a></sup> y favorece la inflamación por hongos bajo la prótesis.<sup class="c"><a href="#f17">17</a></sup></p></details>
+      <details><summary>¿Cómo la pongo y la saco?</summary><p>Lo practicamos ahora, frente al espejo. <span class="tag sinev">Práctica habitual</span></p></details>
+      <details><summary>¿Qué puedo comer al principio?</summary><p>Bocados chicos y blandos, masticando lento, y vaya aumentando de a poco. <span class="tag sinev">Práctica habitual</span></p></details>
+      <details><summary>Me sale una herida o me duele</summary><p>Es frecuente en los primeros días. Vuelva al control y muéstrenos dónde: la gran mayoría de los pacientes necesita ajustes después de instalar.<sup class="c"><a href="#f13">13</a></sup></p></details>
+      <details><summary>¿Puedo usar adhesivo?</summary><p>Sí: tres o cuatro porciones del tamaño de una arveja en la cara interna, con la prótesis seca. Si lo necesita por más de 6 meses, venga a controlar el ajuste.<sup class="c"><a href="#f14">14</a></sup></p></details>
+    </div>
+    <div class="cards3" style="grid-template-columns:minmax(0,1fr)">
+      <div class="card"><h3>Expectativas</h3><ul><li>La adaptación al habla y a la masticación toma tiempo; conviene decirlo antes. <span class="tag sinev">Práctica habitual</span></li><li>Instalar no es la última cita: los ajustes posteriores son parte del tratamiento.<sup class="c"><a href="#f12">12</a></sup></li></ul></div>
+      <div class="card"><h3>Cuidados</h3><ul><li>Limpieza diaria con un limpiador no abrasivo.<sup class="c"><a href="#f14">14</a></sup></li><li>No usar alcohol para limpiarla ni guardarla: ablanda el acrílico.<sup class="c"><a href="#f1">1</a></sup></li><li>Cepillar también la mucosa y la lengua.<sup class="c"><a href="#f14">14</a></sup></li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 Higiene -->
+<section id="s-higiene">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 8 · Paciente</span>
+    <h2>Higiene de la prótesis</h2>
+    <p>Basado en las recomendaciones del Ministerio de Salud de Chile (2019)<sup class="c"><a href="#f14">14</a></sup>, que adaptan las guías del American College of Prosthodontists.<sup class="c"><a href="#f15">15</a></sup> Decide si cada cosa se puede o no.</p>
+  </div>
+  <p class="score" id="sortScore"></p>
+  <div class="sorter" id="sorter"></div>
+  <div class="cards3">
+    <div class="card"><span class="tag ok">Todos los días</span><ul><li>Cepillar la prótesis por dentro y por fuera con jabón líquido neutro u otro limpiador no abrasivo.<sup class="c"><a href="#f14">14</a></sup></li><li>Cepillo para prótesis (cerdas más firmes, mango ancho) o uno de uso exclusivo.<sup class="c"><a href="#f14">14</a></sup></li><li>Hacerlo sobre un lavamanos con agua o un recipiente con agua, por si se cae.<sup class="c"><a href="#f14">14</a></sup></li></ul></div>
+    <div class="card"><span class="tag acr">Una vez por semana</span><ul><li>Tableta efervescente con peróxido en agua tibia, <b>al menos 30 minutos</b> (puede quedar toda la noche). Enjuagar bien en agua fría.<sup class="c"><a href="#f14">14</a></sup></li><li>Alternativa, solo en prótesis de acrílico: hipoclorito al 0,5 % por <b>3 minutos</b>.<sup class="c"><a href="#f14">14</a></sup></li></ul></div>
+    <div class="card"><span class="tag warn">Hipoclorito al 0,5 %</span><ul><li>50 ml de hipoclorito al 2 % en 150 ml de agua (una taza).<sup class="c"><a href="#f14">14</a></sup></li><li>Más de 10 minutos puede dañar la prótesis.<sup class="c"><a href="#f14">14</a></sup></li><li><b>Nunca</b> en prótesis con metal.<sup class="c"><a href="#f14">14</a></sup></li></ul><p class="small muted">Comprobación: 2 % × 50 ml ÷ 200 ml = 0,5 %.</p></div>
+  </div>
+  <div class="bench">
+    <h3>Si la persona tiene dientes (prótesis parcial)</h3>
+    <p>Cepillado con pasta con flúor, idealmente de <b>5.000 ppm</b> en personas de 60 años y más<sup class="c"><a href="#f14">14</a></sup>, y seda o cepillo interdental. Una pasta de 5.000 ppm endureció lesiones de caries radicular más que una de 1.350 ppm en un ensayo aleatorizado.<sup class="c"><a href="#f18">18</a></sup></p>
+  </div>
+</section>
+
+<!-- 9 Controles -->
+<section id="s-controles">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 9 · Clínica</span>
+    <h2>Controles, problemas y alta</h2>
+    <p>En un estudio, cerca del 86 % de los pacientes necesitó ajustes por heridas en el primer control. La prótesis inferior requirió más citas que la superior (unas 6 contra 4).<sup class="c"><a href="#f13">13</a></sup> Elige un problema.</p>
+  </div>
+  <div class="bench">
+    <div class="seg" role="group" aria-label="Problema" id="probSeg"></div>
+    <div class="stepdetail" id="probTxt"></div>
+  </div>
+  <div class="bench">
+    <div class="svgbox wide"><svg id="altaSvg" viewBox="0 0 760 120" role="img" aria-label="Línea de tiempo de controles"></svg></div>
+    <p class="small"><b>Después del alta:</b> examen por un odontólogo al menos una vez al año, y antes si aparece inflamación, enrojecimiento, puntos blancos o la prótesis pierde estabilidad.<sup class="c"><a href="#f14">14</a></sup></p>
+  </div>
+</section>
+
+<!-- Cifras -->
+<section id="s-cifras">
+  <div class="sec-head">
+    <span class="eyebrow">Para repasar</span>
+    <h2>Cifras con fuente</h2>
+    <p>Activa el modo prueba para ocultar los valores y toca cada tarjeta cuando creas saberlo.</p>
+  </div>
+  <div class="seg"><button type="button" class="btn" id="hideBtn" aria-pressed="false">Modo prueba: ocultar cifras</button></div>
+  <div class="numgrid" id="nums"></div>
+</section>
+
+<!-- Quiz -->
+<section id="s-quiz">
+  <div class="sec-head">
+    <span class="eyebrow">Autoevaluación</span>
+    <h2>¿Lo tienes claro?</h2>
+    <p>Elige una opción. Verás la respuesta, el porqué y su fuente.</p>
+  </div>
+  <p class="score" id="score"></p>
+  <div class="quiz" id="quiz"></div>
+  <div class="seg"><button type="button" class="btn" id="resetQuiz">Reiniciar preguntas</button></div>
+</section>
+
+<!-- Fuentes -->
+<section id="fuentes">
+  <div class="sec-head">
+    <span class="eyebrow">Fuentes</span>
+    <h2>De dónde sale cada cosa</h2>
+    <p class="muted">Todas verificadas en PubMed, en el sitio de la revista o en el sitio del Ministerio de Salud. Lo marcado como «práctica habitual» no tiene un estudio que lo compare.</p>
+  </div>
+  <ol class="refs">
+    <li id="f1">Zafar MS. Prosthodontic applications of polymethyl methacrylate (PMMA): an update. Polymers (Basel). 2020;12(10):2299. <span class="lk"><a href="https://doi.org/10.3390/polym12102299" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/33049984/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f2">The Glossary of Prosthodontic Terms 2023: Tenth Edition. J Prosthet Dent. 2023;130(4 Suppl 1):e7-e126. <span class="lk"><a href="https://doi.org/10.1016/j.prosdent.2023.03.002" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/37914442/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f3">Vallittu PK, Ruyter IE, Buykuilmaz S. Effect of polymerization temperature and time on the residual monomer content of denture base polymers. Eur J Oral Sci. 1998;106(1):588-93. <span class="lk"><a href="https://doi.org/10.1046/j.0909-8836.1998.eos106109.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/9527360/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f4">Honorez P, Catalan A, Angnes U, Grimonster J. The effect of three processing cycles on some physical and chemical properties of a heat-cured acrylic resin. J Prosthet Dent. 1989;61(4):510-7. <span class="lk"><a href="https://doi.org/10.1016/0022-3913(89)90025-5" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/2724162/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f5">Polychronakis N, Dimitriadi M, Polyzois G, Eliades G. The effect of cooling procedures on monomer elution from heat-cured polymethyl methacrylate denture base materials. J Appl Oral Sci. 2022;30:e20220161. <span class="lk"><a href="https://doi.org/10.1590/1678-7757-2022-0161" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/35894388/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f6">Silva-Concílio LR, Meloto CB, Neves AC, Cunha LG, Rizzatti-Barbosa CM. Influence of different flasking and polymerizing methods on the occlusal vertical dimension of complete dentures. Acta Odontol Latinoam. 2012;25(3):312-7. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/23798079/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f7">Sotto-Maior BS, Jóia FA, Meloto CB, Cury AA, Rizzatti-Barbosa CM. Effect of double flasking and investing methods on artificial teeth movement in complete dentures processing. Gerodontology. 2012;29(2):e435-9. <span class="lk"><a href="https://doi.org/10.1111/j.1741-2358.2011.00494.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/21615784/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f8">Al-Rifaiy MQ. The effect of mechanical and chemical polishing techniques on the surface roughness of denture base acrylic resins. Saudi Dent J. 2010;22(1):13-7. <span class="lk"><a href="https://doi.org/10.1016/j.sdentj.2009.12.006" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/23960474/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f9">Al-Kheraif AA. The effect of mechanical and chemical polishing techniques on the surface roughness of heat-polymerized and visible light-polymerized acrylic denture base resins. Saudi Dent J. 2014;26(2):56-62. <span class="lk"><a href="https://doi.org/10.1016/j.sdentj.2013.12.007" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/25408597/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f10">Bollen CM, Lambrechts P, Quirynen M. Comparison of surface roughness of oral hard materials to the threshold surface roughness for bacterial plaque retention: a review of the literature. Dent Mater. 1997;13(4):258-69. <span class="lk"><a href="https://doi.org/10.1016/s0109-5641(97)80038-3" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/11696906/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f11">Duymuş ZY, Yanikoğlu ND. Influence of a thickness and processing method on the linear dimensional change and water sorption of denture base resin. Dent Mater J. 2004;23(1):8-13. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/15164918/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f12">Kivovics P, Jáhn M, Borbély J, Márton K. Frequency and location of traumatic ulcerations following placement of complete dentures. Int J Prosthodont. 2007;20(4):397-401. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/17695871/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f13">Saraswati S, Razdan P, Smita, Aggarwal M, Bhowmick D, Priyadarshni P. Traumatic ulcerations frequencies and postinsertion adjustment appointments in complete denture patients. J Pharm Bioallied Sci. 2021;13(Suppl 2):S1375-80. <span class="lk"><a href="https://doi.org/10.4103/jpbs.jpbs_207_21" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/35017992/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f14">Ministerio de Salud de Chile, Departamento de Salud Bucal. Recomendaciones de higiene bucal y cuidados para personas portadoras de prótesis dentales removibles. Santiago: MINSAL; 2019. <span class="lk"><a href="https://diprece.minsal.cl/wp-content/uploads/2019/05/RECOMENDACIONES-DE-HIGIENE-Y-CUIDADOS-PARA-PERSONAS-PORTADORAS-DE-PR%C3%93TESIS-REMOVIBLES-24042019.pdf" target="_blank" rel="noopener">PDF</a></span></li>
+    <li id="f15">Felton D, Cooper L, Duqum I, Minsley G, Guckes A, Haug S, et al. Evidence-based guidelines for the care and maintenance of complete dentures: a publication of the American College of Prosthodontists. J Prosthodont. 2011;20 Suppl 1:S1-S12. <span class="lk"><a href="https://doi.org/10.1111/j.1532-849X.2010.00683.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/21324026/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f16">Iinuma T, Arai Y, Abe Y, Takayama M, Fukumoto M, Fukui Y, et al. Denture wearing during sleep doubles the risk of pneumonia in the very elderly. J Dent Res. 2015;94(3 Suppl):28S-36S. <span class="lk"><a href="https://doi.org/10.1177/0022034514552493" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/25294364/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f17">Gendreau L, Loewy ZG. Epidemiology and etiology of denture stomatitis. J Prosthodont. 2011;20(4):251-60. <span class="lk"><a href="https://doi.org/10.1111/j.1532-849X.2011.00698.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/21463383/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f18">Srinivasan M, Schimmel M, Riesen M, Ilgner A, Wicht MJ, Warncke M, et al. High-fluoride toothpaste: a multicenter randomized controlled trial in adults. Community Dent Oral Epidemiol. 2014;42(4):333-40. <span class="lk"><a href="https://doi.org/10.1111/cdoe.12090" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/24354454/" target="_blank" rel="noopener">PubMed</a></span></li>
+  </ol>
+  <footer>Criterium · Materia de Geriatría. Texto propio, escrito desde las fuentes citadas. Es material de estudio: no reemplaza el juicio clínico ni las indicaciones de tu docente.</footer>
+</section>
+</div>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const c = (...n) => n.map(x => `<sup class="c"><a href="#f${x}">${x}</a></sup>`).join('');
+const sinev = '<span class="tag sinev">Práctica habitual · sin estudio que la compare</span>';
+function go(id){ const el = document.getElementById(id); if (!el) return; window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: quieto ? 'auto' : 'smooth' }); if (el.tagName === 'LI') { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } }
+// Los enlaces internos se manejan aquí: dentro del visor de Criterium un href="#..." no debe navegar
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; e.preventDefault(); go(a.getAttribute('href').slice(1)); });
+function pressAll(sel, attr, val){ $$(sel).forEach(b => b.setAttribute('aria-pressed', b.dataset[attr] === String(val) ? 'true' : 'false')); }
+
+/* ---------- Mapa ---------- */
+const MAP = [
+  {id:'s-lab', x:85, label:'Laboratorio', kids:[['Enmuflado','mstep:0'],['Prensado','mstep:5'],['Ciclo de curado','sec:s-curado'],['Enfriar y abrir','mstep:7']]},
+  {id:'s-errores', x:245, label:'Errores al recibir', kids:[['Dimensión vertical'],['Porosidades'],['Dientes movidos'],['Monómero residual']]},
+  {id:'s-pulido', x:410, label:'Terminación y pulido', kids:[['Desgaste','pol:0'],['Alisado','pol:1'],['Pulido','pol:2'],['Brillo','pol:3']]},
+  {id:'s-instal', x:575, label:'Instalación', kids:[['Antes de instalar','sec:s-previas'],['Paso a paso','inst:0'],['Pasta indicadora','inst:4'],['Oclusión','inst:6']]},
+  {id:'s-paciente', x:735, label:'Paciente', kids:[['Indicaciones','sec:s-paciente'],['Higiene','sec:s-higiene'],['Controles','sec:s-controles'],['Alta','sec:s-controles']]},
+];
+(function(){
+  let h = '';
+  MAP.forEach(m => { h += `<path class="s-line" d="M410,54 C410,72 ${m.x},70 ${m.x},86"/><path class="s-line" d="M${m.x},122 L${m.x},${160+(m.kids.length-1)*34+13}"/>`; });
+  h += `<g class="node root" tabindex="0" role="button" data-act="sec:s-flujo"><rect x="270" y="14" width="280" height="40" rx="12"/><text x="410" y="39" text-anchor="middle">Terminación e instalación</text></g>`;
+  MAP.forEach(m => {
+    h += `<g class="node l2" tabindex="0" role="button" data-act="sec:${m.id}"><rect x="${m.x-76}" y="86" width="152" height="36" rx="10"/><text x="${m.x}" y="108" text-anchor="middle">${m.label}</text></g>`;
+    m.kids.forEach((k,i) => { const y = 160+i*34; h += `<g class="node" tabindex="0" role="button" data-act="${k[1]||'sec:'+m.id}"><rect x="${m.x-72}" y="${y}" width="144" height="26" rx="8"/><text x="${m.x}" y="${y+17}" text-anchor="middle">${k[0]}</text></g>`; });
+  });
+  const svg = $('#map'); svg.innerHTML = h;
+  const act = a => { const [t,v] = a.split(':');
+    if (t==='sec') go(v); if (t==='mstep') { mSet(+v); go('s-lab'); } if (t==='pol') { polSet(+v); go('s-pulido'); } if (t==='inst') { instSet(+v); go('s-instal'); } };
+  svg.addEventListener('click', e => { const g = e.target.closest('.node'); if (g) act(g.dataset.act); });
+  svg.addEventListener('keydown', e => { const g = e.target.closest('.node'); if (g && (e.key==='Enter'||e.key===' ')) { e.preventDefault(); act(g.dataset.act); } });
+})();
+
+/* ---------- Recorrido ---------- */
+const FLOW = [
+  ['C','Prueba en','cera','Se aprueba la prueba de dientes en cera y el patrón va al laboratorio.' + c(1),'s-lab'],
+  ['L','Enmuflado','','Se reviste el patrón en yeso dentro de la mufla.' + c(2),'s-lab'],
+  ['L','Retirar','la cera','Se elimina la cera y queda el molde con los dientes en su lugar. ' + sinev,'s-lab'],
+  ['L','Prensar','el acrílico','El acrílico en fase de masa se prensa dentro de la mufla.' + c(1),'s-lab'],
+  ['L','Ciclo de','curado','Calor en agua, subiendo la temperatura de a poco, con o sin etapa final a 100 °C.' + c(1,3),'s-curado'],
+  ['L','Enfriar','y abrir','Enfriar de a poco antes de abrir para no deformar la base.' + c(1),'s-errores'],
+  ['C','Revisar al','recibir','Se buscan errores del procesamiento antes de citar al paciente.','s-errores'],
+  ['C','Terminación','y pulido','De grueso a fino, sin tocar la cara interna.' + c(1,10),'s-pulido'],
+  ['C','Antes de','instalar','Revisión, limpieza y guardar en agua.' + c(14),'s-previas'],
+  ['C','Instalación','','Inserción, bordes, adaptación con pasta indicadora y oclusión.' + c(12),'s-instal'],
+  ['C','Indicaciones','','De forma oral y escrita: uso, higiene y retirar de noche.' + c(14),'s-paciente'],
+  ['C','Controles','y alta','Ajustes hasta que no haya heridas, y control anual.' + c(13,14),'s-controles'],
+];
+let flowSel = 0;
+function drawFlow(){
+  let h = `<rect x="4" y="22" width="972" height="56" rx="10" fill="var(--surface-2)"/><rect x="4" y="96" width="972" height="56" rx="10" fill="var(--durazno-soft)"/>`;
+  h += `<text x="12" y="16" class="s-labb">Clínica</text><text x="12" y="170" class="s-labb">Laboratorio</text>`;
+  const pos = FLOW.map((f,i) => [52+i*80, f[0]==='C' ? 50 : 124]);
+  let d = `M${pos[0][0]},${pos[0][1]}`; pos.slice(1).forEach(p => d += ` L${p[0]},${p[1]}`);
+  h += `<path d="${d}" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>`;
+  FLOW.forEach((f,i) => { const [x,y] = pos[i];
+    h += `<g class="node${f[0]==='L'?' lab':''}${i===flowSel?' sel':''}" tabindex="0" role="button" data-i="${i}"><rect x="${x-37}" y="${y-19}" width="74" height="38" rx="9"/><text x="${x}" y="${f[2]?y-3:y+4}" text-anchor="middle" style="font-size:10.5px">${f[1]}</text>${f[2]?`<text x="${x}" y="${y+10}" text-anchor="middle" style="font-size:10.5px">${f[2]}</text>`:''}</g>`; });
+  $('#flow').innerHTML = h;
+  const f = FLOW[flowSel];
+  $('#flowTxt').innerHTML = `<span class="tag ${f[0]==='L'?'warn':'acr'}">${f[0]==='L'?'Laboratorio':'Clínica'} · paso ${flowSel+1} de ${FLOW.length}</span><p>${f[3]}</p><div><button type="button" class="btn" id="flowGo">Ir a la sección</button></div>`;
+  $('#flowGo').onclick = () => go(f[4]);
+}
+$('#flow').addEventListener('click', e => { const g = e.target.closest('.node'); if (g) { flowSel = +g.dataset.i; drawFlow(); } });
+$('#flow').addEventListener('keydown', e => { const g = e.target.closest('.node'); if (g && (e.key==='Enter'||e.key===' ')) { e.preventDefault(); flowSel = +g.dataset.i; drawFlow(); $$('#flow .node')[flowSel].focus(); } });
+drawFlow();
+
+/* ---------- Mufla ---------- */
+const PAT = 'M108,166 Q122,128 145,128 Q170,128 200,140 Q230,128 255,128 Q278,128 292,166 L290,168 Q275,138 255,138 Q230,138 200,150 Q170,138 145,138 Q125,138 110,168 Z';
+const MODEL = 'M104,170 L110,168 Q125,138 145,138 Q170,138 200,150 Q230,138 255,138 Q275,138 290,168 L296,170 Z';
+const MODEL_TOP = 'M110,168 Q125,138 145,138 Q170,138 200,150 Q230,138 255,138 Q275,138 290,168';
+const CAVITY = 'M108,166 Q122,128 145,128 Q170,128 200,140 Q230,128 255,128 Q278,128 292,166';
+const COUNTER = 'M88,110 L292,110 L292,170 L292,166 Q278,128 255,128 Q230,128 200,140 Q170,128 145,128 Q122,128 108,166 L108,170 L88,170 Z';
+const TEETH = '<rect class="s-tooth" x="133" y="110" width="24" height="22" rx="5"/><rect class="s-tooth" x="243" y="110" width="24" height="22" rx="5"/>';
+const MSTEPS = [
+  {t:'Patrón enmuflado', open:0, pat:'wax', txt:'El modelo con los dientes en cera se fija con yeso en una mitad de la mufla; la otra mitad se llena con más yeso. Los dientes quedan tomados por el yeso de la contramufla.' + c(2)},
+  {t:'Ablandar la cera', open:0, pat:'wax', water:'agua caliente', txt:'Se calienta la mufla cerrada para ablandar la cera. ' + sinev},
+  {t:'Abrir y retirar la cera', open:1, pat:'lift', txt:'Se abre la mufla y se retira la cera. ' + sinev},
+  {t:'Limpiar: queda el molde', open:1, txt:'Se limpian los restos de cera. El espacio que ocupaba la cera es el molde donde entra el acrílico. ' + sinev},
+  {t:'Separador en el yeso', open:1, iso:1, txt:'Se aplica un separador sobre el yeso para que el acrílico no se pegue, sin cubrir los dientes, que deben quedar unidos a la base. ' + sinev},
+  {t:'Prensar el acrílico', open:0, pat:'acr', press:1, txt:'El acrílico en <b>fase de masa</b> se coloca en la mufla y se prensa (moldeo por compresión).' + c(1) + ' Durante el procesamiento la dimensión vertical puede subir y los dientes pueden moverse.' + c(6,7)},
+  {t:'Ciclo de curado', open:0, pat:'acr', water:'ciclo de curado', txt:'La mufla prensada se calienta en agua, subiendo la temperatura de a poco. Lo ves en la Parte 2.' + c(1)},
+  {t:'Enfriar, abrir y recuperar', open:1, pat:'out', txt:'Enfriar de a poco: unos 30 minutos en el mesón y 15 minutos en agua de la llave antes de abrir, para que la base no se deforme.' + c(1) + ' Luego se recupera la prótesis y se termina.'},
+];
+let mStep = 0;
+function muflaSVG(st){
+  const dy = st.open ? -62 : 0;
+  let h = '';
+  if (st.water) h += `<rect class="s-water" x="44" y="66" width="292" height="196" rx="14"/><text x="190" y="280" text-anchor="middle" class="s-labacr">Agua · ${st.water}</text>`;
+  if (st.press) h += `<g><rect x="36" y="22" width="308" height="240" rx="6" fill="none" stroke="var(--ink)" stroke-width="3"/><rect x="36" y="22" width="308" height="14" class="s-metal"/><rect x="184" y="36" width="12" height="58" class="s-metal"/><path d="M150,50 L150,80" class="s-arrow"/><path d="M144,76 L150,86 L156,76 Z" class="s-arrowhead"/><path d="M230,50 L230,80" class="s-arrow"/><path d="M224,76 L230,86 L236,76 Z" class="s-arrowhead"/><text x="190" y="280" text-anchor="middle" class="s-labacr">prensado</text></g>`;
+  h += `<rect x="70" y="236" width="240" height="10" class="s-metal"/><rect x="80" y="170" width="220" height="66" class="s-metal"/><rect x="88" y="170" width="204" height="60" class="s-yeso"/><path d="${MODEL}" class="s-model"/>`;
+  if (st.iso) h += `<path d="${MODEL_TOP}" class="s-iso"/>`;
+  if (st.pat === 'wax') h += `<path d="${PAT}" class="s-wax"/>`;
+  if (st.pat === 'acr') h += `<path d="${PAT}" class="s-base"/>`;
+  h += `<g transform="translate(0,${dy})"><rect x="70" y="94" width="240" height="10" class="s-metal"/><rect x="80" y="104" width="220" height="66" class="s-metal"/><path d="${COUNTER}" class="s-yeso"/>`;
+  if (st.iso) h += `<path d="${CAVITY}" class="s-iso"/>`;
+  if (st.pat !== 'out') h += TEETH;
+  h += `</g>`;
+  if (st.pat === 'lift') h += `<g transform="translate(0,-31)"><path d="${PAT}" class="s-wax"/></g><text x="300" y="118" class="s-labacr">cera</text>`;
+  if (st.pat === 'out') h += `<g transform="translate(0,-31)"><path d="${PAT}" class="s-base"/>${TEETH}</g><text x="306" y="112" class="s-labacr">prótesis</text>`;
+  h += `<text x="6" y="${140+dy}" class="s-lab">contramufla</text><text x="6" y="206" class="s-lab">base</text>`;
+  if (st.open) h += `<text x="6" y="130" class="s-lab" style="fill:var(--acr)">abierta</text>`;
+  return h;
+}
+function mSet(i){
+  mStep = Math.max(0, Math.min(MSTEPS.length-1, i));
+  const st = MSTEPS[mStep];
+  $('#mufla').innerHTML = muflaSVG(st);
+  $('#mCount').textContent = `${mStep+1} / ${MSTEPS.length}`;
+  $('#mTxt').innerHTML = `<h3>${st.t}</h3><p>${st.txt}</p>`;
+  $('#mPrev').disabled = mStep === 0; $('#mNext').disabled = mStep === MSTEPS.length-1;
+}
+$('#mPrev').onclick = () => mSet(mStep-1);
+$('#mNext').onclick = () => mSet(mStep+1);
+mSet(0);
+
+/* ---------- Curado (esquema de dos etapas) ---------- */
+// Curva didáctica: subida gradual, etapa intermedia, etapa final a 100 °C y enfriamiento lento. Sin escala de tiempo: los tiempos los da el fabricante.
+const X = t => 50 + t*4.7, Y = T => 222 - (T-20)*(190/85);
+const temp = t => t<=15 ? 20+t*(52/15) : t<=55 ? 72 : t<=62 ? 72+(t-55)*(28/7) : t<=75 ? 100 : 20+80*Math.exp(-(t-75)/9);
+const STAGES = [
+  [0,15,'Subir de a poco','La temperatura del agua se sube gradualmente: entrar directo al agua hirviendo evapora el monómero y deja porosidades.' + c(1,4)],
+  [15,55,'Etapa intermedia','Una etapa larga bajo el punto de ebullición, por ejemplo 70–74 °C durante horas.' + c(1)],
+  [55,75,'Etapa final a 100 °C','Opcional según el ciclo. Después de la etapa intermedia, baja el monómero residual.' + c(3)],
+  [75,100,'Enfriar lento','Fuera del agua caliente, de a poco: unos 30 minutos en el mesón y 15 en agua de la llave antes de abrir.' + c(1) + ' La forma de enfriar también cambia cuánto monómero se libera.' + c(5)],
+];
+function drawCure(){
+  const t = +$('#tcure').value;
+  const si = Math.max(0, STAGES.findIndex(s => t >= s[0] && t < s[1] || (t === 100 && s[1] === 100)));
+  $('#tcureOut').textContent = STAGES[si][2].toLowerCase();
+  let h = '';
+  STAGES.forEach((s,i) => { h += `<rect x="${X(s[0])}" y="28" width="${X(s[1])-X(s[0])}" height="194" fill="${i===si?'var(--acr-soft)':(i%2?'var(--surface-2)':'transparent')}"/>`; });
+  [20,40,60,80,100].forEach(T => h += `<line x1="50" y1="${Y(T)}" x2="520" y2="${Y(T)}" class="s-grid"/><text x="44" y="${Y(T)+4}" text-anchor="end" class="s-lab">${T} °C</text>`);
+  h += `<text x="285" y="250" text-anchor="middle" class="s-lab">tiempo (sin escala: depende del acrílico)</text>`;
+  let d = ''; for (let m=0; m<=100; m+=1) d += (m?' L':'M') + X(m).toFixed(1) + ',' + Y(temp(m)).toFixed(1);
+  h += `<path d="${d}" fill="none" stroke="var(--acr)" stroke-width="3" stroke-linejoin="round"/>`;
+  const T = temp(t);
+  h += `<line x1="${X(t)}" y1="28" x2="${X(t)}" y2="222" stroke="var(--ink)" stroke-width="1"/><circle cx="${X(t)}" cy="${Y(T)}" r="6" fill="var(--acr)" stroke="var(--surface)" stroke-width="2"/>`;
+  const lx = t > 80 ? X(t)-8 : X(t)+8, an = t > 80 ? 'end' : 'start';
+  h += `<text x="${lx}" y="${Math.max(Y(T)-10,44)}" text-anchor="${an}" class="s-labacr">≈ ${Math.round(T)} °C</text>`;
+  $('#cure').innerHTML = h;
+  $('#cureTxt').innerHTML = `<h3>${STAGES[si][2]}</h3><p>${STAGES[si][3]}</p>`;
+}
+$('#tcure').addEventListener('input', drawCure); drawCure();
+
+/* ---------- Pulido ---------- */
+const POL = [
+  {tag:'Desgaste', items:['Retirar nódulos de acrílico y perlas de yeso.','Regularizar los bordes de los flancos respetando el fondo del vestíbulo y las escotaduras de los frenillos.','Retirar el acrílico sobrante sobre el margen de la encía, sin rayar los dientes.'], ev:sinev},
+  {tag:'Alisado', items:['Fresas de grano fino y gomas para borrar las marcas de la fresa.','Respetar la velocidad que indica el fabricante en la caja: una goma pasada muy rápido se calienta y puede manchar el acrílico.'], ev:sinev},
+  {tag:'Pulido', items:['Piedra pómez húmeda con escobilla y luego con rueda de tela, moviendo siempre la prótesis.','El pulido mecánico deja el acrílico más liso que el químico.' + c(8,9)], ev:''},
+  {tag:'Brillo', items:['Pasta de pulido para acrílico con fieltro o rueda de algodón suave.','Meta: superficie espejo, porque la superficie lisa retiene menos placa.' + c(10),'Lavar con agua y jabón neutro para sacar los restos de pómez.'], ev:''},
+];
+function polSet(i){
+  const p = POL[i];
+  $('#polTxt').innerHTML = `<div class="fact"><span class="tag acr">${p.tag}</span></div><div class="fact"><h4>Qué se hace</h4><ul>${p.items.map(x=>`<li>${x}</li>`).join('')}</ul></div>${p.ev ? `<div>${p.ev}</div>` : ''}`;
+  $$('#grit div').forEach((d,k) => d.classList.toggle('on', k <= i));
+  pressAll('[data-pol]', 'pol', i);
+}
+$$('[data-pol]').forEach(b => b.addEventListener('click', () => polSet(+b.dataset.pol)));
+polSet(0);
+
+/* ---------- Zonas ---------- */
+const INNER = 'M64,84 Q72,140 100,142 Q122,142 132,102 Q160,72 180,72 Q200,72 228,102 Q238,142 260,142 Q288,140 296,84';
+const BASEP = INNER + ' L306,84 Q302,152 280,156 L240,156 Q226,150 220,118 Q200,88 180,88 Q160,88 140,118 Q134,150 120,156 L80,156 Q58,152 54,84 Z';
+const ZONES = {
+  int:{ok:false, t:'Cara interna', d:'Se apoya sobre la mucosa: no se desgasta «a ojo». Solo se toca donde lo muestra la pasta indicadora de presión, y de a poco. ' + sinev, draw:`<path d="${INNER}" fill="none" stroke="var(--red)" stroke-width="5" stroke-linecap="round"/>`},
+  flanco:{ok:true, t:'Bordes de los flancos', d:'Se regularizan respetando el fondo del vestíbulo y los frenillos. El vestíbulo es donde más heridas aparecen después de instalar, así que los bordes se revisan con pasta indicadora.' + c(12), draw:`<circle cx="59" cy="84" r="10" fill="none" stroke="var(--ok)" stroke-width="4"/><circle cx="301" cy="84" r="10" fill="none" stroke="var(--ok)" stroke-width="4"/>`},
+  cerv:{ok:true, t:'Contornos cervicales', d:'Se retira el acrílico sobrante sobre el margen de la encía, sin rayar los dientes. ' + sinev, draw:`<path d="M78,158 L122,158 M238,158 L282,158" stroke="var(--ok)" stroke-width="5" stroke-linecap="round"/>`},
+  ext:{ok:true, t:'Superficie externa', d:'Es la que se pule hasta dejarla lisa, para que retenga menos placa.' + c(10), draw:`<path d="M240,156 Q226,150 220,118 Q200,88 180,88 Q160,88 140,118 Q134,150 120,156" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round"/>`},
+};
+function zoneSet(k){
+  const z = ZONES[k];
+  let h = `<path d="M40,30 L320,30 L320,84 Q300,70 296,84 Q288,140 260,142 Q238,142 228,102 Q200,72 180,72 Q160,72 132,102 Q122,142 100,142 Q72,140 64,84 Q60,70 40,84 Z" class="s-bone"/><path d="${INNER}" class="s-muc"/>`;
+  h += `<rect class="s-tooth" x="84" y="150" width="32" height="44" rx="6"/><rect class="s-tooth" x="244" y="150" width="32" height="44" rx="6"/><path d="${BASEP}" class="s-base"/>` + z.draw;
+  h += `<text x="180" y="54" text-anchor="middle" class="s-lab">hueso y mucosa del paladar</text><text x="180" y="210" text-anchor="middle" class="s-lab">base acrílica y dientes</text>`;
+  $('#zones').innerHTML = h;
+  $('#zoneTxt').innerHTML = `<div class="fact"><span class="tag ${z.ok?'ok':'bad'}">${z.ok?'Se puede desgastar':'Solo guiado por la pasta'}</span></div><div class="fact"><h4>${z.t}</h4><p>${z.d}</p></div>`;
+  pressAll('[data-zone]', 'zone', k);
+}
+$$('[data-zone]').forEach(b => b.addEventListener('click', () => zoneSet(b.dataset.zone)));
+zoneSet('int');
+
+/* ---------- Revisión ---------- */
+function chk(){ const all = $$('#chk input'), n = all.filter(x => x.checked).length;
+  $('#chkBar').style.width = (n/all.length*100) + '%';
+  $('#chkTxt').textContent = n === all.length ? 'Todo revisado. Ahora limpiar y guardar en agua.' : `${n} de ${all.length} revisados.`; }
+$('#chk').addEventListener('change', chk); chk();
+
+/* ---------- Agua ---------- */
+function hyd(on){
+  let h = ''; const gap = on ? 30 : 22, top = on ? 22 : 34;
+  for (let r=0; r<4; r++){ const y = top + r*gap; let d = `M14,${y}`; for (let x=14; x<306; x+=24) d += ` q6,-7 12,0 t12,0`; h += `<path d="${d}" fill="none" stroke="var(--acr)" stroke-width="3" stroke-linecap="round"/>`; }
+  if (on) for (let r=0; r<3; r++) for (let k=0; k<8; k++){ const x = 30 + k*36 + (r%2)*16, y = top + r*gap + gap/2; h += `<circle cx="${x}" cy="${y}" r="4" fill="var(--blue)"/>`; }
+  h += `<text x="160" y="142" text-anchor="middle" class="s-lab">${on ? 'agua entre las cadenas del polímero (esquema)' : 'cadenas del polímero (esquema)'}</text>`;
+  $('#sorcion').innerHTML = h;
+  $('#hydTxt').innerHTML = on
+    ? 'El acrílico absorbe agua y cambia levemente de dimensión con el tiempo de almacenamiento.' + c(11) + ' Fuera de la boca, la prótesis se guarda sumergida en agua fría para que no se deforme.' + c(14) + ' Limpia con agua y jabón neutro antes de entregarla.' + c(14)
+    : 'Recién terminada, la prótesis está seca. Lávala con agua y jabón neutro y guárdala en agua hasta la instalación.' + c(14);
+  pressAll('[data-hyd]', 'hyd', on ? 1 : 0);
+}
+$$('[data-hyd]').forEach(b => b.addEventListener('click', () => hyd(b.dataset.hyd === '1')));
+hyd(false);
+
+/* ---------- Instalación ---------- */
+const INST = [
+  ['Probar ponerla y sacarla','Que entre y salga sin forzar. Si algo traba, se ubica y se ajusta. ' + sinev],
+  ['Ajustar lo que traba','Desgastar solo la zona que impide la entrada, marcada con un indicador. ' + sinev],
+  ['Revisar frenillos','Que las escotaduras dejen moverse a los frenillos sin desplazar la prótesis. ' + sinev],
+  ['Revisar los bordes','Los bordes sobreextendidos lastiman el vestíbulo, el sitio más frecuente de heridas. Se revisan con pasta indicadora en los bordes.' + c(12,13)],
+  ['Adaptación con pasta indicadora','Pasta indicadora de presión en la cara interna: donde se borra, comprime. Se alivia de a poco y se repite. ' + sinev],
+  ['Retención y estabilidad','Que no se suelte al hablar ni al abrir. ' + sinev],
+  ['Oclusión en boca','Después del procesamiento la dimensión vertical suele subir, así que se revisan y ajustan los contactos en boca.' + c(6) + ' ' + sinev],
+];
+$('#inst').innerHTML = INST.map((s,i) => `<li><button type="button" data-inst="${i}" aria-pressed="false"><span class="n">${i+1}</span>${s[0]}</button></li>`).join('');
+function instSet(i){ pressAll('[data-inst]', 'inst', i); $('#instTxt').innerHTML = `<span class="tag acr">Paso ${i+1} de ${INST.length}</span><h3>${INST[i][0]}</h3><p>${INST[i][1]}</p>`; }
+$('#inst').addEventListener('click', e => { const b = e.target.closest('button'); if (b) instSet(+b.dataset.inst); });
+instSet(0);
+
+/* ---------- Pasta indicadora ---------- */
+const RIDGE = 'M30,200 Q100,200 140,140 Q180,110 220,140 Q260,200 330,200 L330,236 L30,236 Z';
+const RIDGE_TOP = 'M30,200 Q100,200 140,140 Q180,110 220,140 Q260,200 330,200';
+const inner = cc => `M44,192 Q100,192 140,132 Q180,${cc} 220,132 Q260,192 316,192`;
+const baseP = cc => `${inner(cc)} L322,182 Q262,158 222,100 Q180,70 138,100 Q98,158 38,182 Z`;
+const SIL = [
+  {t:'Aplicar la pasta', txt:'Una capa fina de pasta indicadora de presión en los bordes' + c(12,13) + ' o en la cara interna. ' + sinev},
+  {t:'Llevar a boca y retirar', txt:'Donde la pasta se borra y se ve el acrílico, esa zona comprime o sobra. ' + sinev},
+  {t:'Aliviar de a poco', txt:'Se desgasta solo esa zona, poco. Es el único desgaste de la cara interna. ' + sinev},
+  {t:'Repetir', txt:'Se repite hasta que la pasta quede pareja. Los ajustes siguen en los controles.' + c(12)},
+];
+let silI = 0;
+function silSet(i){
+  silI = Math.max(0, Math.min(3, i));
+  let h = `<path d="${RIDGE}" class="s-bone"/><path d="${RIDGE_TOP}" class="s-muc"/>`;
+  const tooth = `<rect class="s-tooth" x="160" y="36" width="40" height="40" rx="8"/>`;
+  if (silI === 0) h += `<g transform="translate(0,-22)">${tooth}<path d="${baseP(118)}" class="s-base"/><path d="${inner(118)} L316,198 Q260,198 222,138 Q180,124 138,138 Q100,198 44,198 Z" class="s-sil"/></g><text x="330" y="20" text-anchor="end" class="s-labb">pasta en la cara interna</text>`;
+  else if (silI === 1) h += `<path d="M44,192 Q100,192 140,132 Q180,118 220,132 Q260,192 316,192 L330,200 Q260,200 220,140 Q180,110 140,140 Q100,200 30,200 Z" class="s-sil"/>${tooth}<path d="${baseP(118)}" class="s-base"/><path d="M170,118 L190,130 M190,118 L170,130" stroke="var(--red)" stroke-width="3"/><text x="230" y="112" class="s-labred">se borró = comprime</text>`;
+  else if (silI === 2) h += `<g transform="translate(0,-22)">${tooth}<path d="${baseP(102)}" class="s-base"/><path d="M150,128 Q180,104 210,128" fill="none" stroke="var(--red)" stroke-width="3"/></g><text x="214" y="96" class="s-labred">zona aliviada</text>`;
+  else h += `<path d="M44,192 Q100,192 140,132 Q180,102 220,132 Q260,192 316,192 L330,200 Q260,200 220,140 Q180,110 140,140 Q100,200 30,200 Z" class="s-sil"/>${tooth}<path d="${baseP(102)}" class="s-base"/><text x="230" y="112" class="s-labb" style="fill:var(--ok)">pasta pareja ✓</text>`;
+  $('#silSvg').innerHTML = h;
+  $('#sCount').textContent = `${silI+1} / 4`;
+  $('#silTxt').innerHTML = `<h3>${SIL[silI].t}</h3><p>${SIL[silI].txt}</p>`;
+  $('#sPrev').disabled = silI === 0; $('#sNext').disabled = silI === 3;
+}
+$('#sPrev').onclick = () => silSet(silI-1); $('#sNext').onclick = () => silSet(silI+1);
+silSet(0);
+
+/* ---------- Clasificar ---------- */
+const SORT = [
+  ['Cepillarla con jabón líquido neutro', true, 'Limpiador no abrasivo, todos los días, por dentro y por fuera.', [14]],
+  ['Cepillarla con pasta dental común', false, 'La pasta dental es abrasiva y raya la superficie.', [14]],
+  ['Tableta efervescente en agua tibia, 30 minutos o más, una vez por semana', true, 'Es la limpieza química semanal recomendada; se enjuaga bien en agua fría antes de usarla.', [14]],
+  ['Lavarla con agua hirviendo', false, 'Nunca: se puede deformar.', [14]],
+  ['Dormir con la prótesis puesta', false, 'Se asoció a más neumonía en personas muy mayores y favorece la estomatitis.', [16,17]],
+  ['Hipoclorito al 0,5 % por 3 minutos (prótesis de acrílico)', true, 'Alternativa semanal solo para acrílico; más de 10 minutos la puede dañar.', [14]],
+  ['Hipoclorito en una prótesis con metal', false, 'El hipoclorito no se usa en prótesis metálicas.', [14]],
+  ['Guardarla en agua fría cuando se la saca', true, 'Así no se deforma.', [14]],
+  ['Usar adhesivo por más de 6 meses sin consultar', false, 'Más allá de 6 meses hay que controlar el ajuste.', [14]],
+  ['Limpiarla sobre el lavamanos con agua', true, 'Si se cae, no se rompe contra el piso.', [14]],
+  ['Guardarla en alcohol para desinfectarla', false, 'El alcohol ablanda el acrílico: hay que evitarlo para limpiar o guardar la prótesis.', [1]],
+  ['Cepillar la mucosa y la lengua', true, 'La higiene diaria incluye boca, mucosas y lengua.', [14]],
+];
+let sAns = 0, sOk = 0;
+$('#sorter').innerHTML = SORT.map((s,i) => `<div class="sitem" data-i="${i}"><div class="row"><span>${s[0]}</span><div class="yn"><button type="button" data-v="1">Sí</button><button type="button" data-v="0">No</button></div></div><p class="fb" hidden></p></div>`).join('');
+const sortScore = () => { $('#sortScore').textContent = `${sOk} / ${sAns} correctas · ${SORT.length} ítems`; };
+$('#sorter').addEventListener('click', e => {
+  const b = e.target.closest('.yn button'); if (!b) return;
+  const box = b.closest('.sitem'); if (box.classList.contains('right') || box.classList.contains('wrong')) return;
+  const s = SORT[+box.dataset.i], good = (b.dataset.v === '1') === s[1];
+  box.classList.add(good ? 'right' : 'wrong'); sAns++; if (good) sOk++;
+  const fb = box.querySelector('.fb'); fb.hidden = false; fb.innerHTML = `<b>${s[1] ? 'Sí.' : 'No.'}</b> ${s[2]}${c(...s[3])}`;
+  box.querySelectorAll('.yn button').forEach(x => x.disabled = true);
+  sortScore();
+});
+sortScore();
+
+/* ---------- Problemas ---------- */
+const PROB = [
+  ['Herida en el vestíbulo','Bordes sobreextendidos: el vestíbulo es el sitio más frecuente de heridas tras instalar.' + c(12,13),'Pasta indicadora en los bordes y ajuste en la instalación y en los controles.' + c(12)],
+  ['Herida en la inferior','La prótesis inferior se lesiona más y necesita más citas de ajuste que la superior.' + c(12,13),'Citar a controles hasta que no haya heridas. ' + sinev],
+  ['Zona que aprieta','La base comprime la mucosa en ese punto.' + c(12,13),'Pasta indicadora en la cara interna y alivio mínimo. ' + sinev],
+  ['Enrojecimiento bajo la base','Puede ser estomatitis: mala higiene, uso nocturno, placa y hongos.' + c(17),'Reforzar higiene y retirar de noche.' + c(14,17)],
+  ['La prótesis se suelta','Pérdida de estabilidad o de retención.' + c(14),'Consultar al odontólogo; si usa adhesivo más de 6 meses, revisar el ajuste.' + c(14)],
+];
+$('#probSeg').innerHTML = PROB.map((p,i) => `<button type="button" data-prob="${i}" aria-pressed="false">${p[0]}</button>`).join('');
+function probSet(i){ const p = PROB[i]; pressAll('[data-prob]', 'prob', i);
+  $('#probTxt').innerHTML = `<h3>${p[0]}</h3><div class="fact"><h4>Causa probable</h4><p>${p[1]}</p></div><div class="fact"><h4>Qué hacer</h4><p>${p[2]}</p></div>`; }
+$('#probSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) probSet(+b.dataset.prob); });
+probSet(0);
+
+/* ---------- Línea de controles ---------- */
+(function(){
+  const pts = [[60,'Instalación','ajustes'],[220,'Controles','hasta sin heridas'],[400,'Alta','sin heridas ni dolor'],[600,'Control','al menos anual']];
+  let h = `<line x1="60" y1="50" x2="720" y2="50" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/><path d="M520,50 L720,50" stroke="var(--acr)" stroke-width="4" stroke-dasharray="2 8" stroke-linecap="round"/>`;
+  pts.forEach((p,i) => { h += `<circle cx="${p[0]}" cy="50" r="${i===2?11:8}" fill="${i===2?'var(--ok)':'var(--acr)'}" stroke="var(--surface)" stroke-width="3"/><text x="${p[0]}" y="84" text-anchor="middle" class="s-labb">${p[1]}</text><text x="${p[0]}" y="100" text-anchor="middle" class="s-lab">${p[2]}</text>`; });
+  $('#altaSvg').innerHTML = h;
+})();
+
+/* ---------- Cifras ---------- */
+const NUMS = [
+  ['Ciclo de curado largo (ejemplo)','74 °C · 8 h',1],['Acrílico de curado rápido','100 °C · 20 min',1],['El monómero hierve a','100,3 °C',1],
+  ['Enfriar antes de abrir','30 min mesón + 15 min agua',1],['Umbral de rugosidad para la placa','0,2 µm',10],
+  ['Pacientes con heridas en el primer control','≈ 86 %',13],['Citas de ajuste: superior / inferior','≈ 4 / ≈ 6',13],
+  ['Tableta efervescente','≥ 30 min · 1 vez por semana',14],['Hipoclorito','0,5 % · 3 min (nunca > 10)',14],['Preparar hipoclorito 0,5 %','50 ml al 2 % + 150 ml de agua',14],
+  ['Adhesivo','3–4 arvejas · máx. 6 meses',14],['Pasta con flúor desde los 60 años','5.000 ppm',14],['Control odontológico','al menos 1 vez al año',14],
+  ['Riesgo de neumonía al dormir con la prótesis','≈ 2,4 veces',16],
+];
+$('#nums').innerHTML = NUMS.map(n => `<button type="button" class="num"><span class="k">${n[0]}</span><span class="v">${n[1]}</span><span class="s">Fuente ${n[2]}</span></button>`).join('');
+$('#nums').addEventListener('click', e => { const b = e.target.closest('.num'); if (b) b.classList.toggle('shown'); });
+$('#hideBtn').addEventListener('click', () => {
+  const on = !$('#nums').classList.contains('hidevals');
+  $('#nums').classList.toggle('hidevals', on);
+  $$('#nums .num').forEach(n => n.classList.remove('shown'));
+  $('#hideBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+  $('#hideBtn').textContent = on ? 'Mostrar todas las cifras' : 'Modo prueba: ocultar cifras';
+});
+
+/* ---------- Autoevaluación ---------- */
+const Q = [
+  {q:'¿Por qué la mufla no se pone directo en agua hirviendo?', o:['Porque se rompe el yeso','Porque el monómero se evapora y quedan porosidades','Porque se mueven los dientes','Porque se derrite la mufla'], a:1, w:'El monómero hierve a 100,3 °C; hervir de golpe aumenta la porosidad.', f:[1,4]},
+  {q:'¿Para qué sirve una etapa final a 100 °C en el ciclo de curado?', o:['Para enfriar','Para bajar el monómero residual','Para ablandar la cera','No sirve'], a:1, w:'Después de la etapa intermedia, reduce bastante el monómero residual.', f:[3]},
+  {q:'Después de procesar, la dimensión vertical oclusal…', o:['Baja siempre','Sube, con cualquier método estudiado','No cambia','Solo cambia con microondas'], a:1, w:'Por eso se revisa la oclusión en la instalación.', f:[6]},
+  {q:'¿Qué técnica movió menos los dientes durante el procesamiento?', o:['Enmuflado simple','Doble enmuflado','Hervir de golpe','Prensado sin mufla'], a:1, w:'Con cualquier material de revestimiento.', f:[7]},
+  {q:'¿Qué pulido deja el acrílico más liso?', o:['El químico (monómero caliente)','El mecánico','Ambos iguales','Ninguno'], a:1, w:'En dos estudios el mecánico fue más liso.', f:[8,9]},
+  {q:'¿Dónde aparecen más heridas después de instalar una prótesis total?', o:['En el paladar duro','En el vestíbulo','En la lengua','En los labios'], a:1, w:'Por eso se revisan los bordes con pasta indicadora.', f:[12]},
+  {q:'¿Cuánto tiempo indica el MINSAL para la tableta efervescente semanal?', o:['3 minutos','Al menos 30 minutos','10 segundos','Nunca se usa'], a:1, w:'En agua tibia; puede quedar toda la noche. Luego se enjuaga en agua fría.', f:[14]},
+  {q:'¿Cómo se prepara hipoclorito al 0,5 % para una prótesis de acrílico?', o:['50 ml al 2 % + 150 ml de agua','Hipoclorito puro','10 ml al 5 % + 1 litro','No se recomienda nunca'], a:0, w:'Se deja 3 minutos y nunca más de 10. No se usa con metal.', f:[14]},
+  {q:'¿Por qué se indica retirar la prótesis de noche?', o:['Para que no se manche','Menos neumonía y menos estomatitis','Para que se seque','No se indica'], a:1, w:'Dormir con ella se asoció a más neumonía en personas muy mayores y favorece la estomatitis.', f:[16,17]},
+];
+let ans = 0, ok = 0;
+const updScore = () => { $('#score').textContent = `${ok} / ${ans} correctas · ${Q.length} preguntas`; };
+function buildQuiz(){ ans = 0; ok = 0; updScore();
+  $('#quiz').innerHTML = Q.map((x,i) => `<div class="q" data-i="${i}"><p class="qt">${i+1}. ${x.q}</p><div class="opts">${x.o.map((o,j) => `<button type="button" class="opt" data-j="${j}">${o}</button>`).join('')}</div><p class="why" hidden></p></div>`).join(''); }
+$('#quiz').addEventListener('click', e => {
+  const b = e.target.closest('.opt'); if (!b) return;
+  const box = b.closest('.q'), x = Q[+box.dataset.i], j = +b.dataset.j;
+  box.querySelectorAll('.opt').forEach((o,k) => { o.disabled = true; if (k === x.a) o.classList.add('right'); });
+  if (j !== x.a) b.classList.add('wrong'); else ok++;
+  ans++; updScore();
+  const w = box.querySelector('.why'); w.innerHTML = (j === x.a ? '<b>Correcto.</b> ' : '<b>No.</b> ') + x.w + c(...x.f); w.hidden = false;
+});
+$('#resetQuiz').addEventListener('click', buildQuiz);
+buildQuiz();
+})();
+</script>
+</body>
+</html>

@@ -7,3 +7,28 @@ dist
 .env.*.local
 .firebase/
 dist-creativa
+
+# Emuladores de Firebase (npm run emuladores, npm run test:reglas)
+*-debug.log
+
+# Materia: entrada de clases, inventario, registros del proceso nocturno y su entorno de Python
+materia/_entrada/
+materia/_inventario.json
+materia/_registro/
+materia/_fallidas/
+.materia-venv/
+materia/_inventario.tsv
+
+# Video de la Clínica: archivos temporales de la grabación
+videos/_tmp/
+
+# No va al repositorio: registro de propiedad intelectual, archivos temporales y material interno de Materia
+_registro_DDI/
+_to_delete/
+rewrite_*.py
+replace_inicio*.py
+fix_protocolos.py
+*.code-workspace
+materia/plan.json
+materia/_reportes/
+videos/caso_*.mp4

@@ -6,9 +6,9 @@ import { perio, endo, anestesia, anestesiaNino, ANEST_NINO } from '../logic.js';
 import { useApp } from '../ctx.js';
 import { Aviso, cx } from '../ui.jsx';
 import { Periodontograma } from './periodontograma.jsx';
-import { CREATIVA } from '../edicion.js';
 // En Criterium Red no se nombran los protocolos: el mismo dato se cuenta sin ellos
-const segun = (completa, red) => (CREATIVA ? red : completa);
+// Desde la fusión (2026-10-09) la Red también tiene protocolos: los textos de origen vuelven a nombrarlos
+const segun = (completa) => completa;
 
 /* ── Piezas de entrada ── */
 

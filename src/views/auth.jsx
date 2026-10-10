@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { registrar, iniciarSesion, recuperarPassword, errorAuth } from '../auth.js';
+import { leerConfigPiloto, correoPideInvitacion } from '../piloto.js';
 import { AREAS } from '../logic.js';
 import { Btn, Field, Ic, Logo, inputCls, inputErr, cx } from '../ui.jsx';
 import { Privacidad } from './privacidad.jsx';
+import { CREATIVA } from '../edicion.js';
+import { MarcaRed, LEMA_RED } from '../creativa/marca.jsx';
 
 const ROLES = ['Estudiante de pregrado', 'Cirujano dentista general', 'Especialista', 'Docente de clínica'];
 const esEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((s || '').trim());
@@ -30,9 +33,9 @@ function Cargando() {
 function Marca() {
   return (
     <div className="mb-2 text-center">
-      <Logo size={34} className="justify-center" />
+      {CREATIVA ? <div className="flex justify-center"><MarcaRed size={34} /></div> : <Logo size={34} className="justify-center" />}
       <p className="mt-2 text-[13.5px] leading-relaxed text-ink2">
-        Procedimientos clínicos basados en la evidencia
+        {CREATIVA ? LEMA_RED : 'Procedimientos clínicos basados en la evidencia'}
       </p>
     </div>
   );
@@ -127,8 +130,13 @@ function FormLogin({ onCambiar }) {
 
 /* ── Registro ── */
 function FormRegistro({ onCambiar, privacidad }) {
-  const [f, setF] = useState({ nombre: '', email: '', pass: '', rol: ROLES[0], institucion: '', area: '' });
-  const [error, setError] = useState('');
+  const [f, setF] = useState({ nombre: '', email: '', pass: '', rol: ROLES[0], institucion: '', area: '', invitacion: '' });
+  // Si una invitación falló después de crear la cuenta, la cuenta se borró y el aviso vuelve aquí
+  const [error, setError] = useState(() => { try { const c = sessionStorage.getItem('criterium-error-registro'); sessionStorage.removeItem('criterium-error-registro'); return c ? errorAuth(c) : ''; } catch (e) { return ''; } });
+  // Modo piloto: los correos de ciertos dominios (uc.cl) se registran solo con un código de invitación
+  const [cfgPiloto, setCfgPiloto] = useState(null);
+  useEffect(() => { leerConfigPiloto().then(setCfgPiloto); }, []);
+  const pideInvitacion = correoPideInvitacion(cfgPiloto, f.email);
   const [cargando, setCargando] = useState(false);
   const [intento, setIntento] = useState(false);
 
@@ -136,13 +144,14 @@ function FormRegistro({ onCambiar, privacidad }) {
     nombre: f.nombre.trim().length < 3 ? 'Escribe tu nombre y apellido.' : '',
     email: !esEmail(f.email) ? 'Escribe un correo válido.' : '',
     pass: f.pass.length < 6 ? 'Al menos 6 caracteres.' : '',
-    acepta: !f.acepta ? 'Para crear la cuenta, acepta la privacidad y los términos.' : ''
+    acepta: !f.acepta ? 'Para crear la cuenta, acepta la privacidad y los términos.' : '',
+    invitacion: pideInvitacion && f.invitacion.trim().length < 6 ? 'Escribe el código que te dio el equipo del estudio.' : ''
   };
 
   const enviar = async (e) => {
     e.preventDefault();
     setIntento(true);
-    if (errores.nombre || errores.email || errores.pass || errores.acepta) return;
+    if (errores.nombre || errores.email || errores.pass || errores.acepta || errores.invitacion) return;
     setCargando(true);
     setError('');
     try {
@@ -151,7 +160,7 @@ function FormRegistro({ onCambiar, privacidad }) {
         rol: f.rol,
         institucion: f.institucion.trim(),
         area: f.area
-      });
+      }, pideInvitacion ? f.invitacion.trim().toUpperCase() : '');
       // onAuthStateChanged se encarga del resto
     } catch (err) {
       setError(errorAuth(err.code));
@@ -180,6 +189,14 @@ function FormRegistro({ onCambiar, privacidad }) {
         <input id="reg-pass" type="password" value={f.pass} onChange={(e) => setF({ ...f, pass: e.target.value })} placeholder="Al menos 6 caracteres" autoComplete="new-password"
           className={cx(inputCls, intento && errores.pass && inputErr)} />
       </Field>
+
+      {pideInvitacion && (
+        <Field label="Código de invitación" id="reg-invitacion" error={intento ? errores.invitacion : ''}>
+          <input id="reg-invitacion" value={f.invitacion} onChange={(e) => setF({ ...f, invitacion: e.target.value.toUpperCase() })} placeholder="Ej. K7M2Q9XA" autoComplete="off" autoCapitalize="characters"
+            className={cx(inputCls, 'tracking-[.12em]', intento && errores.invitacion && inputErr)} />
+          <span className="mt-1.5 block text-[12px] leading-snug text-ink3">Con un correo de tu universidad, durante el estudio la cuenta se crea con el código que recibes al firmar el consentimiento.</span>
+        </Field>
+      )}
 
       <label className="flex items-start gap-2.5 text-[13px] leading-snug text-ink2">
         <input type="checkbox" checked={!!f.acepta} onChange={(e) => setF({ ...f, acepta: e.target.checked })} className="mt-0.5 accent-[var(--acento)]" />

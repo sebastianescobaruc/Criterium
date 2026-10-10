@@ -1,6 +1,7 @@
 // La red profesional de Criterium: bienvenida (perfil profesional), feed, publicaciones por tipo, perfil público,
 // a quién seguir y la cola de moderación del equipo.
 // Los casos clínicos, borradores y protocolos pasan por el filtro del equipo Criterium antes de aparecer (db.js: publicarFS).
+import { Curriculum } from './curriculum.jsx';
 import React, { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { protoPorId, protosAbiertos, hace, uid, datosPersonales } from '../logic.js';
 import { useApp } from '../ctx.js';
@@ -8,6 +9,7 @@ import { CREATIVA } from '../edicion.js';
 import { borrarCuenta, errorAuth } from '../auth.js';
 import { borrarMisDatosFS, toggleLikeFS, votarFS, destacarFS, responderPostFS, publicarFS, usePerfilPublico, usePostsDe, useSeguimientos, usePerfiles, useMisPendientes, useColaModeracion, aprobarFS, rechazarFS, borrarPendienteFS, MODERADOS } from '../db.js';
 import { Ic, Pill, Btn, Field, PageHead, Avatar, Modal, Vacio, Logo, inputCls, inputErr, cx } from '../ui.jsx';
+import { ReelTarjeta, REELS } from './reels.jsx';
 
 /* ═══ Vocabulario del perfil ═══ */
 export const ETAPAS = [
@@ -38,7 +40,8 @@ const TIPOS = {
   discusion: { t: 'Plan de tratamiento', ic: 'personas', tono: 'acento' },
   caso: { t: 'Caso clínico', ic: 'folder', tono: 'acento' },
   borrador: { t: 'Borrador de protocolo', ic: 'edit', tono: 'warn' },
-  protocolo: { t: 'Protocolo', ic: 'book', tono: 'ok' }
+  protocolo: { t: 'Protocolo', ic: 'book', tono: 'ok' },
+  reel: { t: 'Reel', ic: 'video', tono: 'acento' }
 };
 const tipoDe = (p) => (TIPOS[p.tipo] ? p.tipo : 'publicacion');
 // Lo que se puede crear desde el inicio. En Criterium Red no hay borradores ni protocolos, y el caso abre su propio formulario.
@@ -222,9 +225,12 @@ export function Bienvenida({ editar = false, cerrar }) {
 }
 
 /* ═════════ CREAR: el compositor de publicaciones ═════════ */
-const VACIO = { titulo: '', txt: '', especialidad: '', diente: '', protocoloId: '', sinDatos: false, opciones: ['', ''], conDesenlace: false, desPlan: '', desTxt: '' };
+const VACIO = { titulo: '', txt: '', especialidad: '', diente: '', protocoloId: '', procedimiento: '', reel: '', sinDatos: false, opciones: ['', ''], conDesenlace: false, desPlan: '', desTxt: '' };
 function Crear() {
-  const { perfil, myUid, avisar, conPerfil, subirCaso } = useApp();
+  const { perfil, myUid, avisar, conPerfil, subirCaso, feed } = useApp();
+  // Reels: los videos alojados en Criterium que todavía no se publican (cada uno se publica una vez)
+  const reelsLibres = REELS.filter((r) => !(feed || []).some((p) => (p.adjuntos || []).some((a) => a.url === r.url)));
+  const creables = reelsLibres.length ? [...CREABLES, 'reel'] : CREABLES;
   const [abierto, setAbierto] = useState(false);
   const [tipo, setTipo] = useState('publicacion');
   const [f, setF] = useState(VACIO);
@@ -232,18 +238,25 @@ function Crear() {
   const [err, setErr] = useState('');
   const [enviando, setEnviando] = useState(false);
   const moderado = MODERADOS.includes(tipo);
-  const conTitulo = moderado || tipo === 'discusion';
+  const conTitulo = moderado || tipo === 'discusion' || tipo === 'reel';
   const clinico = tipo === 'caso' || tipo === 'discusion';
+  const esReel = tipo === 'reel';
+  const reel = esReel && (reelsLibres.find((r) => r.url === f.reel) || reelsLibres[0]);
   const opciones = f.opciones.map((o) => o.trim()).filter(Boolean);
   const limpiar = () => { setF(VACIO); setErr(''); setMedios(false); setAbierto(false); setTipo('publicacion'); };
-  const elegir = (k) => { if (CREATIVA && k === 'caso') { limpiar(); subirCaso(); return; } setTipo(k); setErr(''); };
+  const elegir = (k) => {
+    if (CREATIVA && k === 'caso') { limpiar(); subirCaso(); return; }
+    if (k === 'reel' && reelsLibres[0]) { const r = reelsLibres[0]; setF({ ...VACIO, reel: r.url, titulo: r.titulo, txt: r.txt, especialidad: r.especialidad, procedimiento: r.procedimiento }); }
+    setTipo(k); setErr('');
+  };
   const setOpcion = (k, v) => { setF({ ...f, opciones: f.opciones.map((o, i) => (i === k ? v : o)) }); setErr(''); };
   const publicar = () => {
     if (conTitulo && f.titulo.trim().length < 6) { setErr(tipo === 'discusion' ? 'Ponle un título: el caso en una línea.' : 'Ponle un título que diga de qué se trata.'); return; }
     if (f.txt.trim().length < 10) { setErr(tipo === 'pregunta' ? 'Cuenta un poco más: qué pasó, en qué paso y qué dudas tienes.' : tipo === 'discusion' ? 'Resume el caso: diagnóstico, hallazgos y qué te hace dudar.' : 'Escribe un poco más.'); return; }
     if (tipo === 'discusion' && opciones.length < 2) { setErr('Escribe al menos dos planes de tratamiento para que la gente vote.'); return; }
     if (tipo === 'discusion' && f.conDesenlace && f.desTxt.trim().length < 10) { setErr('Cuenta qué se hizo y cómo resultó, o quita el desenlace.'); return; }
-    if (clinico && !f.sinDatos) { setErr('Confirma que no hay datos que identifiquen al paciente.'); return; }
+    if ((clinico || esReel) && !f.sinDatos) { setErr('Confirma que no hay datos que identifiquen al paciente.'); return; }
+    if (esReel && !reel) { setErr('Elige el video.'); return; }
     const p = datosPersonales([f.titulo, f.txt, ...opciones, f.conDesenlace ? f.desTxt : ''].join(' '));
     if (p.length) { setErr('El texto trae ' + p.join(', ') + '. Quítalo: en Criterium no van datos que identifiquen a nadie.'); return; }
     conPerfil(async (pf) => {
@@ -253,10 +266,10 @@ function Crear() {
           tipo, titulo: f.titulo.trim(), txt: f.txt.trim(), especialidad: f.especialidad, diente: clinico ? f.diente.trim() : '', protocoloId: f.protocoloId,
           ...(tipo === 'discusion' ? { opciones: opciones.slice(0, 4), votos: {} } : {}),
           ...(tipo === 'discusion' && f.conDesenlace ? { desenlace: { plan: f.desPlan === '' ? -1 : +f.desPlan, txt: f.desTxt.trim() } } : {}),
-          adjuntos: [], autorUid: myUid, autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, institucion: pf.institucion || '', verificado: false },
+          ...(esReel ? { procedimiento: f.procedimiento, adjuntos: [{ tipo: 'video', url: reel.url, poster: reel.poster, vertical: !reel.horizontal, duracion: reel.duracion }] } : { adjuntos: [] }), autorUid: myUid, autor: { uid: myUid, nombre: pf.nombre, rol: pf.rol, institucion: pf.institucion || '', verificado: false },
           fecha: new Date().toISOString(), likes: 0, likedBy: [], respuestas: []
         });
-        avisar(dest === 'revision' ? 'Enviado al equipo Criterium. Lo ves en tu perfil mientras se revisa.' : 'Publicado');
+        avisar(dest === 'revision' ? 'Enviado al equipo Criterium. Lo ves en tu perfil mientras se revisa.' : esReel ? 'Tu reel ya está en el inicio' : 'Publicado');
         limpiar();
       } catch (e) { setErr('No se pudo publicar. Revisa tu conexión.'); }
       setEnviando(false);
@@ -271,7 +284,7 @@ function Crear() {
       </button>
       {CREATIVA && (
         <div className="flex gap-1 border-t border-line2 px-2 py-1.5">
-          {[['caso', 'folder', 'Caso clínico', 'Caso'], ['discusion', 'personas', 'Plan de tratamiento', 'Plan'], ['pregunta', 'pregunta', 'Pregunta', 'Pregunta']].map(([k, ic, t, corto]) => (
+          {[['caso', 'folder', 'Caso clínico', 'Caso'], ['discusion', 'personas', 'Plan de tratamiento', 'Plan'], ['pregunta', 'pregunta', 'Pregunta', 'Pregunta'], ...(reelsLibres.length ? [['reel', 'video', 'Reel', 'Reel']] : [])].map(([k, ic, t, corto]) => (
             <button key={k} type="button" onClick={() => { setAbierto(true); elegir(k); }} className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2 text-[13px] font-semibold text-ink2 hover:bg-soft"><Ic n={ic} s={17} className="flex-none text-acento" /><span className="truncate sm:hidden">{corto}</span><span className="hidden truncate sm:inline">{t}</span></button>
           ))}
         </div>
@@ -281,7 +294,7 @@ function Crear() {
   return (
     <section className="aparece rounded-[22px] bg-card p-4 shadow-shlg sm:p-5" aria-label="Crear una publicación">
       <div className="scroll-x -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist">
-        {CREABLES.map((k) => { const t = TIPOS[k]; return (
+        {creables.map((k) => { const t = TIPOS[k]; return (
           <button key={k} type="button" role="tab" aria-selected={tipo === k} onClick={() => elegir(k)}
             className={cx('inline-flex flex-none items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors', tipo === k ? 'bg-deep text-onc' : 'bg-soft text-ink2 hover:bg-acentosoft')}>
             <Ic n={t.ic} s={15} />{t.t}
@@ -290,6 +303,16 @@ function Crear() {
       </div>
       {moderado && <p className="m-0 mt-2.5 flex items-start gap-2 rounded-rs bg-warnsoft px-3 py-2 text-[12.5px] font-semibold leading-snug text-warn"><Ic n="stamp" s={15} className="mt-[1px]" />Pasa por el filtro del equipo Criterium antes de aparecer en el feed{tipo !== 'caso' ? '. Los protocolos se publican después de la revisión de al menos 5 expertos.' : '.'}</p>}
       {tipo === 'discusion' && <p className="m-0 mt-2.5 text-[13px] leading-snug text-ink3">Cuenta el caso y propone los planes que estás considerando. La comunidad vota y explica por qué.</p>}
+      {esReel && reel && (
+        <div className="mt-3 flex gap-3 rounded-[18px] bg-soft p-3">
+          <video src={reel.url} poster={reel.poster} muted playsInline loop autoPlay preload="metadata" className={cx('flex-none self-center rounded-[12px] bg-deep object-cover', reel.horizontal ? 'aspect-video w-[150px]' : 'aspect-[9/16] w-[96px]')} />
+          <div className="flex min-w-0 flex-col justify-center gap-1">
+            <b className="text-[14px] text-ink">Video {reel.horizontal ? 'horizontal' : 'vertical'} · {Math.floor(reel.duracion / 60)}:{String(reel.duracion % 60).padStart(2, '0')}</b>
+            <span className="text-[12.5px] leading-snug text-ink3">Sale en el inicio como reel: se reproduce solo y sin sonido, tocar prende el sonido y se puede ver en pantalla completa.</span>
+            {reelsLibres.length > 1 && <select value={reel.url} onChange={(e) => setF({ ...f, reel: e.target.value })} aria-label="Video" className="mt-1 rounded-full border-0 bg-card py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2">{reelsLibres.map((r) => <option key={r.url} value={r.url}>{r.titulo}</option>)}</select>}
+          </div>
+        </div>
+      )}
       <div className="mt-3 flex flex-col gap-3">
         {conTitulo && <input value={f.titulo} onChange={(e) => { setF({ ...f, titulo: e.target.value }); setErr(''); }} aria-label="Título" placeholder={tipo === 'caso' ? 'Título del caso: qué se hizo y en qué diente' : tipo === 'discusion' ? 'El caso en una línea: ej. molar con lesión de furca grado II' : 'Título del protocolo'} className="w-full bg-transparent text-[18px] font-bold text-ink outline-none placeholder:text-ink3" />}
         <textarea autoFocus value={f.txt} onChange={(e) => { setF({ ...f, txt: e.target.value }); setErr(''); }} rows={4} aria-label="Texto"
@@ -323,25 +346,26 @@ function Crear() {
           </div>
         )}
         <div className="flex flex-wrap gap-2">
-          {(moderado || tipo === 'pregunta' || tipo === 'discusion') && (
+          {(moderado || tipo === 'pregunta' || tipo === 'discusion' || esReel) && (
             <select value={f.especialidad} onChange={(e) => setF({ ...f, especialidad: e.target.value })} aria-label="Especialidad" className="rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Especialidad</option>{INTERESES.map((a) => <option key={a}>{a}</option>)}</select>
           )}
+          {esReel && <select value={f.procedimiento} onChange={(e) => setF({ ...f, procedimiento: e.target.value })} aria-label="Procedimiento" className="rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Procedimiento</option>{PROCEDIMIENTOS.map(([g, l]) => <optgroup key={g} label={g}>{l.map((x) => <option key={x}>{x}</option>)}</optgroup>)}</select>}
           {clinico && <input value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} aria-label="Diente (FDI)" placeholder="Diente FDI, ej. 3.6" className="w-[150px] rounded-full bg-soft px-3 py-1.5 text-[13px] text-ink2 outline-none" />}
-          {!CREATIVA && !['borrador', 'protocolo'].includes(tipo) && (
+          {!CREATIVA && !['borrador', 'protocolo', 'reel'].includes(tipo) && (
             <select value={f.protocoloId} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} aria-label="Protocolo relacionado" className="max-w-[260px] rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Protocolo relacionado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}</select>
           )}
         </div>
         {medios && <EspacioMedios caso={clinico} />}
-        {clinico && (
+        {(clinico || esReel) && (
           <label className="flex items-start gap-2.5 text-[13px] leading-snug text-ink2">
             <input type="checkbox" checked={f.sinDatos} onChange={(e) => { setF({ ...f, sinDatos: e.target.checked }); setErr(''); }} className="mt-0.5 accent-[var(--acento)]" />
-            No trae nombre, RUT, ficha, fecha de nacimiento ni fotos que identifiquen al paciente.
+            {esReel ? 'El video no muestra el rostro ni datos que identifiquen al paciente, y tengo su consentimiento para mostrarlo.' : 'No trae nombre, RUT, ficha, fecha de nacimiento ni fotos que identifiquen al paciente.'}
           </label>
         )}
         {err && <p className="m-0 text-[12.5px] font-semibold text-bad">{err}</p>}
         <div className="flex items-center gap-1 border-t border-line2 pt-3">
           <button type="button" onClick={() => setMedios(!medios)} aria-pressed={medios} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-acento hover:bg-soft"><Ic n="image" s={18} /><span className="hidden sm:inline">Foto</span></button>
-          <button type="button" onClick={() => setMedios(!medios)} aria-pressed={medios} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-acento hover:bg-soft"><Ic n="video" s={18} /><span className="hidden sm:inline">Video</span></button>
+          <button type="button" onClick={() => (reelsLibres.length && !esReel ? elegir('reel') : setMedios(!medios))} aria-pressed={medios || esReel} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-semibold text-acento hover:bg-soft"><Ic n="video" s={18} /><span className="hidden sm:inline">Video</span></button>
           <button type="button" onClick={limpiar} className="ml-auto rounded-full px-3 py-2 text-[13px] font-semibold text-ink3 hover:text-ink">Cancelar</button>
           <Btn v="primary" sm onClick={publicar} disabled={enviando}>{enviando ? 'Enviando…' : moderado ? 'Enviar a revisión' : 'Publicar'}</Btn>
         </div>
@@ -453,6 +477,7 @@ export function Publicacion({ p, pendiente = false }) {
   const visibles = todas ? respuestas : respuestas.slice(-2);
   const largoTxt = (p.txt || '').length > 420 && !largo;
   const secciones = SECCIONES_CASO.filter(([k]) => p.secciones && p.secciones[k]);
+  if (tipo === 'reel' && !pendiente) return <ReelTarjeta p={p} />;
   return (
     <article className={cx('overflow-hidden rounded-[22px] bg-card shadow-sh', pendiente && 'ring-2 ring-inset', pendiente && (p.estado === 'rechazado' ? 'ring-badsoft' : 'ring-warnsoft'))}>
       {claveEsp(esp) && !pendiente && <div className="h-1" style={{ background: `color-mix(in srgb, var(--esp-${claveEsp(esp)}-ink) 45%, var(--esp-${claveEsp(esp)}))` }} aria-hidden="true" />}
@@ -630,8 +655,8 @@ function ASeguir({ horizontal = false }) {
 
 /* ═════════ FEED ═════════ */
 const PESTANAS = CREATIVA
-  ? [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['caso', 'Casos'], ['discusion', 'Planes de tratamiento'], ['pregunta', 'Preguntas']]
-  : [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Protocolos']];
+  ? [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['reel', 'Reels'], ['caso', 'Casos'], ['discusion', 'Planes de tratamiento'], ['pregunta', 'Preguntas']]
+  : [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['reel', 'Reels'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Protocolos']];
 // Caso de la semana: lo destaca un docente o el equipo; se muestra 7 días, el más reciente
 const SEMANA = 7 * 864e5;
 function CasoSemana({ p }) {
@@ -672,6 +697,7 @@ export function Feed({ arriba = null, lado = null, movil = null, saludo = true }
     if (tab === 'siguiendo') l = l.filter(deSeguidos);
     if (tab === 'pregunta') l = l.filter((p) => tipoDe(p) === 'pregunta' || (!p.tipo && /\?/.test(p.txt || '')));
     if (tab === 'caso') l = l.filter((p) => tipoDe(p) === 'caso');
+    if (tab === 'reel') l = l.filter((p) => tipoDe(p) === 'reel');
     if (tab === 'discusion') l = l.filter((p) => tipoDe(p) === 'discusion');
     if (tab === 'protocolos') l = l.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)));
     if (tab === 'para-ti') {
@@ -720,7 +746,7 @@ export function Feed({ arriba = null, lado = null, movil = null, saludo = true }
         <div className="flex flex-col gap-4">
           {lista.length === 0 ? (
             <div className="rounded-[22px] border border-dashed border-line px-6 py-10 text-center">
-              <p className="m-0 text-[14px] text-ink3">{tab === 'siguiendo' ? (siguiendo.length ? 'Las personas que sigues todavía no publican.' : 'Todavía no sigues a nadie. Mira «A quién seguir».') : 'Todavía no hay nada aquí. Sé el primero en publicar.'}</p>
+              <p className="m-0 text-[14px] text-ink3">{tab === 'siguiendo' ? (siguiendo.length ? 'Las personas que sigues todavía no publican.' : 'Todavía no sigues a nadie. Mira «A quién seguir».') : tab === 'reel' ? 'Todavía no hay reels.' : 'Todavía no hay nada aquí. Sé el primero en publicar.'}</p>
             </div>
           ) : lista.map((p) => <Publicacion key={p.id} p={p} />)}
         </div>
@@ -767,7 +793,7 @@ function ListaPersonas({ titulo, uids, cerrar }) {
   );
 }
 export function PerfilPublico() {
-  const { perfilUid, myUid, siguiendo, toggleSeguir, editarPerfil, go, logout } = useApp();
+  const { perfilUid, myUid, siguiendo, toggleSeguir, editarPerfil, go, logout, abrirChat } = useApp();
   const pf = usePerfilPublico(perfilUid);
   const posts = usePostsDe(perfilUid);
   const yo = perfilUid === myUid;
@@ -799,7 +825,10 @@ export function PerfilPublico() {
             <span className={cx('relative z-[1] rounded-full bg-card ring-[5px] ring-card', oficial && 'rounded-[22px]')}><Avatar nombre={pf.nombre} size={96} /></span>
             <div className="flex gap-2 pb-1">
               {yo ? <Btn icon="edit" onClick={editarPerfil}>Editar perfil</Btn>
-                : <Btn v={loSigo ? 'outline' : 'primary'} onClick={() => toggleSeguir(perfilUid)}>{loSigo ? 'Siguiendo' : 'Seguir'}</Btn>}
+                : <>
+                  {abrirChat && <Btn icon="chat" onClick={() => abrirChat(perfilUid)}>Mensaje</Btn>}
+                  <Btn v={loSigo ? 'outline' : 'primary'} onClick={() => toggleSeguir(perfilUid)}>{loSigo ? 'Siguiendo' : 'Seguir'}</Btn>
+                </>}
             </div>
           </div>
           <h1 className="m-0 mt-3 flex flex-wrap items-center gap-2 text-[24px] font-bold tracking-[-.02em] text-deep sm:text-[28px]">{pf.nombre}<Insignias a={{ oficial, verificado: pf.verificado }} /></h1>
@@ -818,6 +847,7 @@ export function PerfilPublico() {
           {yo && comp.pct < 100 && <button type="button" onClick={editarPerfil} className="mt-4 flex w-full items-center gap-3 rounded-rs bg-soft px-4 py-3 text-left"><b className="text-[13px] text-acentodeep">Perfil al {comp.pct}%</b><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-cardline"><span className="block h-full rounded-full bg-acento" style={{ width: comp.pct + '%' }} /></span><span className="text-[12.5px] font-semibold text-acento">Completar</span></button>}
         </div>
       </section>
+      <Curriculum uid={perfilUid} yo={yo} nombre={pf.nombre} />
       <nav className="scroll-x -mx-4 flex gap-1 overflow-x-auto px-4" aria-label="Contenido del perfil">
         {TABS.map(([k, t, l]) => <button key={k} type="button" onClick={() => setTab(k)} aria-pressed={tab === k} className={cx('flex-none rounded-full px-4 py-2 text-[13.5px] font-semibold', tab === k ? 'bg-deep text-onc' : 'text-ink2 hover:bg-soft')}>{t}{l.length ? ' · ' + l.length : ''}</button>)}
       </nav>

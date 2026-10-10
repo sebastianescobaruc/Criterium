@@ -23,10 +23,9 @@ export function useUsuario() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setUsuario(user);
       if (user) {
-        try {
-          const snap = await getDoc(doc(db, 'usuarios', user.uid));
-          setPerfil(snap.exists() ? snap.data() : null);
-        } catch (e) { setPerfil(null); }
+        // El perfil no puede dejar pegada la pantalla de carga: se espera a lo más 2,5 s y, si llega después, se usa igual
+        const leer = getDoc(doc(db, 'usuarios', user.uid)).then((snap) => { setPerfil(snap.exists() ? snap.data() : null); }).catch(() => setPerfil(null));
+        await Promise.race([leer, new Promise((r) => setTimeout(r, 2500))]);
       } else {
         setPerfil(null);
       }
@@ -39,9 +38,23 @@ export function useUsuario() {
 }
 
 /* ═══ Registro ═══ */
-export async function registrar(email, password, datosExtra) {
+// invitacion: código del modo piloto (correos de dominios por invitación). Se valida antes de crear la cuenta y se usa
+// apenas existe; si falla, la cuenta recién creada se borra para no dejarla a medias.
+export async function registrar(email, password, datosExtra, invitacion) {
+  if (invitacion) {
+    const { invitacionValida } = await import('./piloto.js');
+    if (!(await invitacionValida(invitacion))) { const e = new Error('invitacion'); e.code = 'criterium/invitacion'; throw e; }
+  }
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   const user = cred.user;
+  if (invitacion) {
+    try { const { canjearInvitacion } = await import('./piloto.js'); await canjearInvitacion(user.uid, invitacion); }
+    catch (er) {
+      try { sessionStorage.setItem('criterium-error-registro', 'criterium/invitacion'); } catch (x) {}
+      await deleteUser(user).catch(() => signOut(auth));
+      const e = new Error('invitacion'); e.code = 'criterium/invitacion'; throw e;
+    }
+  }
 
   // Guardar display name en Auth
   await updateProfile(user, { displayName: datosExtra.nombre });
@@ -100,7 +113,8 @@ export function errorAuth(code) {
     'auth/invalid-credential': 'Correo o contraseña incorrectos.',
     'auth/too-many-requests': 'Demasiados intentos. Espera un momento y vuelve a intentar.',
     'auth/network-request-failed': 'Sin conexión a internet.',
-    'auth/missing-password': 'Escribe tu contraseña.'
+    'auth/missing-password': 'Escribe tu contraseña.',
+    'criterium/invitacion': 'Ese código de invitación no existe o ya se usó. Revísalo o pídele uno nuevo al equipo del estudio.'
   };
   return mapa[code] || 'Ocurrió un error. Intenta de nuevo.';
 }

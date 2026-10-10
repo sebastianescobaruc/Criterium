@@ -1,0 +1,132 @@
+{
+  "geriatria": {
+    "nombre": "Geriatría",
+    "descripcion": "Odontología en la persona mayor: prótesis total y removible.",
+    "orden": 1,
+    "paleta": {
+      "acento": "#2F6A78",
+      "suave": "#DDEEF1",
+      "fondo": "#F2F6F8",
+      "texto": "#0F2530",
+      "detalle": "#2C8C82",
+      "detalleSuave": "#DDF3EF"
+    }
+  },
+  "cia": {
+    "nombre": "Clínica integral del adulto",
+    "descripcion": "Diagnóstico, plan de tratamiento y clínica del adulto.",
+    "orden": 2,
+    "paleta": {
+      "acento": "#1F7A70",
+      "suave": "#DDF2EE",
+      "fondo": "#F1F8F6",
+      "texto": "#0E2A26",
+      "detalle": "#2F6A78",
+      "detalleSuave": "#DDEEF1"
+    }
+  },
+  "cin": {
+    "nombre": "Clínica integral del niño",
+    "descripcion": "Odontopediatría: diagnóstico, prevención y tratamiento en niños.",
+    "orden": 3,
+    "paleta": {
+      "acento": "#2B6CA3",
+      "suave": "#DDEBF7",
+      "fondo": "#F2F7FB",
+      "texto": "#0F2236",
+      "detalle": "#2C8C82",
+      "detalleSuave": "#DDF3EF"
+    }
+  },
+  "cirugia": {
+    "nombre": "Cirugía bucal",
+    "descripcion": "Exodoncia, cirugía menor y manejo del paciente quirúrgico.",
+    "orden": 4,
+    "paleta": {
+      "acento": "#3B4F8C",
+      "suave": "#E2E7F5",
+      "fondo": "#F4F6FB",
+      "texto": "#161D33",
+      "detalle": "#2C7FA0",
+      "detalleSuave": "#DCEFF6"
+    }
+  },
+  "patologia": {
+    "nombre": "Patología oral y maxilofacial",
+    "descripcion": "Lesiones de la mucosa, de los maxilares y de las glándulas salivales.",
+    "orden": 5,
+    "paleta": {
+      "acento": "#4E7A5A",
+      "suave": "#E3EFE6",
+      "fondo": "#F4F8F5",
+      "texto": "#18281D",
+      "detalle": "#2F6A78",
+      "detalleSuave": "#DDEEF1"
+    }
+  },
+  "imagenologia": {
+    "nombre": "Imagenología",
+    "descripcion": "Radiología e imágenes en odontología.",
+    "orden": 6,
+    "paleta": {
+      "acento": "#45606F",
+      "suave": "#E3EAEE",
+      "fondo": "#F4F7F8",
+      "texto": "#18242B",
+      "detalle": "#2C8C82",
+      "detalleSuave": "#DDF3EF"
+    }
+  },
+  "nnee": {
+    "nombre": "Pacientes con necesidades especiales",
+    "descripcion": "Atención odontológica de personas con condiciones de salud especiales.",
+    "orden": 7,
+    "paleta": {
+      "acento": "#5E5A9C",
+      "suave": "#E8E6F5",
+      "fondo": "#F6F5FB",
+      "texto": "#1F1D36",
+      "detalle": "#2C8C82",
+      "detalleSuave": "#DDF3EF"
+    }
+  },
+  "ttm": {
+    "nombre": "Trastornos temporomandibulares",
+    "descripcion": "Diagnóstico y manejo de los trastornos temporomandibulares y el dolor orofacial.",
+    "orden": 8,
+    "paleta": {
+      "acento": "#33658A",
+      "suave": "#DEE9F2",
+      "fondo": "#F3F7FA",
+      "texto": "#12212E",
+      "detalle": "#2C8C82",
+      "detalleSuave": "#DDF3EF"
+    }
+  },
+  "etica": {
+    "nombre": "Ética clínica",
+    "descripcion": "Ética y deontología en la atención odontológica.",
+    "orden": 9,
+    "paleta": {
+      "acento": "#8A6A2F",
+      "suave": "#F3EAD8",
+      "fondo": "#FAF7F0",
+      "texto": "#2E2414",
+      "detalle": "#2F6A78",
+      "detalleSuave": "#DDEEF1"
+    }
+  },
+  "seminario": {
+    "nombre": "Seminario en ciencias odontológicas",
+    "descripcion": "Lectura crítica y metodología de la investigación.",
+    "orden": 10,
+    "paleta": {
+      "acento": "#3E6E6A",
+      "suave": "#E1EEEC",
+      "fondo": "#F3F8F7",
+      "texto": "#152826",
+      "detalle": "#2F6A78",
+      "detalleSuave": "#DDEEF1"
+    }
+  }
+}

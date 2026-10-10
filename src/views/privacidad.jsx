@@ -15,7 +15,7 @@ const SECCIONES = [
   ['Qué nunca guardamos', [
     'Datos que identifiquen a un paciente: nombre, RUT, teléfono, correo, ficha ni fotos con su cara. La app bloquea los textos que los traen.',
     'Tu contraseña: la maneja el sistema de cuentas de Google Firebase, nadie del equipo la ve.',
-    ...(CREATIVA ? [] : ['El audio de la voz: el reconocimiento lo hace tu navegador (Chrome con Google, Safari con Apple). Criterium no graba ni guarda audio.'])
+    'El audio de la voz de los protocolos: el reconocimiento lo hace tu navegador (Chrome con Google, Safari con Apple). Criterium no graba ni guarda audio.'
   ]],
   ['Quién ve qué', [
     'Tu perfil y tus publicaciones: las personas con cuenta en Criterium.',

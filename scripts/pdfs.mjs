@@ -125,7 +125,7 @@ try {
     const escala = alto <= hoja ? 1 : alto * 0.85 <= hoja ? Math.floor((hoja / alto) * 100) / 100 : 1;
     const n = Math.max(1, Math.ceil((alto * escala) / hoja - 0.01));
     const pdf = await pag.pdf({ format: 'A4', printBackground: true, scale: escala, margin: { top: '9mm', bottom: '10mm', left: '10mm', right: '10mm' } });
-    writeFileSync(RAIZ + 'public/' + d.pdf, pdf);
+    writeFileSync(RAIZ + 'protocolos-pdf/' + d.pdf, pdf); // fuera de public/: se suben a Firestore con npm run protocolos:subir
     console.log((n > MAX_PAGINAS ? '✗' : '✓'), d.pdf, '·', n, n === 1 ? 'página' : 'páginas', escala < 1 ? '· escala ' + Math.round(escala * 100) + ' %' : '', '·', Math.round(pdf.length / 1024) + ' KB');
     if (n > MAX_PAGINAS) error = true;
   }

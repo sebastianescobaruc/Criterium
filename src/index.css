@@ -444,3 +444,46 @@ h1,h2,h3{letter-spacing:-.02em}
 }
 @keyframes en-vivo{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--bad) 25%,transparent)}}
 @keyframes salta{40%{transform:scale(1.35)}}
+
+/* Reels: el corazón grande del doble toque */
+.reel-corazon{transform:translate(-50%,-50%);animation:reel-corazon .9s cubic-bezier(.2,.9,.25,1) both;filter:drop-shadow(0 4px 18px color-mix(in srgb,var(--deep) 45%,transparent))}
+@keyframes reel-corazon{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}45%{transform:translate(-50%,-50%) scale(.95)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(.9)}}
+@media (prefers-reduced-motion: reduce){.reel-corazon{animation:none;opacity:0}}
+
+/* ═══ Clínica: espacio de trabajo clínico sobrio (2026-10-10) ═══
+   Blanco y grises, bordes finos en vez de sombras, radios chicos, alta densidad. El color de Criterium queda para
+   acciones y estados. Las pantallas que usan las piezas de ui.jsx se adaptan solas dentro de .cl */
+:root{
+  --cl-bg:#F4F6F7;--cl-nav:#FAFBFB;--cl-line:#E1E7EA;--cl-line-2:#EDF1F3;--cl-hover:#F0F4F5;--cl-sel:#E5EFF1;
+  --cl-muted:#687A84;--cl-pri:#1B3949;--cl-pri-h:#14303E;--cl-ahora:#C2413B;
+  --cl-p1:#2F6A78;--cl-p2:#8F4F22;--cl-p3:#6B4A7D;--cl-p4:#3B6A3E;--cl-p5:#3D4F86;--cl-p6:#8C4452;
+}
+.cl{background:var(--cl-bg);color:var(--ink)}
+.cl .tabular{font-variant-numeric:tabular-nums}
+.cl-main [class*="rounded-[2"]{border-radius:10px}
+.cl-main [class*="rounded-[1"]{border-radius:8px}
+.cl-main .shadow-sh{box-shadow:none;border:1px solid var(--cl-line)}
+.cl .rotulo{color:var(--cl-muted);font-size:11px;letter-spacing:.07em;font-weight:700}
+.cl .ui-btn{border-radius:8px;box-shadow:none}
+.cl .ui-btn:not([class*="py-1.5"]){padding-top:.5rem;padding-bottom:.5rem}
+.cl .ui-btn[data-v="primary"]{background:var(--cl-pri);border-color:var(--cl-pri);color:#fff}
+.cl .ui-btn[data-v="primary"]:hover{background:var(--cl-pri-h)}
+.cl .ui-btn[data-v="outline"]{background:#fff;border:1px solid var(--cl-line);color:var(--ink)}
+.cl .ui-btn[data-v="outline"]:hover{background:var(--cl-hover)}
+.cl .ui-btn[data-v="soft"]{background:var(--cl-sel);color:var(--acento-deep)}
+.cl .ui-seg{border-radius:7px;box-shadow:none}
+.cl .ui-input{border-radius:8px;background:#fff;border-color:var(--cl-line);font-size:14px;padding-top:.5rem;padding-bottom:.5rem}
+.cl .ui-input:focus{box-shadow:0 0 0 3px var(--acento-soft);border-color:var(--acento)}
+.cl .ui-modal{border-radius:12px}
+.cl .ui-vacio{border-radius:10px;border-width:1px;background:#fff}
+/* Citas en la agenda: barra del color del profesional, fondo según estado */
+.cl-cita{background:#fff;border:1px solid var(--cl-line);border-left:3px solid var(--pc,var(--acento))}
+.cl-cita:hover{box-shadow:0 2px 10px -4px rgba(15,37,48,.25);z-index:3}
+.cl-cita[data-e="confirmada"]{background:color-mix(in srgb,var(--ok-soft) 70%,#fff)}
+.cl-cita[data-e="llego"],.cl-cita[data-e="en-atencion"]{background:color-mix(in srgb,var(--warn-soft) 75%,#fff)}
+.cl-cita[data-e="atendida"]{background:var(--cl-line-2);color:var(--ink-3)}
+.cl-cita[data-e="no-asistio"]{background:color-mix(in srgb,var(--bad-soft) 75%,#fff)}
+.cl-cita[data-e="cancelada"]{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--cl-line-2) 6px 12px);color:var(--ink-3);text-decoration:line-through}
+.cl-drawer{animation:cl-entra .18s ease-out both}
+@keyframes cl-entra{from{transform:translateX(16px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.cl-drawer{animation:none}}

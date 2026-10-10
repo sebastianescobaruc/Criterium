@@ -48,11 +48,16 @@ const PATHS = {
   image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="10" r="1.8" /><path d="M20.5 16.5 15 11l-9.5 8.5" /></>,
   heart: <><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z" /></>,
   pin: <><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" /></>,
-  sparkle: <><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" /><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></>
+  sparkle: <><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9z" /><path d="M18.5 16.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" /></>,
+  calendario: <><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" /><path d="M3.5 9.5h17M8 3v4M16 3v4" /><path d="M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2" /></>,
+  diente: <><path d="M12 6.2C10.2 4.6 6 4.2 5.6 8.4c-.3 3 1.3 4.6 1.7 7.3.4 2.8 1 4.8 2.1 4.8 1.5 0 1.3-4.3 2.6-4.3s1.1 4.3 2.6 4.3c1.1 0 1.7-2 2.1-4.8.4-2.7 2-4.3 1.7-7.3C18 4.2 13.8 4.6 12 6.2z" /></>,
+  grafico: <><path d="M4 20h16" /><path d="M7 16.5V11M12 16.5V6.5M17 16.5v-8" /></>,
+  dinero: <><rect x="3" y="6.5" width="18" height="11" rx="2.2" /><circle cx="12" cy="12" r="2.6" /><path d="M6.5 9.5v5M17.5 9.5v5" /></>
 };
 
 /* Logo: la C de Criterium con una muela al centro y un tramo en verde azulado. Recreado en SVG desde el logo oficial. */
-export function Logo({ size = 26, texto = true, oscuro = false, className = '' }) {
+// despues: algo que va en la misma línea del nombre, sobre su línea base (el cartel «RED» de Criterium Red). El logo no cambia.
+export function Logo({ size = 26, texto = true, oscuro = false, className = '', despues = null }) {
   return (
     <span className={cx('inline-flex items-center gap-2', className)}>
       <svg width={size} height={size} viewBox="61 60 317 317" aria-hidden="true" className="flex-none">
@@ -61,7 +66,7 @@ export function Logo({ size = 26, texto = true, oscuro = false, className = '' }
         <path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" style={{ fill: 'var(--logo-acc)' }} />
         <path d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF" />
       </svg>
-      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className={oscuro ? 'text-panelink' : 'text-deep'}>Criter</span><span className={oscuro ? 'text-menta' : 'text-acento'}>ium</span></span>}
+      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className={oscuro ? 'text-panelink' : 'text-deep'}>Criter</span><span className={oscuro ? 'text-menta' : 'text-acento'}>ium</span>{despues}</span>}
     </span>
   );
 }
@@ -99,15 +104,15 @@ const VAR = {
 };
 export function Btn({ v = 'outline', sm, className = '', icon, children, ...p }) {
   return (
-    <button type="button" {...p}
-      className={cx('inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[background-color,box-shadow,transform] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45',
+    <button type="button" data-v={v} {...p}
+      className={cx('ui-btn inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[background-color,box-shadow,transform] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45',
         sm ? 'px-3.5 py-1.5 text-[12.5px]' : 'px-[18px] py-2.5 text-[13.5px]', VAR[v], className)}>
       {icon && <Ic n={icon} s={sm ? 14 : 16} />}{children}
     </button>
   );
 }
 
-export const inputCls = 'w-full rounded-rs border border-cardline bg-input px-3.5 py-2.5 text-[14.5px] text-ink placeholder:text-ink3 outline-none transition focus:border-acento focus:bg-card focus:ring-4 focus:ring-acentosoft';
+export const inputCls = 'ui-input w-full rounded-rs border border-cardline bg-input px-3.5 py-2.5 text-[14.5px] text-ink placeholder:text-ink3 outline-none transition focus:border-acento focus:bg-card focus:ring-4 focus:ring-acentosoft';
 export const inputErr = 'border-bad focus:border-bad';
 
 export function Field({ label, hint, error, id, className = '', children }) {
@@ -129,7 +134,7 @@ export function Seg({ opciones, valor, onChange, size = 'md', className = '' }) 
         const on = valor === val;
         return (
           <button key={val} type="button" aria-pressed={on} onClick={() => onChange(val)}
-            className={cx('flex-none whitespace-nowrap rounded-full border font-semibold transition-colors', size === 'sm' ? 'px-3 py-1 text-[12px]' : 'px-3.5 py-1.5 text-[12.5px]',
+            className={cx('ui-seg flex-none whitespace-nowrap rounded-full border font-semibold transition-colors', size === 'sm' ? 'px-3 py-1 text-[12px]' : 'px-3.5 py-1.5 text-[12.5px]',
               on ? (o.tono === 'bad' ? 'border-bad bg-bad text-onc' : o.tono === 'warn' ? 'border-warn bg-warn text-onc' : o.tono === 'ok' ? 'border-ok bg-ok text-onc' : 'border-acento bg-acento text-onc')
                 : 'border-cardline bg-card text-ink2 shadow-sh hover:border-acento')}>
             {txt}{o.n !== undefined && <span className={cx('ml-1.5 tabular-nums', on ? 'opacity-80' : 'text-ink3')}>{o.n}</span>}
@@ -153,7 +158,7 @@ export function Modal({ open, onClose, title, children, wide, bare }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(18,17,12,.5)] p-0 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-label={title}
-        className={cx('max-h-[92vh] w-full overflow-auto border border-cardline bg-card shadow-shlg rounded-t-[24px] sm:rounded-[24px]', wide ? 'sm:max-w-4xl' : 'sm:max-w-lg')}
+        className={cx('ui-modal max-h-[92vh] w-full overflow-auto border border-cardline bg-card shadow-shlg rounded-t-[24px] sm:rounded-[24px]', wide ? 'sm:max-w-4xl' : 'sm:max-w-lg')}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {!bare && (
           <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line2 bg-[color-mix(in_srgb,var(--card)_88%,transparent)] px-6 py-4 backdrop-blur-xl">
@@ -212,7 +217,7 @@ export function Lightbox({ foto, onClose }) {
 
 export function Vacio({ icon = 'folder', titulo, children, accion }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-r border-2 border-dashed border-line bg-[color-mix(in_srgb,var(--card)_70%,transparent)] px-6 py-12 text-center">
+    <div className="ui-vacio flex flex-col items-center gap-3 rounded-r border-2 border-dashed border-line bg-[color-mix(in_srgb,var(--card)_70%,transparent)] px-6 py-12 text-center">
       <div className="grid h-14 w-14 place-items-center rounded-full bg-card text-acento shadow-sh ring-1 ring-cardline"><Ic n={icon} s={22} /></div>
       <h3 className="m-0 text-[15.5px] font-bold text-deep">{titulo}</h3>
       {children && <p className="m-0 max-w-[52ch] text-[13.5px] leading-relaxed text-ink2">{children}</p>}

@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Oclusión en prótesis total</title>
+<!--
+  Criterium · Materia · Geriatría
+  Texto propio de Criterium, escrito desde las fuentes citadas al final. Cada afirmación lleva su fuente;
+  lo que no tiene estudio que lo respalde va marcado como «práctica habitual». Sin revisión de especialista todavía.
+  Paleta del ramo Geriatría: azul petróleo y menta de Criterium, en tonos suaves (rosa solo para encía y acrílico). Solo tema claro.
+-->
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F2F6F8; --surface:#FFFFFF; --surface-2:#EAF2F5; --ink:#0F2530; --muted:#56707C; --line:#D5E3E9;
+  --acr:#2F6A78; --acr-soft:#DDEEF1; --rosa:#EFC9D2; --malva:#2C8C82; --malva-soft:#DDF3EF; --durazno:#9A6A1E; --durazno-soft:#F9EDD9;
+  --muc:#EDB3C2; --bone:#EADFD4; --bone-line:#B5A491; --tooth:#FCF7EC; --tooth-line:#8C7C64; --red:#B4343F; --blue:#5767B0;
+  --ok:#3C7A5A; --ok-soft:#E1F0E7; --warn:#946320; --warn-soft:#F9EDD9; --bad:#A12A3B; --bad-soft:#F8DEE3;
+  --font:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16.5px;line-height:1.55}
+.wrap{max-width:1060px;margin:0 auto;padding:0 16px 72px}
+h1,h2,h3{text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,5.5vw,3.2rem);font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+h2{font-size:clamp(1.45rem,3.4vw,2rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+a{color:var(--acr)}
+.eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acr)}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.lead{font-size:1.1rem;max-width:62ch}
+sup.c{font-size:.68em;line-height:0;margin-left:1px}
+sup.c a{text-decoration:none;font-weight:700;color:var(--malva);padding:0 1px}
+sup.c a:hover{text-decoration:underline}
+
+header.hero{padding:32px 0 18px;display:grid;gap:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.meta span.rev{background:var(--durazno-soft);border-color:transparent;color:var(--durazno)}
+.goals{display:flex;flex-wrap:wrap;gap:8px}
+.goal{font-size:.9rem;background:var(--acr-soft);color:var(--acr);border-radius:999px;padding:4px 12px;font-weight:600}
+
+nav.toc{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin:0 -16px;padding:8px 16px}
+.toc-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.toc-row::-webkit-scrollbar{display:none}
+.toc a{flex:none;font-weight:600;font-size:.86rem;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.toc a:hover,.toc a:focus-visible{border-color:var(--acr);color:var(--acr);outline:none}
+
+section{padding:44px 0 8px;scroll-margin-top:64px;display:grid;gap:16px}
+.sec-head{display:grid;gap:6px;max-width:70ch}
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:16px}
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:780px){.split{grid-template-columns:minmax(0,1fr)}}
+.svgbox{width:100%;overflow-x:auto}
+.svgbox svg{display:block;width:100%;height:auto}
+.mapbox svg{min-width:680px}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.btn{font:inherit;font-weight:600;font-size:.88rem;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--acr);color:#fff;border-color:var(--acr)}
+.seg button:focus-visible,.btn:focus-visible,.opt:focus-visible{outline:2px solid var(--malva);outline-offset:2px}
+.btn.primary{background:var(--acr);border-color:var(--acr);color:#fff}
+.ctrl{display:grid;gap:6px}
+.ctrl label{font-weight:600;font-size:.92rem;display:flex;justify-content:space-between;gap:8px}
+.ctrl output{font-variant-numeric:tabular-nums;color:var(--acr);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--acr)}
+
+.facts{display:grid;gap:12px}
+.fact h4{margin:0 0 3px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fact ul{margin:0;padding-left:18px}
+.fact li{margin:2px 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.acr{background:var(--acr-soft);color:var(--acr)}
+.tag.sinev{background:var(--malva-soft);color:var(--malva);text-transform:none;letter-spacing:0}
+
+.tip{border-left:3px solid var(--acr);background:var(--acr-soft);padding:10px 14px;border-radius:0 12px 12px 0;font-size:.95rem}
+.tip b{color:var(--acr)}
+.tip.malva{border-color:var(--malva);background:var(--malva-soft)}
+.tip.malva b{color:var(--malva)}
+
+table.cmp{width:100%;border-collapse:collapse;font-size:.95rem}
+table.cmp th,table.cmp td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line)}
+table.cmp th{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+table.cmp td:first-child{font-weight:700;width:24%}
+.tablebox{overflow-x:auto}
+
+.grid-req{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
+.req{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:4px}
+.req h3{font-size:1rem}
+.req p{font-size:.94rem;color:var(--muted)}
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px;align-content:start}
+.card ul{margin:0;padding-left:18px;font-size:.94rem}
+.card.pro{border-top:4px solid var(--ok)}
+.card.con{border-top:4px solid var(--bad)}
+.card.mid{border-top:4px solid var(--malva)}
+.reco{border-radius:14px;padding:14px;display:grid;gap:8px;border:1px solid var(--line);background:var(--surface-2)}
+.reco .big{font-size:1.35rem;font-weight:800;color:var(--acr)}
+.reco ul{margin:0;padding-left:18px;font-size:.95rem}
+.ctrls{display:grid;gap:14px}
+
+/* SVG */
+.s-bone{fill:var(--bone);stroke:var(--bone-line);stroke-width:1.2}
+.s-muc{fill:none;stroke:var(--muc);stroke-width:7;stroke-linejoin:round}
+.s-base{fill:var(--rosa);fill-opacity:.9;stroke:var(--acr);stroke-width:1}
+.s-tooth{fill:var(--tooth);stroke:var(--tooth-line);stroke-width:1.4;stroke-linejoin:round}
+.s-ghost{fill:none;stroke:var(--muted);stroke-width:1.3;stroke-dasharray:4 3}
+.s-plane{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4;fill:none}
+.s-icl{stroke:var(--ink);stroke-width:1.6;stroke-dasharray:6 4;fill:none}
+.s-red{fill:var(--red)}
+.s-redline{stroke:var(--red);stroke-width:4;stroke-linecap:round}
+.s-arrow{stroke:var(--ink);stroke-width:2;fill:none}
+.s-arrowhead{fill:var(--ink)}
+.s-lab{fill:var(--muted);font-family:var(--font);font-size:11px}
+.s-labb{fill:var(--ink);font-family:var(--font);font-size:12px;font-weight:700}
+.s-labacr{fill:var(--acr);font-family:var(--font);font-size:12px;font-weight:700}
+.s-labred{fill:var(--red);font-family:var(--font);font-size:11px;font-weight:700}
+.s-line{stroke:var(--line);stroke-width:1.5;fill:none}
+.s-acrline{stroke:var(--acr);stroke-width:2.5;fill:none}
+.node{cursor:pointer}
+.node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:fill .15s,stroke .15s}
+.node text{fill:var(--ink);font-family:var(--font);font-size:12px;pointer-events:none}
+.node.l2 rect{fill:var(--acr-soft);stroke:var(--acr);stroke-width:1.2}
+.node.l2 text{font-weight:700;font-size:12.5px;fill:var(--acr)}
+.node.root rect{fill:var(--acr);stroke:var(--acr)}
+.node.root text{fill:#fff;font-weight:800;font-size:15px}
+.node:hover rect,.node:focus-visible rect{stroke:var(--malva);stroke-width:2}
+.node:focus{outline:none}
+#nat-tooth2,#pro-group{transition:transform .5s cubic-bezier(.3,.7,.3,1)}
+#loadArrows{transition:opacity .3s}
+@media (prefers-reduced-motion:reduce){#nat-tooth2,#pro-group{transition:none}}
+
+.quiz{display:grid;gap:14px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.q p.qt{font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer}
+.opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:600}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.93rem;color:var(--muted)}
+.score{font-weight:800;font-size:1.1rem;color:var(--acr)}
+
+ol.refs{margin:0;padding-left:26px;display:grid;gap:8px;font-size:.92rem}
+ol.refs li{scroll-margin-top:70px;padding:4px 6px;border-radius:8px}
+ol.refs li:target,ol.refs li.flash{background:var(--acr-soft)}
+ol.refs .lk{white-space:nowrap}
+footer{margin-top:28px;font-size:.88rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+  <span class="eyebrow">Geriatría · Prótesis total</span>
+  <h1>Oclusión en prótesis total</h1>
+  <p class="lead">Cómo se apoya una prótesis total, qué esquemas oclusales existen y qué dice la evidencia sobre cuál elegir. Toca los diagramas, mueve los controles y termina con la autoevaluación.</p>
+  <div class="meta"><span>Criterium · Materia</span><span>v1.0 · 8 de octubre de 2026</span><span>18 fuentes</span><span class="rev">Sin revisión de especialista todavía</span></div>
+  <div class="goals">
+    <span class="goal">Diente natural vs prótesis</span>
+    <span class="goal">Esquemas oclusales</span>
+    <span class="goal">Qué esquema indicar</span>
+    <span class="goal">Qué dice la evidencia</span>
+  </div>
+  <div class="bench" style="margin-top:6px">
+    <div class="svgbox mapbox"><svg id="map" viewBox="0 0 820 300" role="img" aria-label="Mapa de los temas"></svg></div>
+    <p class="muted small">Toca un tema para ir a él. Los números morados <sup class="c"><a href="#fuentes">n</a></sup> llevan a la fuente.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Secciones">
+  <div class="toc-row">
+    <a href="#s-dif">1 · Natural vs prótesis</a>
+    <a href="#s-req">2 · Principios</a>
+    <a href="#s-centrica">3 · Esquemas</a>
+    <a href="#s-indicar">4 · ¿Cuál indico?</a>
+    <a href="#s-desoclusion">5 · Desoclusión</a>
+    <a href="#s-obb">6 · ¿Balanceada siempre?</a>
+    <a href="#s-anatomia">7 · Cara oclusal</a>
+    <a href="#s-dientes">8 · Dientes artificiales</a>
+    <a href="#s-quiz">Autoevaluación</a>
+    <a href="#fuentes">Fuentes</a>
+  </div>
+</nav>
+
+<!-- 1 -->
+<section id="s-dif">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 1</span>
+    <h2>Diente natural vs prótesis total</h2>
+    <p>El diente natural está unido al hueso por el <b>ligamento periodontal</b>. Ahí hay receptores que informan cuánta fuerza recibe cada diente y en qué dirección, incluso con fuerzas muy bajas. Esa información se usa para controlar finamente la mandíbula, y se pierde cuando se extrae el diente.<sup class="c"><a href="#f1">1</a></sup> La prótesis total no tiene ligamento: su base se apoya en la mucosa y en el <b>reborde alveolar residual</b>, el hueso que queda después de perder los dientes.</p>
+  </div>
+
+  <div class="bench">
+    <div class="svgbox">
+      <svg viewBox="0 0 360 165" role="img" aria-label="Carga sobre un diente natural y sobre una prótesis total">
+        <text x="90" y="16" text-anchor="middle" class="s-labb">Dientes naturales</text>
+        <text x="270" y="16" text-anchor="middle" class="s-labb">Prótesis total</text>
+        <rect x="14" y="92" width="152" height="58" rx="6" class="s-bone"/>
+        <g><rect x="22" y="40" width="30" height="42" rx="8" class="s-tooth"/><rect x="29" y="80" width="16" height="50" rx="7" class="s-tooth"/></g>
+        <g id="nat-tooth2"><rect x="58" y="40" width="30" height="42" rx="8" class="s-tooth"/><rect x="65" y="80" width="16" height="50" rx="7" class="s-tooth"/></g>
+        <g><rect x="94" y="40" width="30" height="42" rx="8" class="s-tooth"/><rect x="101" y="80" width="16" height="50" rx="7" class="s-tooth"/>
+          <rect x="130" y="40" width="30" height="42" rx="8" class="s-tooth"/><rect x="137" y="80" width="16" height="50" rx="7" class="s-tooth"/></g>
+        <text x="90" y="162" text-anchor="middle" class="s-lab">ligamento periodontal con receptores</text>
+        <path d="M188,150 L352,150 L352,126 Q300,104 270,104 Q240,104 188,126 Z" class="s-bone"/>
+        <path d="M188,126 Q240,104 270,104 Q300,104 352,126" class="s-muc"/>
+        <g id="pro-group" style="transform-origin:345px 106px">
+          <path d="M192,104 Q192,84 210,84 L330,84 Q348,84 348,104 Q300,96 270,96 Q240,96 192,104 Z" class="s-base"/>
+          <rect x="202" y="40" width="30" height="46" rx="8" class="s-tooth"/><rect x="238" y="40" width="30" height="46" rx="8" class="s-tooth"/>
+          <rect x="274" y="40" width="30" height="46" rx="8" class="s-tooth"/><rect x="310" y="40" width="30" height="46" rx="8" class="s-tooth"/>
+        </g>
+        <text x="270" y="162" text-anchor="middle" class="s-lab">base sobre mucosa y reborde</text>
+        <g id="loadArrows" style="opacity:0">
+          <path d="M73,20 L73,34" class="s-arrow"/><path d="M68,32 L73,39 L78,32 Z" class="s-arrowhead"/>
+          <path d="M217,20 L217,34" class="s-arrow"/><path d="M212,32 L217,39 L222,32 Z" class="s-arrowhead"/>
+        </g>
+      </svg>
+    </div>
+    <div class="seg"><button class="btn primary" id="loadBtn" type="button">Cargar un solo diente</button></div>
+    <p id="loadTxt" class="muted">Presiona el botón para comparar qué pasa cuando la fuerza cae en un solo diente.</p>
+  </div>
+
+  <div class="tablebox">
+    <table class="cmp">
+      <thead><tr><th></th><th>Diente natural</th><th>Prótesis total</th></tr></thead>
+      <tbody>
+        <tr><td>Soporte</td><td>Unido al hueso por el ligamento periodontal.<sup class="c"><a href="#f1">1</a></sup></td><td>Base apoyada en mucosa y reborde residual.</td></tr>
+        <tr><td>Información de la carga</td><td>Los receptores del ligamento informan qué diente se carga, con cuánta fuerza y en qué dirección.<sup class="c"><a href="#f1">1</a></sup></td><td>Esos receptores se perdieron con las extracciones.<sup class="c"><a href="#f1">1</a></sup></td></tr>
+        <tr><td>Ante una carga excéntrica</td><td>Cada diente responde por separado.</td><td>La base completa puede moverse y perder retención.<sup class="c"><a href="#f10">10</a></sup></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bench">
+    <h3>El reborde se sigue reabsorbiendo</h3>
+    <p style="font-size:.95rem">La reducción del reborde residual se ha descrito como una enfermedad en sí misma.<sup class="c"><a href="#f2">2</a></sup> En personas que usan prótesis total sigue avanzando con los años: se ha estudiado hasta por 25 años.<sup class="c"><a href="#f3">3</a></sup></p>
+    <div class="cards3">
+      <div class="card"><span class="tag acr">Hacia dónde</span><ul><li>El <b>maxilar</b> se reabsorbe hacia adentro y hacia arriba (<b>centrípeta</b>).</li><li>La <b>mandíbula</b> se reabsorbe hacia afuera y hacia abajo (<b>centrífuga</b>).</li><li>Con el tiempo la relación entre ambos rebordes se invierte: el maxilar queda al mismo nivel o por dentro de la mandíbula.<sup class="c"><a href="#f4">4</a></sup></li></ul></div>
+      <div class="card"><span class="tag warn">Por qué</span><ul><li>Es <b>multifactorial</b> y varía de persona a persona.<sup class="c"><a href="#f5">5</a></sup></li><li>Se suele culpar a la carga de la prótesis, pero <b>no hay datos objetivos</b> que confirmen que los factores mecánicos causen la pérdida de hueso.<sup class="c"><a href="#f5">5</a></sup></li></ul></div>
+      <div class="card"><span class="tag bad">Estomatitis subprotésica</span><ul><li>Inflamación de la mucosa bajo la prótesis, más frecuente en personas mayores y en mujeres.<sup class="c"><a href="#f6">6</a></sup></li><li>Factores: mala higiene de la prótesis, usarla de forma continua y de noche, placa y hongos (<i>Candida albicans</i>). Una prótesis mal adaptada aumenta el trauma de la mucosa.<sup class="c"><a href="#f6">6</a></sup></li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="s-req">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 2</span>
+    <h2>Principios al articular los dientes</h2>
+    <p>Algunos principios tienen estudios detrás y otros son práctica habitual sin un ensayo que los compare. Aquí se distinguen.</p>
+  </div>
+  <div class="grid-req">
+    <div class="req"><h3>Ningún esquema es superior para todos</h3><p>La investigación no ha identificado una forma dentaria ni un esquema que sea mejor en comodidad, función y estética para todos los pacientes.<sup class="c"><a href="#f13">13</a></sup><sup class="c"><a href="#f7">7</a></sup></p></div>
+    <div class="req"><h3>La relación entre rebordes manda</h3><p>Decidir si los posteriores van en relación normal o cruzada depende de cuánto se desvían los rebordes entre sí y de la distancia entre ellos.<sup class="c"><a href="#f14">14</a></sup></p></div>
+    <div class="req"><h3>Evitar el esquema plano (0°)</h3><p>Con dientes posteriores de 0° los pacientes reportan menos satisfacción que con dientes anatómicos o lingualizados.<sup class="c"><a href="#f11">11</a></sup><sup class="c"><a href="#f7">7</a></sup></p></div>
+    <div class="req"><h3>Estabilidad al cerrar</h3><p>Que la prótesis quede quieta cuando el paciente cierra en céntrica y sin contactos prematuros. <span class="tag sinev">Práctica habitual · sin estudio que la compare</span></p></div>
+    <div class="req"><h3>Libertad en anterior</h3><p>Evitar una sobremordida vertical que trabe los anteriores y obligue a la prótesis a moverse al protruir. <span class="tag sinev">Práctica habitual · sin estudio que la compare</span></p></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="s-centrica">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 3</span>
+    <h2>Esquemas oclusales</h2>
+    <p>Corte frontal de un molar: vestibular a la izquierda, palatino o lingual a la derecha. Los puntos rojos son los contactos. Las definiciones siguen el glosario de términos de prostodoncia.<sup class="c"><a href="#f16">16</a></sup></p>
+  </div>
+  <div class="bench">
+    <div class="seg" role="group" aria-label="Esquema oclusal">
+      <button type="button" data-scheme="obb" aria-pressed="true">Balanceada bilateral</button>
+      <button type="button" data-scheme="ling" aria-pressed="false">Lingualizada</button>
+      <button type="button" data-scheme="mono" aria-pressed="false">Plana (0°)</button>
+      <button type="button" data-scheme="cross" aria-pressed="false">Cruzada</button>
+    </div>
+    <div class="split">
+      <div>
+        <div class="svgbox"><svg id="schemeSvg" viewBox="0 0 360 300" role="img" aria-label="Corte frontal del esquema oclusal"></svg></div>
+        <p class="muted small" style="margin-top:6px">Esquema didáctico, no a escala: la altura de las cúspides está exagerada para que se vea.</p>
+      </div>
+      <div class="facts" id="schemeFacts"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="s-indicar">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 4</span>
+    <h2>¿Qué esquema indico?</h2>
+    <p>La <b>línea intercrestal</b> une la cresta del reborde superior con la del inferior, vista de frente en los modelos montados. Un ángulo de <b>80°</b> con el plano oclusal se usa como referencia al estudiar la relación entre rebordes.<sup class="c"><a href="#f14">14</a></sup> Como el maxilar se reabsorbe hacia adentro y la mandíbula hacia afuera, con más reabsorción la línea se inclina y los rebordes pueden quedar invertidos.<sup class="c"><a href="#f4">4</a></sup></p>
+  </div>
+  <div class="bench">
+    <div class="split">
+      <div class="svgbox"><svg id="protractor" viewBox="0 0 340 235" role="img" aria-label="Ángulo de la línea intercrestal"></svg></div>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label for="angle">Ángulo de la línea intercrestal <output id="angleOut">86°</output></label>
+          <input type="range" id="angle" min="45" max="90" step="1" value="86">
+        </div>
+        <div class="ctrl"><label>Altura de los rebordes</label>
+          <div class="seg" data-group="reborde"><button type="button" data-v="alto" aria-pressed="true">Buena</button><button type="button" data-v="bajo" aria-pressed="false">Reabsorbidos</button></div></div>
+        <div class="ctrl"><label>Relación entre rebordes (vista frontal)</label>
+          <div class="seg" data-group="relacion"><button type="button" data-v="normal" aria-pressed="true">Normal</button><button type="button" data-v="invertida" aria-pressed="false">Invertida (cruzada)</button></div></div>
+      </div>
+    </div>
+    <div class="reco" id="reco"></div>
+    <p class="muted small">En algunos apuntes aparece un segundo corte (por ejemplo, «bajo 50° se cruza»). No encontramos una fuente publicada que lo respalde, así que aquí no se usa.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="s-desoclusion">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 5</span>
+    <h2>Qué pasa en lateralidad y protrusión</h2>
+    <p>Hay tres opciones para los movimientos excéntricos. La lingualizada se puede balancear o no.</p>
+  </div>
+  <div class="cards3">
+    <div class="card"><span class="tag acr">Balanceada bilateral</span>
+      <ul><li>Contactos simultáneos de ambos lados, en céntrica y en los movimientos excéntricos.<sup class="c"><a href="#f16">16</a></sup></li><li>Se busca para que la prótesis no se vuelque al deslizar.</li><li>No mejora la calidad de vida, la satisfacción ni la masticación frente a otros esquemas.<sup class="c"><a href="#f8">8</a></sup></li></ul></div>
+    <div class="card"><span class="tag acr">Lingualizada</span>
+      <ul><li>Solo las cúspides palatinas superiores contactan con los inferiores.<sup class="c"><a href="#f16">16</a></sup></li><li>Se puede dejar con balance en excéntrica o sin él.</li><li>Es un esquema predecible en calidad de vida y masticación.<sup class="c"><a href="#f8">8</a></sup></li></ul></div>
+    <div class="card"><span class="tag acr">Guía canina</span>
+      <ul><li>Al deslizar hacia un lado, los caninos separan los posteriores.</li><li>En un ensayo aleatorizado, los pacientes la prefirieron por estética, retención de la prótesis inferior y masticación. La prótesis superior perdió retención más seguido en los movimientos excéntricos.<sup class="c"><a href="#f10">10</a></sup></li><li>Se asocia a menos actividad muscular.<sup class="c"><a href="#f8">8</a></sup></li></ul></div>
+  </div>
+
+  <div class="bench">
+    <h3>Simulador: ¿qué tan altas pueden ser las cúspides?</h3>
+    <p class="muted" style="font-size:.95rem">Las <b>leyes de Hanau</b> relacionan cinco factores del balance: trayectoria condílea, guía incisal, plano de oclusión, curva de compensación y altura de las cúspides.<sup class="c"><a href="#f15">15</a></sup> Aquí mueves tres.</p>
+    <div class="split">
+      <div class="svgbox"><svg id="guideSvg" viewBox="0 0 360 200" role="img" aria-label="Guía condílea, molar y guía incisal"></svg></div>
+      <div class="ctrls">
+        <div class="ctrl"><label for="ob">Sobremordida vertical (overbite) <output id="obOut">1,5 mm</output></label><input type="range" id="ob" min="0" max="4" step="0.5" value="1.5"></div>
+        <div class="ctrl"><label for="oj">Resalte horizontal (overjet) <output id="ojOut">1 mm</output></label><input type="range" id="oj" min="0.5" max="5" step="0.5" value="1"></div>
+        <div class="ctrl"><label for="cond">Trayectoria condílea <output id="condOut">35°</output></label><input type="range" id="cond" min="20" max="50" step="1" value="35"></div>
+      </div>
+    </div>
+    <div class="tip" id="guideTxt"></div>
+    <p class="muted small">Los valores exactos de resalte y sobremordida que se citan en algunos apuntes para cada esquema no tienen una fuente publicada que hayamos verificado. El simulador muestra la dirección del efecto, no cifras clínicas.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="s-obb">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 6</span>
+    <h2>¿La balanceada bilateral es siempre la de elección?</h2>
+    <p>Durante décadas se enseñó así. La evidencia actual dice que no es imprescindible.</p>
+  </div>
+  <div class="cards3">
+    <div class="card con"><h3>Lo que muestran los estudios</h3><ul><li>Una revisión de ensayos aleatorizados concluye que la balanceada bilateral <b>no es imprescindible</b> en el paciente promedio.<sup class="c"><a href="#f9">9</a></sup></li><li>Otra revisión: no da mejor calidad de vida, satisfacción ni masticación que la lingualizada o la guía canina.<sup class="c"><a href="#f8">8</a></sup></li><li>Una revisión de revisiones: balanceada, lingualizada y guía canina son preferibles a la plana; la lingualizada tiende a mejores resultados, también en rebordes reabsorbidos.<sup class="c"><a href="#f7">7</a></sup></li></ul></div>
+    <div class="card pro"><h3>El argumento a favor</h3><ul><li>Hay contactos dentarios en actividades no funcionales, como apretar o rechinar. Ese es el principal argumento para balancear.<sup class="c"><a href="#f13">13</a></sup></li><li>Los ciclos de masticación de quienes usan prótesis total se parecen a los de personas dentadas.<sup class="c"><a href="#f17">17</a></sup></li></ul></div>
+    <div class="card mid"><h3>Ojo con la noche</h3><ul><li>Lo que más justificaría el balance (rechinar) ocurre sobre todo de noche, y de noche se indica sacar la prótesis.</li><li>Dormir con la prótesis se asoció a unas 2,4 veces más riesgo de neumonía en personas de 85 años o más.<sup class="c"><a href="#f12">12</a></sup></li><li>Usarla de forma continua y de noche también favorece la estomatitis.<sup class="c"><a href="#f6">6</a></sup></li></ul></div>
+  </div>
+  <div class="tip"><b>En resumen:</b> no hay un esquema universal. La elección depende de los rebordes y del paciente,<sup class="c"><a href="#f7">7</a></sup><sup class="c"><a href="#f13">13</a></sup> y la calidad de la evidencia todavía es baja: la mayoría de las revisiones tiene calidad metodológica baja o críticamente baja.<sup class="c"><a href="#f7">7</a></sup></div>
+</section>
+
+<!-- 7 -->
+<section id="s-anatomia">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 7</span>
+    <h2>Componentes de la cara oclusal</h2>
+  </div>
+  <div class="bench">
+    <div class="seg" role="group" aria-label="Tipo de cúspide">
+      <button type="button" data-cusp="act" aria-pressed="true">Cúspides de soporte</button>
+      <button type="button" data-cusp="pas" aria-pressed="false">Cúspides de corte</button>
+    </div>
+    <div class="split">
+      <div class="svgbox"><svg id="cuspSvg" viewBox="0 0 360 230" role="img" aria-label="Cúspides en corte frontal"></svg></div>
+      <div class="facts" id="cuspTxt"></div>
+    </div>
+    <div class="tip malva"><b>Para recordar:</b> soporte = <b>pa</b>latinas superiores y <b>ve</b>stibulares inferiores. Son las que caen en la fosa del antagonista.</div>
+  </div>
+  <div class="cards3">
+    <div class="card"><h3>Lado de trabajo</h3><p class="small">El lado hacia el que se mueve la mandíbula en una lateralidad.<sup class="c"><a href="#f16">16</a></sup></p></div>
+    <div class="card"><h3>Lado de no trabajo</h3><p class="small">El lado opuesto. En la balanceada bilateral también debe haber contacto aquí.<sup class="c"><a href="#f16">16</a></sup></p></div>
+    <div class="card"><h3>Truco</h3><p class="small">Haz una lateralidad con tus propios dientes y piensa qué vertientes se tocan en cada lado.</p></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="s-dientes">
+  <div class="sec-head">
+    <span class="eyebrow">Parte 8</span>
+    <h2>Dientes artificiales posteriores</h2>
+    <p>Se clasifican por la inclinación de sus cúspides: anatómicos (cúspides altas), semianatómicos (más bajas) y no anatómicos o de 0° (planos). Los grados exactos dependen de cada fabricante.</p>
+  </div>
+  <div class="bench">
+    <div class="seg" role="group" aria-label="Tipo de diente">
+      <button type="button" data-tooth="33" aria-pressed="true">Anatómicos</button>
+      <button type="button" data-tooth="20" aria-pressed="false">Semianatómicos</button>
+      <button type="button" data-tooth="0" aria-pressed="false">No anatómicos (0°)</button>
+    </div>
+    <div class="split">
+      <div class="svgbox"><svg id="toothSvg" viewBox="0 0 300 175" role="img" aria-label="Perfil de la cara oclusal"></svg></div>
+      <div class="facts" id="toothTxt"></div>
+    </div>
+  </div>
+</section>
+
+<!-- quiz -->
+<section id="s-quiz">
+  <div class="sec-head">
+    <span class="eyebrow">Autoevaluación</span>
+    <h2>¿Lo tienes claro?</h2>
+    <p>Elige una opción. Verás la respuesta, el porqué y su fuente.</p>
+  </div>
+  <p class="score" id="score">0 / 0 correctas</p>
+  <div class="quiz" id="quiz"></div>
+  <div class="seg"><button type="button" class="btn" id="resetQuiz">Reiniciar preguntas</button></div>
+</section>
+
+<!-- fuentes -->
+<section id="fuentes">
+  <div class="sec-head">
+    <span class="eyebrow">Fuentes</span>
+    <h2>De dónde sale cada cosa</h2>
+    <p class="muted">Todas verificadas en PubMed o en el sitio de la revista. Lo marcado como «práctica habitual» no tiene un estudio que lo compare.</p>
+  </div>
+  <ol class="refs">
+    <li id="f1">Trulsson M. Sensory-motor function of human periodontal mechanoreceptors. J Oral Rehabil. 2006;33(4):262-73. <span class="lk"><a href="https://doi.org/10.1111/j.1365-2842.2006.01629.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/16629881/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f2">Atwood DA. Reduction of residual ridges: a major oral disease entity. J Prosthet Dent. 1971;26(3):266-79. <span class="lk"><a href="https://doi.org/10.1016/0022-3913(71)90069-2" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/4934947/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f3">Tallgren A. The continuing reduction of the residual alveolar ridges in complete denture wearers: a mixed-longitudinal study covering 25 years. J Prosthet Dent. 1972;27(2):120-32. <span class="lk"><a href="https://doi.org/10.1016/0022-3913(72)90188-6" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/4500507/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f4">Pietrokovski J, Starinsky R, Arensburg B, Kaffe I. Morphologic characteristics of bony edentulous jaws. J Prosthodont. 2007;16(2):141-7. <span class="lk"><a href="https://doi.org/10.1111/j.1532-849X.2007.00165.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/17362425/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f5">Klineberg I, Kingston D, Murray G. The bases for using a particular occlusal design in tooth and implant-borne reconstructions and complete dentures. Clin Oral Implants Res. 2007;18 Suppl 3:151-67. <span class="lk"><a href="https://doi.org/10.1111/j.1600-0501.2007.01446.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/17594379/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f6">Gendreau L, Loewy ZG. Epidemiology and etiology of denture stomatitis. J Prosthodont. 2011;20(4):251-60. <span class="lk"><a href="https://doi.org/10.1111/j.1532-849X.2011.00698.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/21463383/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f7">Borges MHR, Miranda LFB, Dini C, Marañón-Vásquez GA, Magno MB, Maia LC, et al. Clinical performance of and patient satisfaction with conventional complete dentures with different occlusal schemes: a systematic review of systematic reviews. J Prosthet Dent. 2023;130(3):341-50. <span class="lk"><a href="https://doi.org/10.1016/j.prosdent.2021.10.018" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/34991859/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f8">Lemos CAA, Verri FR, Gomes JML, Santiago Júnior JF, Moraes SLD, Pellizzer EP. Bilateral balanced occlusion compared to other occlusal schemes in complete dentures: a systematic review. J Oral Rehabil. 2018;45(4):344-54. <span class="lk"><a href="https://doi.org/10.1111/joor.12607" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/29314199/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f9">Farias-Neto A, Carreiro AF. Complete denture occlusion: an evidence-based approach. J Prosthodont. 2013;22(2):94-7. <span class="lk"><a href="https://doi.org/10.1111/j.1532-849X.2012.00927.x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/22984917/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f10">Peroz I, Leuenberg A, Haustein I, Lange KP. Comparison between balanced occlusion and canine guidance in complete denture wearers: a clinical, randomized trial. Quintessence Int. 2003;34(8):607-12. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/14620212/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f11">Sutton AF, McCord JF. A randomized clinical trial comparing anatomic, lingualized, and zero-degree posterior occlusal forms for complete dentures. J Prosthet Dent. 2007;97(5):292-8. <span class="lk"><a href="https://doi.org/10.1016/j.prosdent.2007.03.003" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/17547948/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f12">Iinuma T, Arai Y, Abe Y, Takayama M, Fukumoto M, Fukui Y, et al. Denture wearing during sleep doubles the risk of pneumonia in the very elderly. J Dent Res. 2015;94(3 Suppl):28S-36S. <span class="lk"><a href="https://doi.org/10.1177/0022034514552493" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/25294364/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f13">Lang BR. Complete denture occlusion. Dent Clin North Am. 1996;40(1):85-101. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/8635628/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f14">Sanghvi SJ, Bhatt NA, Bhargava K. An evaluation of cross-bite ridge relationships: a study of articulated jaw records of 150 edentulous patients. J Prosthet Dent. 1981;45(1):24-9. <span class="lk"><a href="https://doi.org/10.1016/0022-3913(81)90007-x" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/7007623/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f15">Levin B. A reevaluation of Hanau's laws of articulation and the Hanau quint. J Prosthet Dent. 1978;39(3):254-8. <span class="lk"><a href="https://doi.org/10.1016/s0022-3913(78)80091-2" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/273088/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f16">The Glossary of Prosthodontic Terms 2023: Tenth Edition. J Prosthet Dent. 2023;130(4 Suppl 1):e7-e126. <span class="lk"><a href="https://doi.org/10.1016/j.prosdent.2023.03.002" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/37914442/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f17">Postić SD, Krstić MS, Teodosijević MV. A comparative study of the chewing cycles of dentate and denture-wearing subjects. Int J Prosthodont. 1992;5(3):244-56. <span class="lk"><a href="https://pubmed.ncbi.nlm.nih.gov/1524647/" target="_blank" rel="noopener">PubMed</a></span></li>
+    <li id="f18">Clough HE, Knodle JM, Leeper SH, Pudwill ML, Taylor DT. A comparison of lingualized occlusion and monoplane occlusion in complete dentures. J Prosthet Dent. 1983;50(2):176-9. <span class="lk"><a href="https://doi.org/10.1016/0022-3913(83)90007-0" target="_blank" rel="noopener">DOI</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/6352901/" target="_blank" rel="noopener">PubMed</a></span></li>
+  </ol>
+  <footer>Criterium · Materia de Geriatría. Texto propio, escrito desde las fuentes citadas. Es material de estudio: no reemplaza el juicio clínico ni las indicaciones de tu docente.</footer>
+</section>
+</div>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const fmt = n => String(n).replace('.', ',');
+const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const c = (...n) => n.map(x => `<sup class="c"><a href="#f${x}">${x}</a></sup>`).join('');
+function go(id){ const el = document.getElementById(id); if (!el) return; window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: quieto ? 'auto' : 'smooth' }); if (el.tagName === 'LI') { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); } }
+// Los enlaces internos se manejan aquí: dentro del visor de Criterium un href="#..." no debe navegar
+document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; e.preventDefault(); go(a.getAttribute('href').slice(1)); });
+function press(group, btn){ group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false')); }
+
+/* ---------- Mapa ---------- */
+const MAP = [
+  {id:'s-dif', x:85, label:'Natural vs prótesis', kids:[['Ligamento y receptores'],['Reabsorción del reborde'],['Estomatitis']]},
+  {id:'s-req', x:245, label:'Principios', kids:[['Ningún esquema gana'],['Relación de rebordes'],['Evitar 0°'],['Libertad anterior']]},
+  {id:'s-centrica', x:410, label:'Esquemas', kids:[['Balanceada bilateral','scheme:obb'],['Lingualizada','scheme:ling'],['Plana (0°)','scheme:mono'],['Cruzada','scheme:cross']]},
+  {id:'s-desoclusion', x:575, label:'Excéntrica', kids:[['Balanceada'],['Lingualizada'],['Guía canina'],['Leyes de Hanau']]},
+  {id:'s-dientes', x:735, label:'Dientes artificiales', kids:[['Anatómicos','tooth:33'],['Semianatómicos','tooth:20'],['No anatómicos','tooth:0']]},
+];
+(function(){
+  let h = '';
+  MAP.forEach(m => { h += `<path class="s-line" d="M410,54 C410,72 ${m.x},70 ${m.x},86"/><path class="s-line" d="M${m.x},122 L${m.x},${160 + (m.kids.length-1)*34 + 13}"/>`; });
+  h += `<g class="node root" tabindex="0" role="button" data-act="top"><rect x="290" y="14" width="240" height="40" rx="12"/><text x="410" y="39" text-anchor="middle">Oclusión en prótesis total</text></g>`;
+  MAP.forEach(m => {
+    h += `<g class="node l2" tabindex="0" role="button" data-act="sec:${m.id}"><rect x="${m.x-76}" y="86" width="152" height="36" rx="10"/><text x="${m.x}" y="108" text-anchor="middle">${m.label}</text></g>`;
+    m.kids.forEach((k,i) => { const y = 160 + i*34; h += `<g class="node" tabindex="0" role="button" data-act="${k[1] || 'sec:'+m.id}"><rect x="${m.x-72}" y="${y}" width="144" height="26" rx="8"/><text x="${m.x}" y="${y+17}" text-anchor="middle">${k[0]}</text></g>`; });
+  });
+  const svg = $('#map'); svg.innerHTML = h;
+  const act = a => { if (a === 'top') return; const [t,v] = a.split(':');
+    if (t === 'sec') go(v); if (t === 'scheme') { setScheme(v); go('s-centrica'); } if (t === 'tooth') { setTooth(v); go('s-dientes'); } };
+  svg.addEventListener('click', e => { const g = e.target.closest('.node'); if (g) act(g.dataset.act); });
+  svg.addEventListener('keydown', e => { const g = e.target.closest('.node'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); act(g.dataset.act); } });
+})();
+
+/* ---------- Parte 1: carga ---------- */
+let loaded = false;
+$('#loadBtn').addEventListener('click', () => {
+  loaded = !loaded;
+  $('#nat-tooth2').style.transform = loaded ? 'translateY(4px)' : '';
+  $('#pro-group').style.transform = loaded ? 'rotate(-5deg)' : '';
+  $('#loadArrows').style.opacity = loaded ? 1 : 0;
+  $('#loadBtn').textContent = loaded ? 'Quitar la carga' : 'Cargar un solo diente';
+  $('#loadTxt').innerHTML = loaded
+    ? '<b>Diente natural:</b> se carga un diente y sus receptores informan la fuerza y la dirección.' + c(1) + ' <b>Prótesis:</b> la base es una sola pieza, así que la carga en un diente puede volcarla sobre el reborde.'
+    : 'Presiona el botón para comparar qué pasa cuando la fuerza cae en un solo diente.';
+});
+
+/* ---------- Parte 3: esquemas ---------- */
+const S = 17, A = 31, P = 150;
+function upperTooth(cx, tipB, tipP, fos, cls){ const eB = tipB - (tipB - fos)*0.9, eP = tipP - (tipP - fos)*0.9;
+  return `<path class="${cls||'s-tooth'}" d="M${cx-A+3},96 L${cx-A},${eB} L${cx-S},${tipB} L${cx},${fos} L${cx+S},${tipP} L${cx+A},${eP} L${cx+A-3},96 Z"/>`; }
+function lowerTooth(cx, tipB, tipL, fos){ const eB = tipB + (fos - tipB)*0.9, eL = tipL + (fos - tipL)*0.9;
+  return `<path class="s-tooth" d="M${cx-A+3},204 L${cx-A},${eB} L${cx-S},${tipB} L${cx},${fos} L${cx+S},${tipL} L${cx+A},${eL} L${cx+A-3},204 Z"/>`; }
+function upperRidge(x, prom){ const cy = 20 + prom; return {cy, d:`M${x-75},0 L${x+75},0 Q${x+42},${cy} ${x},${cy} Q${x-42},${cy} ${x-75},0 Z`}; }
+function lowerRidge(x, prom){ const cy = 280 - prom; return {cy, d:`M${x-75},300 L${x+75},300 Q${x+42},${cy} ${x},${cy} Q${x-42},${cy} ${x-75},300 Z`}; }
+const dot = (x,y) => `<circle class="s-red" cx="${x}" cy="${y}" r="3.6"/>`;
+const SCHEMES = {
+  obb: { up:[174,46], lo:[180,46], lc:180,
+    draw(lc){ const h=12; return { teeth: lowerTooth(lc, P-h/2, P-h/2, P+h/2) + upperTooth(lc-S, P+h/2, P+h/2, P-h/2), uc: lc-S, marks: dot(lc,P+h/2) + dot(lc-S,P-h/2), extra:'' }; },
+    facts: () => `<div class="fact"><span class="tag acr">Balanceada bilateral</span></div>
+      <div class="fact"><h4>Qué es</h4><p>Contactos simultáneos de los dientes de ambos lados en céntrica y al deslizar hacia excéntrica.${c(16)}</p></div>
+      <div class="fact"><h4>Para qué se creó</h4><p>Para que la prótesis no se vuelque al deslizar. No es un esquema que exista en la dentición natural.</p></div>
+      <div class="fact"><h4>Qué dice la evidencia</h4><ul><li>No es imprescindible en el paciente promedio.${c(9)}</li><li>No supera a la lingualizada ni a la guía canina en calidad de vida, satisfacción o masticación.${c(8)}</li></ul></div>`},
+  ling: { up:[206,22], lo:[180,22], lc:180,
+    draw(lc){ const hL=7, hU=20, fos=P+hL/2-hU; return { teeth: lowerTooth(lc, P-hL/2, P-hL/2, P+hL/2) + upperTooth(lc-S, P-7, P+hL/2, fos), uc: lc-S, marks: dot(lc, P+hL/2),
+      extra: `<path class="s-arrow" d="M${lc},${P+14} L${lc},246"/><path class="s-arrowhead" d="M${lc-5},244 L${lc},252 L${lc+5},244 Z"/><text x="${lc+8}" y="236" class="s-labb">carga hacia la cresta</text><text x="${lc-S*2-4}" y="${P-14}" text-anchor="end" class="s-labred">sin contacto</text>` }; },
+    facts: () => `<div class="fact"><span class="tag ok">Buena opción en rebordes reabsorbidos</span></div>
+      <div class="fact"><h4>Qué es</h4><p>Solo las <b>cúspides palatinas</b> de los posteriores superiores contactan con los posteriores inferiores. Las vestibulares superiores quedan sin contacto.${c(16)}</p></div>
+      <div class="fact"><h4>Qué dice la evidencia</h4><ul><li>Tiende a mejores resultados que otros esquemas, en rebordes normales y reabsorbidos.${c(7)}</li><li>Esquema predecible en calidad de vida y masticación.${c(8)}</li><li>Los pacientes la prefirieron frente a la plana: menos dolor y llagas, y comen mejor.${c(11,18)}</li><li>Un autor la considera la opción más lógica y menos complicada.${c(13)}</li></ul></div>`},
+  mono: { up:[192,14], lo:[176,14], lc:180,
+    draw(lc){ return { teeth: lowerTooth(lc, P, P, P) + upperTooth(lc-8, P, P, P), uc: lc-8, marks: `<line class="s-redline" x1="${lc-A+2}" y1="${P}" x2="${lc-8+A-2}" y2="${P}"/>`, extra: `<text x="${lc+40}" y="${P+4}" class="s-labred">dos planos a 0°</text>` }; },
+    facts: () => `<div class="fact"><span class="tag bad">Peores resultados</span></div>
+      <div class="fact"><h4>Qué es</h4><p>Dientes posteriores sin cúspides (0°): dos superficies planas que contactan.</p></div>
+      <div class="fact"><h4>Qué dice la evidencia</h4><ul><li>En un ensayo aleatorizado, los pacientes estuvieron menos satisfechos con 0° que con dientes anatómicos o lingualizados.${c(11)}</li><li>En otro estudio con 30 pacientes que probaron ambas, el 67 % prefirió la lingualizada por masticación, comodidad y estética.${c(18)}</li><li>Las revisiones la dejan detrás de la balanceada, la lingualizada y la guía canina.${c(7)}</li></ul></div>`},
+  cross: { up:[214,18], lo:[160,18], lc:168,
+    draw(lc){ const h=12; return { teeth: lowerTooth(lc, P-h/2, P-h/2, P+h/2) + upperTooth(lc-S, P+h/2, P+h/2, P-h/2, 's-ghost') + upperTooth(lc+S, P+h/2, P+h/2, P-h/2), uc: lc+S, marks: dot(lc, P+h/2) + dot(lc+S, P-h/2),
+      extra: `<text x="${lc-S-A-4}" y="${P+30}" text-anchor="end" class="s-lab">posición normal:</text><text x="${lc-S-A-4}" y="${P+44}" text-anchor="end" class="s-lab">fuera del reborde</text>` }; },
+    facts: () => `<div class="fact"><span class="tag warn">Rebordes invertidos</span></div>
+      <div class="fact"><h4>Qué es</h4><p>Los posteriores se articulan cruzados: los superiores por dentro de los inferiores.</p></div>
+      <div class="fact"><h4>Por qué</h4><p>Con mucha reabsorción, el maxilar queda por dentro de la mandíbula.${c(4)} Articular en relación normal obligaría a poner los dientes superiores fuera del reborde (línea punteada).</p></div>
+      <div class="fact"><h4>Cuándo</h4><ul><li>La decisión depende de cuánto se desvían los rebordes y de la distancia entre ellos.${c(14)}</li><li>En 150 pacientes, la relación cruzada bilateral apareció solo en quienes llevaban mucho tiempo desdentados.${c(14)}</li></ul></div>`},
+};
+function setScheme(k){
+  const sc = SCHEMES[k], lc = sc.lc, r = sc.draw(lc);
+  const ur = upperRidge(sc.up[0], sc.up[1]), lr = lowerRidge(sc.lo[0], sc.lo[1]);
+  const uL = Math.min(sc.up[0]-80, r.uc-A-8), uR = Math.max(sc.up[0]+80, r.uc+A+8), lL = Math.min(sc.lo[0]-80, lc-A-8), lR = Math.max(sc.lo[0]+80, lc+A+8);
+  let h = r.teeth;
+  h += `<rect class="s-base" x="${uL}" y="12" width="${uR-uL}" height="88" rx="16"/><rect class="s-base" x="${lL}" y="200" width="${lR-lL}" height="88" rx="16"/>`;
+  h += `<path class="s-muc" d="${ur.d}"/><path class="s-bone" d="${ur.d}"/><path class="s-muc" d="${lr.d}"/><path class="s-bone" d="${lr.d}"/>`;
+  h += `<line class="s-plane" x1="6" y1="${P}" x2="354" y2="${P}"/><line class="s-icl" x1="${sc.up[0]}" y1="${ur.cy}" x2="${sc.lo[0]}" y2="${lr.cy}"/>`;
+  h += `<circle cx="${sc.up[0]}" cy="${ur.cy}" r="3" fill="var(--ink)"/><circle cx="${sc.lo[0]}" cy="${lr.cy}" r="3" fill="var(--ink)"/>`;
+  h += r.marks + r.extra;
+  h += `<text x="10" y="${P-6}" class="s-labb">V</text><text x="350" y="${P-6}" text-anchor="end" class="s-labb">P / L</text><text x="10" y="24" class="s-lab">Maxilar</text><text x="10" y="292" class="s-lab">Mandíbula</text><text x="354" y="${P+14}" text-anchor="end" class="s-lab">plano oclusal</text>`;
+  $('#schemeSvg').innerHTML = h;
+  $('#schemeFacts').innerHTML = sc.facts() + `<p class="muted small">Línea negra punteada: línea intercrestal.</p>`;
+  $$('[data-scheme]').forEach(b => b.setAttribute('aria-pressed', b.dataset.scheme === k ? 'true' : 'false'));
+}
+$$('[data-scheme]').forEach(b => b.addEventListener('click', () => setScheme(b.dataset.scheme)));
+setScheme('obb');
+/* ---------- Parte 4: indicación ---------- */
+const state = {reborde:'alto', relacion:'normal'};
+$$('[data-group]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state[g.dataset.group] = b.dataset.v; press(g, b); updateReco(); }));
+const C0 = {x:40, y:205}, R = 165;
+const pt = (a, r) => [C0.x + r*Math.cos(a*Math.PI/180), C0.y - r*Math.sin(a*Math.PI/180)];
+const arc = (a1, a2, r) => { const p1 = pt(a1,r), p2 = pt(a2,r); return `M${p1[0].toFixed(1)},${p1[1].toFixed(1)} A${r},${r} 0 0 0 ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`; };
+function drawProtractor(t){
+  let h = `<path d="${arc(0,80,R)}" stroke="var(--rosa)" stroke-width="12" fill="none" opacity=".8"/><path d="${arc(80,90,R)}" stroke="var(--ok)" stroke-width="12" fill="none" opacity=".75"/>`;
+  for (let a=0; a<=90; a+=10){ const p1 = pt(a,R-14), p2 = pt(a,R-7); h += `<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="var(--muted)" stroke-width="1"/>`; }
+  [0,45,80,90].forEach(a => { const p = pt(a,R+16); h += `<text x="${p[0]}" y="${p[1]+4}" text-anchor="middle" class="s-lab">${a}°</text>`; });
+  const m1 = pt(40,R-30), m3 = pt(85,R-32);
+  h += `<text x="${m1[0]}" y="${m1[1]}" text-anchor="middle" class="s-lab" style="fill:var(--acr);font-weight:700">más inclinada</text><text x="${m3[0]-14}" y="${m3[1]}" text-anchor="end" class="s-lab" style="fill:var(--ok);font-weight:700">referencia</text>`;
+  h += `<line x1="${C0.x}" y1="${C0.y}" x2="${C0.x+R+20}" y2="${C0.y}" class="s-plane"/><text x="${C0.x+R+20}" y="${C0.y+16}" text-anchor="end" class="s-lab">plano oclusal</text>`;
+  const e = pt(t, R-24);
+  h += `<line x1="${C0.x}" y1="${C0.y}" x2="${e[0]}" y2="${e[1]}" stroke="var(--ink)" stroke-width="2.4" stroke-dasharray="7 4"/><path d="${arc(0,t,42)}" class="s-acrline"/>`;
+  const lp = pt(t/2, 56); h += `<text x="${lp[0]}" y="${lp[1]+4}" text-anchor="middle" class="s-labacr">${t}°</text>`;
+  h += `<path d="M${C0.x-16},${C0.y+14} Q${C0.x},${C0.y-6} ${C0.x+16},${C0.y+14} Z" class="s-bone"/><path d="M${e[0]-14},${e[1]-14} Q${e[0]},${e[1]+6} ${e[0]+14},${e[1]-14} Z" class="s-bone"/>`;
+  h += `<text x="${C0.x}" y="${C0.y+28}" text-anchor="middle" class="s-lab">cresta inf.</text><text x="${e[0]+18}" y="${e[1]-6}" class="s-lab">cresta sup.</text>`;
+  $('#protractor').innerHTML = h;
+}
+const NAMES = {obb:'Balanceada, lingualizada o guía canina', ling:'Lingualizada', cross:'Cruzada'};
+function updateReco(){
+  const t = +$('#angle').value; $('#angleOut').textContent = t + '°'; drawProtractor(t);
+  let k = 'obb', why = [];
+  if (state.relacion === 'invertida') { k = 'cross'; why.push('Rebordes en relación invertida: articular en cruzada evita poner los dientes fuera del reborde.' + c(4,14)); why.push('Decide según cuánto se desvían los rebordes y la distancia entre ellos.' + c(14)); }
+  else if (t < 80 || state.reborde === 'bajo') { k = 'ling';
+    if (t < 80) why.push(`Línea intercrestal de ${t}°, bajo la referencia de 80°.` + c(14));
+    if (state.reborde === 'bajo') why.push('Rebordes reabsorbidos.');
+    why.push('La lingualizada tiende a mejores resultados, también en rebordes reabsorbidos.' + c(7)); }
+  else { why.push(`Línea intercrestal de ${t}° y rebordes favorables.`); why.push('Ningún esquema ha demostrado ser superior en este paciente: balanceada, lingualizada y guía canina dan resultados satisfactorios.' + c(7,8,9)); }
+  const tag = k === 'obb' ? 'ok' : k === 'ling' ? 'acr' : 'warn';
+  $('#reco').innerHTML = `<span class="tag ${tag}">Esquema sugerido</span><span class="big">${NAMES[k]}</span><ul>${why.map(w=>`<li>${w}</li>`).join('')}</ul><div class="seg"><button type="button" class="btn" id="seeScheme">Ver en el corte</button></div>`;
+  $('#seeScheme').addEventListener('click', () => { setScheme(k === 'obb' ? 'obb' : k); go('s-centrica'); });
+}
+$('#angle').addEventListener('input', updateReco);
+updateReco();
+
+/* ---------- Parte 5: Hanau ---------- */
+function updateGuide(){
+  const ob = +$('#ob').value, oj = +$('#oj').value, cd = +$('#cond').value;
+  $('#obOut').textContent = fmt(ob) + ' mm'; $('#ojOut').textContent = fmt(oj) + ' mm'; $('#condOut').textContent = cd + '°';
+  const inc = Math.round(Math.atan2(ob, oj) * 180/Math.PI);
+  const k = Math.max(0, Math.min(40, Math.round(0.6*inc + 0.4*cd)));
+  let h = '';
+  const rad = cd*Math.PI/180, sx = 34, sy = 44, L = 92, ex = sx + L*Math.cos(rad), ey = sy + L*Math.sin(rad), nx = -Math.sin(rad), ny = Math.cos(rad);
+  h += `<path d="M${sx-20},${sy-24} L${sx},${sy} L${ex},${ey} L${ex+8},${sy-24} Z" class="s-bone"/><circle cx="${sx+14*nx+16*Math.cos(rad)}" cy="${sy+14*ny+16*Math.sin(rad)}" r="13" class="s-bone"/>`;
+  h += `<path d="M${sx},${sy} L${ex},${ey}" class="s-acrline"/><path d="M${sx},${sy} L${sx+46},${sy}" class="s-plane"/><text x="${sx+50}" y="${sy+4}" class="s-labacr">${cd}°</text><text x="20" y="${Math.max(ey+30,150)}" class="s-lab">guía condílea</text>`;
+  const cx = 180, s = 22, hh = Math.tan(k*Math.PI/180)*s, top = 118;
+  h += `<path class="s-tooth" d="M${cx-40},178 L${cx-42},${top+hh*0.6} L${cx-s},${top} L${cx},${top+hh} L${cx+s},${top} L${cx+42},${top+hh*0.6} L${cx+40},178 Z"/><line x1="${cx-s}" y1="${top}" x2="${cx+8}" y2="${top}" class="s-plane"/>`;
+  h += `<text x="${cx}" y="${top-12}" text-anchor="middle" class="s-labacr">cúspide ${k>=25?'alta':k>=15?'media':'baja'}</text><text x="${cx}" y="194" text-anchor="middle" class="s-lab">molar posterior</text>`;
+  const sc = 9, Lx = 292, Ly = 92, Ux = Lx + oj*sc, Uy = Ly + ob*sc;
+  h += `<path class="s-tooth" d="M284,${Ly+2} Q287,${Ly-2} ${Lx},${Ly} L298,170 L272,170 Z"/><path class="s-tooth" d="M${Ux},${Uy} L${Ux+5},${Uy-4} L${Ux+16},18 L${Ux-10},18 L${Ux-3},${Uy-22} Z"/>`;
+  h += `<line x1="${Lx}" y1="${Ly}" x2="${Ux}" y2="${Uy}" stroke="var(--acr)" stroke-width="2" stroke-dasharray="4 3"/><text x="352" y="186" text-anchor="end" class="s-lab">guía incisal ≈ ${inc}°</text>`;
+  $('#guideSvg').innerHTML = h;
+  $('#guideTxt').innerHTML = `Con estos valores, las cúspides posteriores pueden ser <b>${k>=25?'más altas':k>=15?'intermedias':'más planas'}</b>. Más sobremordida o una trayectoria condílea más empinada permiten cúspides más altas; más resalte pide cúspides más planas.${c(15)} <span class="muted">(Ángulo del molar: modelo didáctico.)</span>`;
+}
+['#ob','#oj','#cond'].forEach(id => $(id).addEventListener('input', updateGuide));
+updateGuide();
+
+/* ---------- Parte 7: cúspides ---------- */
+function setCusp(k){
+  const lc = 200, h = 16, uc = lc - S*1.6, s2 = S*1.6, a2 = A*1.6;
+  const U = cx => { const tb=P+h/2, fos=P-h/2, e=tb-(tb-fos)*0.9; return `<path class="s-tooth" d="M${cx-a2+4},70 L${cx-a2},${e} L${cx-s2},${tb} L${cx},${fos} L${cx+s2},${tb} L${cx+a2},${e} L${cx+a2-4},70 Z"/>`; };
+  const Lw = cx => { const tb=P-h/2, fos=P+h/2, e=tb+(fos-tb)*0.9; return `<path class="s-tooth" d="M${cx-a2+4},222 L${cx-a2},${e} L${cx-s2},${tb} L${cx},${fos} L${cx+s2},${tb} L${cx+a2},${e} L${cx+a2-4},222 Z"/>`; };
+  const act = k === 'act';
+  const pts = { supV:[uc-s2, P+h/2, false], supP:[uc+s2, P+h/2, true], infV:[lc-s2, P-h/2, true], infL:[lc+s2, P-h/2, false] };
+  let hh = Lw(lc) + U(uc);
+  Object.values(pts).forEach(p => { const on = p[2] === act; hh += `<circle cx="${p[0]}" cy="${p[1]}" r="${on?9:5}" fill="${on?'var(--acr)':'var(--line)'}" opacity="${on?.9:1}"/>`; });
+  const cls = p => p[2] === act ? 's-labacr' : 's-lab';
+  hh += `<text x="${uc-s2}" y="${P+40}" text-anchor="middle" class="${cls(pts.supV)}">vest. sup.</text><text x="${uc+s2+4}" y="${P+40}" text-anchor="middle" class="${cls(pts.supP)}">palatina sup.</text>`;
+  hh += `<text x="${lc-s2-6}" y="${P-34}" text-anchor="middle" class="${cls(pts.infV)}">vest. inf.</text><text x="${lc+s2}" y="${P-34}" text-anchor="middle" class="${cls(pts.infL)}">lingual inf.</text>`;
+  hh += `<text x="12" y="${P+4}" class="s-labb">V</text><text x="348" y="${P+4}" text-anchor="end" class="s-labb">P / L</text>`;
+  $('#cuspSvg').innerHTML = hh;
+  $('#cuspTxt').innerHTML = act
+    ? `<div class="fact"><h4>Cúspides de soporte</h4><ul><li><b>Palatinas superiores</b> y <b>vestibulares inferiores</b>.${c(16)}</li><li>Caen en la fosa o el reborde marginal del antagonista y mantienen la dimensión vertical en céntrica.${c(16)}</li><li>En la lingualizada, la palatina superior es la única que contacta.${c(16)}</li></ul></div>`
+    : `<div class="fact"><h4>Cúspides de corte</h4><ul><li><b>Vestibulares superiores</b> y <b>linguales inferiores</b>.${c(16)}</li><li>En la lingualizada, la vestibular superior queda sin contacto.${c(16)}</li></ul></div>`;
+  $$('[data-cusp]').forEach(b => b.setAttribute('aria-pressed', b.dataset.cusp === k ? 'true' : 'false'));
+}
+$$('[data-cusp]').forEach(b => b.addEventListener('click', () => setCusp(b.dataset.cusp)));
+setCusp('act');
+
+/* ---------- Parte 8: dientes ---------- */
+const TEETH = {
+  '33': () => `<div class="fact"><span class="tag acr">Anatómicos</span></div><div class="fact"><h4>Cómo son</h4><p>Cúspides altas, parecidas a un diente natural sin desgaste.</p></div><div class="fact"><h4>Evidencia</h4><ul><li>Con dientes anatómicos los pacientes tuvieron menos problemas para comer que con 0°.${c(11)}</li><li>No hubo diferencias entre anatómicos y lingualizados.${c(11)}</li></ul></div>`,
+  '20': () => `<div class="fact"><span class="tag acr">Semianatómicos</span></div><div class="fact"><h4>Cómo son</h4><p>Cúspides más bajas que los anatómicos. Se usan, por ejemplo, para los inferiores de la lingualizada, donde se buscan fosas amplias.</p></div><div class="fact"><h4>Evidencia</h4><p>No encontramos ensayos que los comparen por separado; la evidencia agrupa los esquemas, no los ángulos exactos.${c(7)}</p></div>`,
+  '0': () => `<div class="fact"><span class="tag bad">No anatómicos (0°)</span></div><div class="fact"><h4>Cómo son</h4><p>Totalmente planos. Se usan en el esquema plano (monoplano).</p></div><div class="fact"><h4>Evidencia</h4><ul><li>Menos satisfacción, más dolor y más llagas que con lingualizados o anatómicos.${c(11)}</li><li>Las revisiones no los recomiendan frente a otros esquemas.${c(7)}</li></ul></div>`,
+};
+function setTooth(k){
+  const a = +k, s = 40, cx = 150, top = 64, h = Math.tan(a*Math.PI/180)*s;
+  let g = `<path class="s-tooth" d="M${cx-74},160 L${cx-78},${top+h*0.6} L${cx-s},${top} L${cx},${top+h} L${cx+s},${top} L${cx+78},${top+h*0.6} L${cx+74},160 Z"/><line x1="${cx-s-30}" y1="${top}" x2="${cx+10}" y2="${top}" class="s-plane"/>`;
+  if (a > 0){ const r = 30, ex = cx - s + r*Math.cos(a*Math.PI/180), ey = top + r*Math.sin(a*Math.PI/180);
+    g += `<path d="M${cx-s+r},${top} A${r},${r} 0 0 1 ${ex.toFixed(1)},${ey.toFixed(1)}" class="s-acrline"/><line x1="${cx-s}" y1="${top}" x2="${cx}" y2="${top+h}" stroke="var(--acr)" stroke-width="2.5"/>`; }
+  g += `<text x="${cx-s+38}" y="${top-12}" class="s-labacr" style="font-size:15px">${a === 0 ? '0°' : a >= 30 ? 'cúspide alta' : 'cúspide media'}</text><text x="${cx}" y="172" text-anchor="middle" class="s-lab">inclinación de la vertiente (ilustrativa)</text>`;
+  $('#toothSvg').innerHTML = g;
+  $('#toothTxt').innerHTML = TEETH[k]();
+  $$('[data-tooth]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tooth === k ? 'true' : 'false'));
+}
+$$('[data-tooth]').forEach(b => b.addEventListener('click', () => setTooth(b.dataset.tooth)));
+setTooth('33');
+
+/* ---------- Autoevaluación ---------- */
+const Q = [
+  {q:'En la oclusión lingualizada, ¿qué contacta en céntrica?', o:['Ambas cúspides superiores con los inferiores','Solo la cúspide palatina superior con los inferiores','Solo la cúspide vestibular superior','Dos superficies planas'], a:1, w:'Las vestibulares superiores quedan sin contacto.', f:[16]},
+  {q:'Según las revisiones sistemáticas, ¿la balanceada bilateral es imprescindible para el éxito?', o:['Sí, siempre','No: no supera a la lingualizada ni a la guía canina','Solo en rebordes altos','Solo con dientes de 0°'], a:1, w:'No mejora calidad de vida, satisfacción ni masticación frente a otros esquemas.', f:[8,9]},
+  {q:'¿Qué esquema dejó a los pacientes menos satisfechos en un ensayo aleatorizado?', o:['Lingualizado','Anatómico','Dientes de 0°','No hubo diferencias'], a:2, w:'Lingualizados y anatómicos superaron a los de 0°.', f:[11]},
+  {q:'¿Hacia dónde se reabsorben los rebordes desdentados?', o:['Maxilar hacia afuera, mandíbula hacia adentro','Maxilar hacia adentro, mandíbula hacia afuera','Ambos hacia adentro','Ambos hacia afuera'], a:1, w:'Por eso, con el tiempo, la relación entre rebordes se invierte.', f:[4]},
+  {q:'Los rebordes quedaron en relación invertida. ¿Qué opción tiene sentido?', o:['Balanceada con dientes de 0°','Articular en cruzada','Guía canina marcada','Poner los superiores por fuera del reborde'], a:1, w:'Se decide según la desviación de los rebordes y la distancia entre ellos.', f:[4,14]},
+  {q:'En un ensayo aleatorizado, ¿qué ventaja mostró la guía canina?', o:['Más retención de la prótesis superior','Mejor retención inferior, estética y masticación','Menos reabsorción ósea','Ninguna'], a:1, w:'La prótesis superior, en cambio, perdió retención más seguido en los movimientos excéntricos.', f:[10]},
+  {q:'Dormir con la prótesis puesta se asoció a…', o:['Mejor adaptación','Unas 2,4 veces más riesgo de neumonía en mayores de 85','Menos estomatitis','Nada'], a:1, w:'Por eso se indica retirarla de noche.', f:[12]},
+  {q:'¿Qué se pierde con la extracción de los dientes que una prótesis no recupera?', o:['La saliva','Los receptores del ligamento periodontal','La articulación temporomandibular','El periostio'], a:1, w:'Esos receptores informan la carga en cada diente y ayudan al control fino de la mandíbula.', f:[1]},
+  {q:'Si aumentas la sobremordida vertical, las cúspides posteriores pueden ser…', o:['Más altas','Más planas','Iguales','Obligatoriamente de 0°'], a:0, w:'Es una de las relaciones que describen las leyes de Hanau.', f:[15]},
+];
+let answered = 0, right = 0;
+const updScore = () => { $('#score').textContent = `${right} / ${answered} correctas · ${Q.length} preguntas`; };
+function buildQuiz(){ answered = 0; right = 0; updScore();
+  $('#quiz').innerHTML = Q.map((x,i) => `<div class="q" data-i="${i}"><p class="qt">${i+1}. ${x.q}</p><div class="opts">${x.o.map((o,j)=>`<button type="button" class="opt" data-j="${j}">${o}</button>`).join('')}</div><p class="why" hidden></p></div>`).join(''); }
+$('#quiz').addEventListener('click', e => {
+  const b = e.target.closest('.opt'); if (!b) return;
+  const box = b.closest('.q'), x = Q[+box.dataset.i], j = +b.dataset.j;
+  box.querySelectorAll('.opt').forEach((o,k) => { o.disabled = true; if (k === x.a) o.classList.add('right'); });
+  if (j !== x.a) b.classList.add('wrong'); else right++;
+  answered++; updScore();
+  const w = box.querySelector('.why'); w.innerHTML = (j === x.a ? '<b>Correcto.</b> ' : '<b>No.</b> ') + x.w + c(...x.f); w.hidden = false;
+});
+$('#resetQuiz').addEventListener('click', buildQuiz);
+buildQuiz();
+})();
+</script>
+</body>
+</html>

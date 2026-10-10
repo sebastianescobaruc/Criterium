@@ -2,8 +2,9 @@
 // cur: -1 = bandeja (antes de empezar), 0..N-1 = pasos, N = cierre.
 import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
+import { useApp } from '../ctx.js';
 import { Ic, Btn, Aviso, Seg, cx } from '../ui.jsx';
-import { Paso, Flecha, FlujoPublicacion } from './protocolos.jsx';
+import { Paso, Flecha, FlujoPublicacion, Huella } from './protocolos.jsx';
 import { PantallaLibre, Orbe } from './libre.jsx';
 import { TEXTO_BANDEJA, TEXTO_PRUEBA, textoPaso, textoPorque, textoCierre } from '../lectura.js';
 import { useVoz, estadoMicrofono, pedirMicrofono, desbloquearAudio, vozDisponible, lecturaDisponible, useHablando, hablar, callar, useVoces, vozElegida, elegirVoz, velocidad, elegirVelocidad, VELOCIDADES } from '../voz.js';
@@ -393,6 +394,7 @@ function Recorrido({ d, cur, visto, hechos, ir }) {
 
 // Antes de empezar: el instrumental agrupado por fase, como un flujo de izquierda a derecha
 function Bandeja({ d, mapa, empezar, onPdf, bajando }) {
+  const { protoId } = useApp();
   return (
     <section className="flex flex-col gap-3">
       <div className="aparece panel p-6 sm:p-9">
@@ -412,6 +414,7 @@ function Bandeja({ d, mapa, empezar, onPdf, bajando }) {
         </div>
       </div>
       <Aviso className="aparece !rounded-[20px] !text-[12px]" >{d.bandera}</Aviso>
+      <Huella id={protoId} className="px-1" />
       <FlujoPublicacion d={d} compacto />
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {d.bandeja.map((b, i) => (

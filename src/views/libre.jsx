@@ -4,8 +4,10 @@
 // El estado vive en Guiado (guiado.jsx); esto solo dibuja.
 import React, { useEffect, useRef, useState } from 'react';
 import { nn } from '../logic.js';
+import { useApp } from '../ctx.js';
+import { registrarUso } from '../piloto.js';
 import { Ic, cx } from '../ui.jsx';
-import { fichaDe, Sub, Escuchar, FlujoPublicacion } from './protocolos.jsx';
+import { fichaDe, Sub, Escuchar, FlujoPublicacion, Huella } from './protocolos.jsx';
 import { ComentariosPaso, useNComentarios } from './comentarios.jsx';
 import { Animacion } from './animaciones.jsx';
 import { vozDisponible, lecturaDisponible } from '../voz.js';
@@ -209,7 +211,10 @@ function PasoLibre({ s, i, N, pq, fuentes, comentar, leyendo }) {
   const [mas, setMas] = useState(false);
   const [auto, setAuto] = useState(porque.length > 0);
   const ref = useRef(null);
-  useEffect(() => { if (pq) setMas(true); }, [pq]);
+  const { protoId } = useApp();
+  // Registro de uso (piloto): solo cuenta lo que abre la persona, no la apertura automática
+  const usoNivel2 = () => { if (!mas) registrarUso('nivel_2_abierto', protoId); };
+  useEffect(() => { if (pq) { usoNivel2(); setMas(true); } }, [pq]);
   // A los 5 s el porqué se abre solo y baja para leerlo; tocarlo antes detiene esto
   useEffect(() => {
     if (!auto) return;
@@ -242,7 +247,7 @@ function PasoLibre({ s, i, N, pq, fuentes, comentar, leyendo }) {
 
       <div className="mt-8 flex flex-wrap gap-2">
         {porque.length > 0 && (
-          <button type="button" onClick={() => { setAuto(false); setMas(!mas); }} aria-expanded={mas}
+          <button type="button" onClick={() => { setAuto(false); usoNivel2(); setMas(!mas); }} aria-expanded={mas}
             className={cx('relative inline-flex items-center gap-1.5 overflow-hidden rounded-full px-4 py-2.5 text-[14.5px] font-semibold transition-colors', mas ? 'bg-deep text-panelink' : 'bg-soft text-acentodeep hover:bg-acentosoft')}>
             {/* El relleno avanza mientras falta para que se abra solo */}
             {auto && !reducido() && <span aria-hidden="true" className="llenado absolute inset-y-0 left-0 bg-acentosoft" style={{ animationDuration: AUTO_PORQUE + 's' }} />}
@@ -250,9 +255,9 @@ function PasoLibre({ s, i, N, pq, fuentes, comentar, leyendo }) {
             <svg className={cx('relative transition-transform duration-300', mas && 'rotate-180')} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
           </button>
         )}
-        <Escuchar s={s} onEmpezar={() => { setAuto(false); setMas(true); }} suave className="!px-4 !py-2.5 !text-[14.5px]" />
+        <Escuchar s={s} onEmpezar={() => { setAuto(false); usoNivel2(); setMas(true); }} suave className="!px-4 !py-2.5 !text-[14.5px]" />
         {nFichas > 0 && (
-          <button type="button" onClick={fuentes} className="inline-flex items-center gap-1.5 rounded-full bg-soft px-4 py-2.5 text-[14.5px] font-semibold text-acentodeep transition-colors hover:bg-acentosoft">
+          <button type="button" onClick={() => { registrarUso('nivel_3_abierto', protoId); fuentes(); }} className="inline-flex items-center gap-1.5 rounded-full bg-soft px-4 py-2.5 text-[14.5px] font-semibold text-acentodeep transition-colors hover:bg-acentosoft">
             <Ic n="book" s={15} />Fuentes y más
           </button>
         )}
@@ -275,6 +280,7 @@ function PasoLibre({ s, i, N, pq, fuentes, comentar, leyendo }) {
 
 // Antes de empezar: la bandeja como listas agrupadas; cada instrumento se marca al dejarlo en la bandeja
 function BandejaLibre({ d, onPdf, bajando }) {
+  const { protoId } = useApp();
   const [listos, setListos] = useState([]);
   const total = d.bandeja.reduce((n, b) => n + b.items.length, 0);
   const alternar = (k) => setListos((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k]));
@@ -308,6 +314,7 @@ function BandejaLibre({ d, onPdf, bajando }) {
         ))}
       </div>
       <p className="m-0 mt-6 px-1 text-[12.5px] leading-normal text-ink3">{d.bandera}</p>
+      <Huella id={protoId} className="mt-2 px-1" />
       {d.flujo && <div className="mt-3"><FlujoPublicacion d={d} compacto /></div>}
       {onPdf && (
         <button type="button" onClick={onPdf} disabled={bajando} className="mt-3 inline-flex items-center gap-1.5 px-1 text-[14px] font-semibold text-acento hover:underline disabled:opacity-60">

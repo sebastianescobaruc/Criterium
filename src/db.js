@@ -161,11 +161,13 @@ export function useFeedFS() {
 
   useEffect(() => {
     const q = query(collection(db, 'feed'), orderBy('fecha', 'desc'));
+    // Si Firestore no responde en 6 s, la app se abre igual (el feed llega cuando conecte) en vez de quedar en «cargando»
+    const t = setTimeout(() => setListo(true), 6000);
     const unsub = onSnapshot(q, (snap) => {
       setFeed(snap.docs.map((d) => ({ ...d.data(), id: d.id })));
       setListo(true);
     }, () => setListo(true));
-    return unsub;
+    return () => { clearTimeout(t); unsub(); };
   }, []);
 
   return [feed, setFeed, listo];
@@ -611,7 +613,7 @@ export async function borrarMisDatosFS(uid) {
   const de = async (col, campo) => (await getDocs(query(collection(db, col), where(campo, '==', uid)))).docs;
   const docs = [...await de('seguimientos', 'de'), ...await de('feed', 'autorUid'), ...await de('pendientes', 'autorUid'), ...await de('comentarios', 'uid')];
   for (const d of docs) await deleteDoc(d.ref).catch(() => {});
-  for (const ruta of ['perfiles', 'usuarios', 'postulaciones']) await deleteDoc(doc(db, ruta, uid)).catch(() => {});
+  for (const ruta of ['perfiles', 'usuarios', 'postulaciones', 'curriculum']) await deleteDoc(doc(db, ruta, uid)).catch(() => {});
 }
 
 
@@ -684,3 +686,79 @@ export async function unirseGrupoFS(gid, uid, salir) { await updateDoc(doc(db, '
 export async function borrarGrupoFS(gid) { await deleteDoc(doc(db, 'grupos', gid)); }
 export async function publicarEnGrupoFS(gid, post) { await addDoc(collection(db, 'grupos', gid, 'posts'), { ...post, estado: 'publicado' }); }
 export async function borrarPostGrupoFS(ruta) { await deleteDoc(doc(db, ruta)); }
+
+/** Materia (Criterium Red): materia/{ramo} { nombre, descripcion, orden, paleta, clases [{ id, titulo, resumen, version, fecha, fuentes }] }
+ *  y materia/{ramo}/clases/{id} { titulo, html, version, fecha, sha256, fuentes }. Las sube el equipo con npm run materia:subir. */
+export function useMateria(activo = true) {
+  const [l, set] = useState(null);
+  useEffect(() => { if (!activo) return; return lista(collection(db, 'materia'), set, (a, b) => (a.orden || 0) - (b.orden || 0)); }, [activo]);
+  return l;
+}
+export function useClaseMateria(ramo, id) {
+  const [c, set] = useState(null);
+  useEffect(() => {
+    if (!ramo || !id) { set(false); return; }
+    let vivo = true; set(null);
+    getDoc(doc(db, 'materia', ramo, 'clases', id)).then((s) => { if (vivo) set(s.exists() ? { ...s.data(), id: s.id } : false); }, () => { if (vivo) set(false); });
+    return () => { vivo = false; };
+  }, [ramo, id]);
+  return c;
+}
+
+/** Chat (Criterium Red): chats/{a_b} con uids ordenados, miembros, estado 'abierto' | 'solicitud' | 'rechazado',
+ *  iniciadoPor, ultimo { txt, autor, fecha }, leido { uid: fecha }, actualizado; mensajes en chats/{id}/mensajes.
+ *  Con quien sigues o te sigue nace abierto; si no, es una solicitud de un solo mensaje (ver firestore.rules). */
+export const idChat = (a, b) => [a, b].sort().join('_');
+export function useChats(uid) {
+  const [l, set] = useState(null);
+  useEffect(() => {
+    if (!uid) { set([]); return; }
+    return onSnapshot(query(collection(db, 'chats'), where('miembros', 'array-contains', uid)),
+      (snap) => set(snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort((a, b) => (b.actualizado || '').localeCompare(a.actualizado || ''))), () => set([]));
+  }, [uid]);
+  return l;
+}
+export function useMensajesChat(cid, activo = true) {
+  const [l, set] = useState(null);
+  useEffect(() => {
+    if (!cid || !activo) { set([]); return; }
+    set(null);
+    return onSnapshot(query(collection(db, 'chats', cid, 'mensajes'), orderBy('fecha', 'desc'), limit(300)),
+      (snap) => set(snap.docs.map((d) => ({ ...d.data(), id: d.id })).reverse()), () => set([]));
+  }, [cid, activo]);
+  return l;
+}
+// Un mensaje: si el chat no existe, nace con él (abierto o como solicitud); si era una solicitud y respondes, se abre
+export async function enviarMensajeChatFS({ yo, otro, txt, chat, relacion }) {
+  const cid = idChat(yo, otro), fecha = new Date().toISOString();
+  const b = writeBatch(db), ref = doc(db, 'chats', cid);
+  const ultimo = { txt: txt.length > 140 ? txt.slice(0, 137) + '…' : txt, autor: yo, fecha };
+  if (!chat) b.set(ref, { miembros: [yo, otro].sort(), estado: relacion ? 'abierto' : 'solicitud', iniciadoPor: yo, ultimo, leido: { [yo]: fecha }, actualizado: fecha });
+  else b.update(ref, { ultimo, actualizado: fecha, ['leido.' + yo]: fecha, ...(chat.estado === 'solicitud' ? { estado: 'abierto' } : {}) });
+  b.set(doc(collection(db, 'chats', cid, 'mensajes')), { autor: yo, txt, fecha });
+  await b.commit();
+  return cid;
+}
+export async function marcarLeidoChatFS(cid, yo) { await updateDoc(doc(db, 'chats', cid), { ['leido.' + yo]: new Date().toISOString() }); }
+export async function rechazarSolicitudFS(cid) { await updateDoc(doc(db, 'chats', cid), { estado: 'rechazado' }); }
+export function useBloqueos(uid) {
+  const [l, set] = useState([]);
+  useEffect(() => { if (!uid) { set([]); return; } return onSnapshot(query(collection(db, 'bloqueos'), where('de', '==', uid)), (s) => set(s.docs.map((d) => d.data().a)), () => set([])); }, [uid]);
+  return l;
+}
+export async function meBloqueoFS(yo, otro) { try { return (await getDoc(doc(db, 'bloqueos', otro + '_' + yo))).exists(); } catch (e) { return false; } }
+export async function bloquearFS(de, a) { await setDoc(doc(db, 'bloqueos', de + '_' + a), { de, a, fecha: new Date().toISOString() }); }
+export async function desbloquearFS(de, a) { await deleteDoc(doc(db, 'bloqueos', de + '_' + a)); }
+
+/** Currículum: curriculum/{uid} { resumen, formacion, investigacion, clinica, voluntariados, ayudantias, cursos, premios,
+ *  idiomas: [{ t, l, p, d }], habilidades: [string], actualizado }. Lo lee cualquiera con sesión; lo escribe solo su dueño. */
+export function useCurriculum(uid) {
+  const [cv, set] = useState(undefined);
+  useEffect(() => {
+    if (!uid) { set(null); return; }
+    set(undefined);
+    return onSnapshot(doc(db, 'curriculum', uid), (s) => set(s.exists() ? s.data() : null), () => set(null));
+  }, [uid]);
+  return cv;
+}
+export async function guardarCurriculumFS(uid, cv) { await setDoc(doc(db, 'curriculum', uid), { ...cv, actualizado: new Date().toISOString() }); }

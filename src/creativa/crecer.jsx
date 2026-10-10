@@ -124,7 +124,7 @@ export function LigaMini() {
   const { go } = useApp();
   const liga = useLiga().slice(0, 3);
   return (
-    <button type="button" onClick={() => go('liga')} className="flex flex-col gap-2.5 rounded-[22px] bg-card p-4 text-left shadow-sh transition-shadow hover:shadow-shlg">
+    <button type="button" onClick={() => go('concursos')} className="flex flex-col gap-2.5 rounded-[22px] bg-card p-4 text-left shadow-sh transition-shadow hover:shadow-shlg">
       <span className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-full bg-deep text-menta"><Ic n="edificio" s={16} /></span><b className="text-[14px] text-ink">Liga de universidades</b><span className="ml-auto text-[12px] font-semibold text-acento">Ver</span></span>
       {liga.length === 0 ? <span className="text-[12.5px] leading-snug text-ink3">Todavía nadie suma casos este semestre. El primero pone a su universidad arriba.</span>
         : liga.map((f, i) => <span key={f.k} className="flex items-center gap-2.5 text-[13px]"><b className="w-4 text-ink3 tabular-nums">{i + 1}</b><span className="min-w-0 flex-1 truncate text-ink">{f.nombre}</span><b className="tabular-nums text-deep">{f.casos}</b></span>)}

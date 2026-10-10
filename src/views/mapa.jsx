@@ -84,8 +84,9 @@ export function grafoProtocolos() {
 }
 
 // Protocolo → especialidad del catálogo (la que se ve en la Biblioteca)
-const ESP_DE = Object.fromEntries(PROTOS.map((p) => [p.id, p.esp]));
-const CORTO = Object.fromEntries(PROTOS.map((p) => [p.id, p.corto || p.t]));
+// Se leen al momento: los protocolos llegan de Firestore después de cargar el módulo
+const ESP_DE = new Proxy({}, { get: (_, id) => (PROTOS.find((p) => p.id === id) || {}).esp });
+const CORTO = new Proxy({}, { get: (_, id) => { const p = PROTOS.find((x) => x.id === id); return p ? p.corto || p.t : ''; } });
 const ESPECIALIDADES = ['Rehabilitación oral', 'Periodoncia', 'Endodoncia', 'Cirugía', 'Odontopediatría'];
 
 // Lazos entre protocolos: qué temas comparten y si uno deriva o menciona al otro (todo sale de grafoProtocolos)
