@@ -2,24 +2,28 @@
 // arancel, convenios, laboratorios y equipos de esterilización, y el equipo con sus roles. Todo vive en clinicas/{cid}.
 import React, { useState } from 'react';
 import { useApp } from '../ctx.js';
-import { actualizarClinicaFS } from './db.js';
+import { actualizarClinicaFS, useColeccionClinica } from './db.js';
+import { PROTOS, DATOS } from '../data.js';
 import { usePerfiles } from '../db.js';
 import { clp, ROLES, Cabecera, Pestanas, Tarjeta, Fila } from './comun.jsx';
 import { Ic, Btn, Field, Vacio, Avatar, inputCls, cx } from '../ui.jsx';
 
 const nid = () => Math.random().toString(36).slice(2, 8);
+// Protocolos que esta cuenta puede ver (llegan de Firestore según el modo piloto): se calculan al dibujar, nunca al cargar
+export const protocolosClinica = () => PROTOS.filter((p) => DATOS[p.id] && Array.isArray(DATOS[p.id].pasos));
 
 export function Ajustes() {
   const { tabClinica, irClinica, rolClinica } = useApp();
   if (rolClinica !== 'admin') return <Vacio icon="alert" titulo="Solo administración">Los ajustes de la clínica los cambia quien la administra.</Vacio>;
-  const tab = ['general', 'profesionales', 'arancel', 'equipo'].includes(tabClinica) ? tabClinica : 'general';
+  const tab = ['general', 'profesionales', 'arancel', 'consumos', 'equipo'].includes(tabClinica) ? tabClinica : 'general';
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-4">
       <Cabecera titulo="Ajustes" sub="Cómo funciona tu clínica" />
-      <Pestanas items={[['general', 'General'], ['profesionales', 'Profesionales'], ['arancel', 'Arancel y convenios'], ['equipo', 'Equipo y permisos']]} valor={tab} onChange={(k) => irClinica('ajustes', k)} />
+      <Pestanas items={[['general', 'General'], ['profesionales', 'Profesionales'], ['arancel', 'Arancel y convenios'], protocolosClinica().length > 0 && ['consumos', 'Consumo por protocolo'], ['equipo', 'Equipo y permisos']]} valor={tab} onChange={(k) => irClinica('ajustes', k)} />
       {tab === 'general' && <General />}
       {tab === 'profesionales' && <Profesionales />}
       {tab === 'arancel' && <Arancel />}
+      {tab === 'consumos' && <Consumos />}
       {tab === 'equipo' && <Equipo />}
     </div>
   );
@@ -103,17 +107,19 @@ function Arancel() {
   const [conv, setConv] = useState(clinica.convenios || []);
   const [q, setQ] = useState('');
   const set = (i, k, v) => setL(l.map((a, j) => (j === i ? { ...a, [k]: v } : a)));
+  const protos = protocolosClinica();
   const cambiado = JSON.stringify(l) !== JSON.stringify(clinica.arancel || []);
   const cambiadoC = JSON.stringify(conv) !== JSON.stringify(clinica.convenios || []);
   return (
     <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Arancel · {l.length} prestaciones</p><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar" aria-label="Buscar prestación" className={cx(inputCls, 'max-w-[220px]')} /></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="rotulo m-0">Arancel · {l.length} prestaciones</p>{protos.length > 0 && <p className="m-0 mt-1 text-[12px] text-ink3">«Protocolo»: el de Criterium que se preselecciona al registrar una evolución de esa prestación.</p>}</div><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar" aria-label="Buscar prestación" className={cx(inputCls, 'max-w-[220px]')} /></div>
         <Tarjeta>{l.map((a, i) => (!q || a.nombre.toLowerCase().includes(q.toLowerCase())) && (
           <Fila key={i}>
             <input value={a.codigo} onChange={(e) => set(i, 'codigo', e.target.value.toUpperCase())} aria-label="Código" className={cx(inputCls, 'w-20 flex-none !px-2 !py-1.5 text-[13px]')} />
             <input value={a.nombre} onChange={(e) => set(i, 'nombre', e.target.value)} aria-label="Prestación" className={cx(inputCls, 'min-w-0 flex-1 !px-2 !py-1.5 text-[13.5px]')} />
             <input type="number" value={a.valor} onChange={(e) => set(i, 'valor', Math.max(0, Math.round(+e.target.value)))} aria-label="Valor" className={cx(inputCls, 'w-28 flex-none !px-2 !py-1.5 text-right text-[13.5px] tabular-nums')} />
+            {protos.length > 0 && <select value={a.protocoloId || ''} onChange={(e) => set(i, 'protocoloId', e.target.value)} aria-label="Protocolo" title="Protocolo de Criterium para esta prestación" className={cx(inputCls, 'hidden w-48 flex-none !px-2 !py-1.5 text-[12.5px] md:block')}><option value="">Sin protocolo</option>{protos.map((p) => <option key={p.id} value={p.id}>{p.corto || p.t}</option>)}</select>}
             <button type="button" onClick={() => setL(l.filter((_, j) => j !== i))} aria-label="Quitar prestación" className="rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-bad"><Ic n="trash" s={15} /></button>
           </Fila>
         ))}</Tarjeta>
@@ -137,6 +143,65 @@ function Arancel() {
           {cambiadoC && <Btn sm v="primary" onClick={() => guardar({ convenios: conv.filter((c) => c.nombre.trim()) })}>Guardar convenios</Btn>}
         </div>
       </section>
+    </div>
+  );
+}
+
+// Consumo por protocolo: qué insumos del inventario gasta cada protocolo, en la unidad de cada insumo.
+// clinicas/{cid}.consumos = { [protocoloId]: [{ insumoId, cantidad }] }. La bandeja del protocolo se muestra solo para
+// orientarse: no se empareja nada solo.
+function Consumos() {
+  const { clinica } = useApp();
+  const guardar = useGuardar();
+  const protos = protocolosClinica();
+  const inventario = (useColeccionClinica(clinica.id, 'inventario') || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const [pid, setPid] = useState((protos[0] || {}).id || '');
+  const original = ((clinica.consumos || {})[pid]) || [];
+  const [l, setL] = useState(original);
+  const [err, setErr] = useState('');
+  const cambiar = (id) => { setPid(id); setL(((clinica.consumos || {})[id]) || []); setErr(''); };
+  const cambiado = JSON.stringify(l) !== JSON.stringify(original);
+  const bandeja = (DATOS[pid] && DATOS[pid].bandeja) || [];
+  const nombre = (id) => (inventario.find((x) => x.id === id) || {}).nombre || 'Insumo borrado';
+  const unidad = (id) => (inventario.find((x) => x.id === id) || {}).unidad || '';
+  const enviar = async () => {
+    const lista = l.filter((x) => x.insumoId).map((x) => ({ insumoId: x.insumoId, cantidad: Math.round(+x.cantidad) }));
+    if (lista.some((x) => !(x.cantidad > 0))) { setErr('Cada cantidad tiene que ser un número entero mayor que 0.'); return; }
+    if (new Set(lista.map((x) => x.insumoId)).size !== lista.length) { setErr('Hay un insumo repetido.'); return; }
+    setErr('');
+    if (await guardar({ ['consumos.' + pid]: lista }, 'Consumo guardado')) setL(lista);
+  };
+  if (!protos.length) return <Vacio icon="book" titulo="No hay protocolos disponibles para esta cuenta" />;
+  return (
+    <div className="flex flex-col gap-4">
+      <Field label="Protocolo" id="co-p" className="max-w-[460px]"><select id="co-p" value={pid} onChange={(e) => cambiar(e.target.value)} className={inputCls}>{protos.map((p) => <option key={p.id} value={p.id}>{p.t || p.corto}</option>)}</select></Field>
+      <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1.2fr_1fr]">
+        <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--cl-line)] bg-card p-4">
+          <p className="rotulo m-0">Insumos que gasta, por atención</p>
+          {!inventario.length && <p className="m-0 text-[13px] text-ink3">Primero agrega insumos en Inventario.</p>}
+          {l.map((x, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <select value={x.insumoId} onChange={(e) => setL(l.map((y, j) => (j === i ? { ...y, insumoId: e.target.value } : y)))} aria-label="Insumo" className={cx(inputCls, 'min-w-0 flex-1')}><option value="">Elige un insumo…</option>{x.insumoId && !inventario.some((y) => y.id === x.insumoId) && <option value={x.insumoId}>{nombre(x.insumoId)}</option>}{inventario.map((y) => <option key={y.id} value={y.id}>{y.nombre}</option>)}</select>
+              <input type="number" min="1" step="1" value={x.cantidad} onChange={(e) => setL(l.map((y, j) => (j === i ? { ...y, cantidad: e.target.value } : y)))} aria-label="Cantidad" className={cx(inputCls, 'w-20 text-right tabular-nums')} />
+              <span className="w-16 truncate text-[12px] text-ink3">{unidad(x.insumoId)}</span>
+              <button type="button" onClick={() => setL(l.filter((_, j) => j !== i))} aria-label="Quitar insumo" className="rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-bad"><Ic n="trash" s={15} /></button>
+            </div>
+          ))}
+          {err && <p className="m-0 text-[13px] font-semibold text-bad">{err}</p>}
+          <div className="flex flex-wrap gap-2">
+            <Btn sm icon="plus" onClick={() => setL([...l, { insumoId: '', cantidad: 1 }])} disabled={!inventario.length}>Agregar insumo</Btn>
+            {cambiado && <Btn sm v="primary" onClick={enviar}>Guardar consumo</Btn>}
+          </div>
+          <p className="m-0 text-[12px] text-ink3">Al firmar una evolución con este protocolo, estas cantidades vienen precargadas (se pueden cambiar) y se descuentan del inventario.</p>
+        </section>
+        <section className="flex flex-col gap-2 rounded-[10px] border border-[var(--cl-line)] bg-[var(--cl-nav)] p-4">
+          <p className="rotulo m-0">Bandeja del protocolo · lo que pide</p>
+          {!bandeja.length ? <p className="m-0 text-[13px] text-ink3">Este protocolo no trae bandeja.</p> : bandeja.map((f, k) => (
+            <div key={k}><b className="text-[12.5px] text-deep">{f.fase}</b><ul className="m-0 mt-1 list-disc pl-5 text-[12.5px] leading-relaxed text-ink2">{(f.items || []).map((it, j) => <li key={j}>{it}</li>)}</ul></div>
+          ))}
+          <p className="m-0 mt-1 text-[11.5px] text-ink3">Solo como guía: cada clínica decide qué insumos de su inventario corresponden.</p>
+        </section>
+      </div>
     </div>
   );
 }
