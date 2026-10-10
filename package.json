@@ -6,6 +6,7 @@
   "description": "Criterium: protocolos odontológicos con evidencia trazable, casos clínicos y revisión por pares.",
   "scripts": {
     "video:clinica": "node scripts/video-clinica.mjs",
+    "video:criterium": "node scripts/video-criterium.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
