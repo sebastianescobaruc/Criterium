@@ -238,7 +238,7 @@ export function Guiado({ d, hechos, toggle, marcar, reiniciar, onVerTodo, onRegi
               <Ic n="dots" s={18} />
             </button>
           )}
-          <button type="button" onClick={onVerTodo} aria-label="Ver todo el protocolo" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
+          <button type="button" onClick={onVerTodo} aria-label="Ver todo el procedimiento" className="inline-flex items-center gap-2 rounded-full border border-cardline bg-card px-3.5 py-2 text-[13px] font-semibold text-ink2 shadow-sh hover:bg-soft">
             <Ic n="book" s={16} /><span className="hidden sm:inline">Ver todo</span>
           </button>}
           {libre
@@ -368,7 +368,7 @@ function Recorrido({ d, cur, visto, hechos, ir }) {
     if (el) ol.scrollLeft = el.offsetLeft - ol.clientWidth / 2 + el.offsetWidth / 2;
   }, [cur]);
   return (
-    <nav aria-label="Recorrido del protocolo">
+    <nav aria-label="Recorrido del procedimiento">
       <ol ref={fila} className="scroll-x m-0 flex list-none items-center overflow-x-auto px-2 py-1.5">
         {[-1, ...d.pasos.map((_, i) => i), N].map((k, j) => {
           const hecho = k >= 0 && k < N && hechos.includes(k);
@@ -440,11 +440,11 @@ function Cierre({ d, hechos, ir, mapa, reiniciar, onRegistrar, onVerTodo }) {
         {mapa && <div className="-mx-2 mb-1 self-stretch sm:mb-3">{mapa}</div>}
         <span className="grid h-14 w-14 place-items-center rounded-full bg-menta text-mentaink"><Ic n="check" s={28} sw={2.6} /></span>
         <div>
-          <div className="text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">Protocolo terminado</div>
+          <div className="text-[11.5px] font-bold uppercase tracking-[.13em] text-menta">Procedimiento terminado</div>
           <h2 className="m-0 mt-2 text-[24px] font-bold leading-tight text-panelink sm:text-[30px]">Marcaste {hechos.length} de {N} pasos.</h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          {onRegistrar && <Btn v="primary" icon="plus" onClick={onRegistrar}>Registrar un caso con este protocolo</Btn>}
+          {onRegistrar && <Btn v="primary" icon="plus" onClick={onRegistrar}>Registrar un caso con este procedimiento</Btn>}
           <button type="button" onClick={reiniciar} className="rounded-full bg-panel2 px-4 py-2.5 text-[13.5px] font-semibold text-panelink hover:brightness-110">Empezar de nuevo</button>
         </div>
       </div>
@@ -461,7 +461,7 @@ function Cierre({ d, hechos, ir, mapa, reiniciar, onRegistrar, onVerTodo }) {
           </div>
         </div>
       )}
-      <button type="button" onClick={onVerTodo} className="aparece self-start px-2 py-1 text-[13px] font-semibold text-acento hover:underline" style={{ '--d': '450ms' }}>Ver el protocolo completo</button>
+      <button type="button" onClick={onVerTodo} className="aparece self-start px-2 py-1 text-[13px] font-semibold text-acento hover:underline" style={{ '--d': '450ms' }}>Ver el procedimiento completo</button>
     </section>
   );
 }

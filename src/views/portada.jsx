@@ -30,9 +30,9 @@ export function Portada({ entrar, privacidad }) {
 
       <main className="mx-auto flex max-w-[1080px] flex-col gap-20 px-4 pb-16 pt-14 sm:px-6 sm:pt-20">
         <section className="flex flex-col items-center text-center">
-          <p className="rotulo m-0 mb-4">Biblioteca viva de protocolos</p>
+          <p className="rotulo m-0 mb-4">Biblioteca viva de procedimientos</p>
           <h1 className="m-0 max-w-[16ch] text-[40px] font-bold leading-[1.04] tracking-[-.035em] text-deep [text-wrap:balance] sm:text-[60px]">Cada paso, con su porqué.</h1>
-          <p className="m-0 mt-5 max-w-[46ch] text-[17px] leading-relaxed text-ink2 sm:text-[19px]">Protocolos clínicos de Odontología con la evidencia a la vista, revisados por expertos.</p>
+          <p className="m-0 mt-5 max-w-[46ch] text-[17px] leading-relaxed text-ink2 sm:text-[19px]">Procedimientos clínicos de Odontología con la evidencia a la vista, revisados por expertos.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button type="button" onClick={() => entrar('registro')} className="h-12 rounded-full bg-acento px-7 text-[16px] font-semibold text-onc hover:bg-acentodeep">Crear cuenta gratis</button>
             <a href="#muestra" className="inline-flex h-12 items-center rounded-full bg-card px-7 text-[16px] font-semibold text-acentodeep shadow-sh hover:bg-soft">Ver un paso</a>
@@ -67,7 +67,7 @@ export function Portada({ entrar, privacidad }) {
         </section>
 
         <section className="mx-auto w-full max-w-[720px]">
-          <h2 className="m-0 mb-4 text-center text-[22px] font-bold tracking-[-.02em] text-deep sm:text-[26px]">Protocolos disponibles</h2>
+          <h2 className="m-0 mb-4 text-center text-[22px] font-bold tracking-[-.02em] text-deep sm:text-[26px]">Procedimientos disponibles</h2>
           <ul className="m-0 list-none overflow-hidden rounded-[22px] bg-card p-0 shadow-sh">
             {protos.map((p, k) => (
               <li key={p.id} className={cx('flex items-center gap-3 px-5 py-3.5', k > 0 && 'border-t border-line2')}>

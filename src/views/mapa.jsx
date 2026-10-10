@@ -137,16 +137,16 @@ export function Mapa({ incrustado = false }) {
           {esp && <><span className="text-ink3">›</span><span className="text-rotulo">{esp}</span></>}
         </nav>
         {React.createElement(incrustado ? 'h2' : 'h1', { className: cx('m-0 max-w-[26ch] font-extrabold leading-[1.12] tracking-[-.025em] text-deep', incrustado ? 'text-[19px] sm:text-[21px]' : 'text-[26px] sm:text-[32px]') },
-          esp ? 'Cómo se entrelazan sus protocolos.' : incrustado ? 'Protocolos por especialidad' : 'Elige una especialidad.')}
+          esp ? 'Cómo se entrelazan sus procedimientos.' : incrustado ? 'Procedimientos por especialidad' : 'Elige una especialidad.')}
         {!incrustado && <p className="m-0 mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink2">
-          {esp ? 'Las líneas unen protocolos que comparten técnicas o materiales; la flecha marca cuando uno lleva al otro. Alrededor, las especialidades con las que se conecta.'
-            : 'Cada punto es una especialidad. Los arcos muestran cuánto se conectan sus protocolos entre sí.'}
+          {esp ? 'Las líneas unen procedimientos que comparten técnicas o materiales; la flecha marca cuando uno lleva al otro. Alrededor, las especialidades con las que se conecta.'
+            : 'Cada punto es una especialidad. Los arcos muestran cuánto se conectan sus procedimientos entre sí.'}
         </p>}
       </header>
       {esp
         ? <Especialidad esp={esp} protos={protos} lazos={lazos} movil={movil} irA={setEsp} abrirProto={abrirProto} />
         : <Especialidades protos={protos} lazos={lazos} movil={movil} elegir={setEsp} />}
-      {!esp && !incrustado && <button type="button" onClick={() => go('biblioteca')} className="self-start text-[13px] font-semibold text-acento hover:underline">Ver todos los protocolos en la Biblioteca</button>}
+      {!esp && !incrustado && <button type="button" onClick={() => go('biblioteca')} className="self-start text-[13px] font-semibold text-acento hover:underline">Ver todos los procedimientos en la Biblioteca</button>}
     </div>
   );
 }
@@ -228,7 +228,7 @@ function Especialidad({ esp, protos, lazos, movil, irA, abrirProto }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <svg viewBox={`0 0 ${W} ${H}`} className="constelacion block h-auto w-full" role="img" aria-label={'Protocolos de ' + esp + ' y sus conexiones'}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="constelacion block h-auto w-full" role="img" aria-label={'Procedimientos de ' + esp + ' y sus conexiones'}>
         <ellipse cx={cx0} cy={cy0} rx={rxE} ry={ryE} className="orbita" />
         {/* Hacia otras especialidades: líneas punteadas */}
         {vecinas.map((e) => externos.get(e).map((l, k) => {
@@ -302,7 +302,7 @@ function Especialidad({ esp, protos, lazos, movil, irA, abrirProto }) {
                   })}
                 </ul>
               )}
-              <button type="button" onClick={() => abrirProto(p.id)} className="mt-2.5 text-[13px] font-semibold text-acento hover:underline">Abrir el protocolo ›</button>
+              <button type="button" onClick={() => abrirProto(p.id)} className="mt-2.5 text-[13px] font-semibold text-acento hover:underline">Abrir el procedimiento ›</button>
             </li>
           );
         })}
@@ -361,10 +361,10 @@ export function MapaInicio() {
 
   return (
     <section ref={caja} aria-labelledby="mapa-inicio" className="relative">
-      <p className="rotulo m-0 mb-1.5">Mapa de protocolos</p>
-      <h2 id="mapa-inicio" className="m-0 max-w-[30ch] text-[22px] font-extrabold leading-[1.15] tracking-[-.025em] text-deep sm:text-[26px]">Cada protocolo, y lo que comparte con los demás.</h2>
+      <p className="rotulo m-0 mb-1.5">Mapa de procedimientos</p>
+      <h2 id="mapa-inicio" className="m-0 max-w-[30ch] text-[22px] font-extrabold leading-[1.15] tracking-[-.025em] text-deep sm:text-[26px]">Cada procedimiento, y lo que comparte con los demás.</h2>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="constelacion mt-2 block h-auto w-full" role="list" aria-label="Protocolos de la Biblioteca">
+      <svg viewBox={`0 0 ${W} ${H}`} className="constelacion mt-2 block h-auto w-full" role="list" aria-label="Procedimientos de la Biblioteca">
         {/* Órbita: guía apenas visible */}
         <ellipse cx={cx0} cy={cy0} rx={rx} ry={ry} className="orbita" />
         {lazos.map((l, k) => {
@@ -411,7 +411,7 @@ export function MapaInicio() {
         })}
       </svg>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="m-0 text-[12.5px] text-ink3">Toca un protocolo para abrirlo en la Biblioteca.</p>
+        <p className="m-0 text-[12.5px] text-ink3">Toca un procedimiento para abrirlo en la Biblioteca.</p>
         <button type="button" onClick={() => go('mapa')} className="text-[13px] font-semibold text-acento hover:underline">Explorar las conexiones</button>
       </div>
     </section>

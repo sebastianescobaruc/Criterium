@@ -27,7 +27,7 @@ describe('borrador de la nota', () => {
   it('arma el texto completo con pasos hechos, insumos y lote', () => {
     const pasos = pasosIniciales(DATOS);
     const t = borradorNota({ ...base, pasos, insumos: insumosIniciales([{ insumoId: 'res', cantidad: 1 }, { insumoId: 'aci', cantidad: 1 }], INV) });
-    expect(t).toBe('Restauración de resina compuesta clase I oclusal. Protocolo Criterium resina-clase-i v0.2. Pieza 3.6. Pasos: 9 de 9 hechos. Insumos: Resina compuesta A2 ×1, Ácido ortofosfórico 37 % ×1. Instrumental: lote L-123.');
+    expect(t).toBe('Restauración de resina compuesta clase I oclusal. Guía clínica Criterium resina-clase-i v0.2. Pieza 3.6. Pasos: 9 de 9 hechos. Insumos: Resina compuesta A2 ×1, Ácido ortofosfórico 37 % ×1. Instrumental: lote L-123.');
   });
   it('detalla los pasos modificados, omitidos y que no aplican', () => {
     const pasos = pasosIniciales(DATOS);

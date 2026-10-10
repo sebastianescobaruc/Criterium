@@ -15,11 +15,11 @@ const SECCIONES = [
   ['Qué nunca guardamos', [
     'Datos que identifiquen a un paciente: nombre, RUT, teléfono, correo, ficha ni fotos con su cara. La app bloquea los textos que los traen.',
     'Tu contraseña: la maneja el sistema de cuentas de Google Firebase, nadie del equipo la ve.',
-    'El audio de la voz de los protocolos: el reconocimiento lo hace tu navegador (Chrome con Google, Safari con Apple). Criterium no graba ni guarda audio.'
+    'El audio de la voz de los procedimientos: el reconocimiento lo hace tu navegador (Chrome con Google, Safari con Apple). Criterium no graba ni guarda audio.'
   ]],
   ['Quién ve qué', [
     'Tu perfil y tus publicaciones: las personas con cuenta en Criterium.',
-    CREATIVA ? 'Un caso en revisión: tú y quienes lo revisan (docentes y el equipo Criterium), hasta que se publique.' : 'Un caso, borrador o protocolo en revisión: tú y el equipo Criterium, hasta que se apruebe.',
+    CREATIVA ? 'Un caso en revisión: tú y quienes lo revisan (docentes y el equipo Criterium), hasta que se publique.' : 'Un caso, borrador o procedimiento en revisión: tú y el equipo Criterium, hasta que se apruebe.',
     'Tus mensajes de contacto: solo el equipo Criterium.'
   ]],
   ['Dónde se guarda', [
@@ -31,7 +31,7 @@ const SECCIONES = [
     'Para borrar tu cuenta y todo lo que publicaste: «Borrar mi cuenta», al final de tu perfil. O escríbenos.'
   ]],
   ['Términos de uso', [
-    CREATIVA ? 'Criterium es una red para aprender y discutir casos. Lo que se publica no reemplaza el juicio clínico ni la indicación de tu docente.' : 'Criterium es una herramienta de estudio. Los protocolos son borradores hasta que los revisan al menos 5 expertos, y nunca reemplazan la indicación de tu docente.',
+    CREATIVA ? 'Criterium es una red para aprender y discutir casos. Lo que se publica no reemplaza el juicio clínico ni la indicación de tu docente.' : 'Criterium es una herramienta de estudio. Los procedimientos son borradores hasta que los revisan al menos 5 expertos, y nunca reemplazan la indicación de tu docente.',
     'Lo que publicas va con tu nombre y es tu responsabilidad.',
     'Respeto siempre y nunca datos de pacientes. El equipo puede quitar contenido y cerrar cuentas que no cumplan.'
   ]]

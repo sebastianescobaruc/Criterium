@@ -240,9 +240,9 @@ export function ModalCita({ inicial, cerrar }) {
           <Field label="Profesional" id="ci-p"><select id="ci-p" value={f.profesionalId} onChange={(e) => setF({ ...f, profesionalId: e.target.value })} className={inputCls}>{(clinica.profesionales || []).map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></Field>
           <Field label="Box" id="ci-b"><select id="ci-b" value={f.box} onChange={(e) => setF({ ...f, box: e.target.value })} className={inputCls}>{(clinica.boxes || []).map((b) => <option key={b}>{b}</option>)}</select></Field>
           <Field label="Duración" id="ci-d"><select id="ci-d" value={f.duracion} onChange={(e) => setF({ ...f, duracion: +e.target.value })} className={inputCls}>{DURACIONES.map((d) => <option key={d} value={d}>{d} min</option>)}</select></Field>
-          <Field label="Prestación del arancel" id="ci-pr"><select id="ci-pr" value={(clinica.arancel || []).some((a) => a.nombre === f.motivo) ? f.motivo : ''} onChange={(e) => { const a = (clinica.arancel || []).find((x) => x.nombre === e.target.value); setF({ ...f, motivo: a ? a.nombre : f.motivo, protocoloId: a && a.protocoloId && protos.some((x) => x.id === a.protocoloId) ? a.protocoloId : (a ? '' : f.protocoloId) }); }} className={inputCls}><option value="">Elige o escribe el motivo…</option>{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre}>{a.nombre}{a.protocoloId ? ' · con protocolo' : ''}</option>)}</select></Field>
+          <Field label="Prestación del arancel" id="ci-pr"><select id="ci-pr" value={(clinica.arancel || []).some((a) => a.nombre === f.motivo) ? f.motivo : ''} onChange={(e) => { const a = (clinica.arancel || []).find((x) => x.nombre === e.target.value); setF({ ...f, motivo: a ? a.nombre : f.motivo, protocoloId: a && a.protocoloId && protos.some((x) => x.id === a.protocoloId) ? a.protocoloId : (a ? '' : f.protocoloId) }); }} className={inputCls}><option value="">Elige o escribe el motivo…</option>{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre}>{a.nombre}{a.protocoloId ? ' · con procedimiento' : ''}</option>)}</select></Field>
           <Field label="Motivo" id="ci-m"><input id="ci-m" value={f.motivo} onChange={(e) => setF({ ...f, motivo: e.target.value })} placeholder="Control, urgencia, endodoncia…" className={inputCls} /></Field>
-          {protos.length > 0 && <Field label="Protocolo" id="ci-pt" hint="El odontólogo o el asistente marcan su bandeja desde la cita"><select id="ci-pt" value={f.protocoloId || ''} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} className={inputCls}><option value="">Sin protocolo</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>}
+          {protos.length > 0 && <Field label="Guía clínica" id="ci-pt" hint="El odontólogo o el asistente marcan su bandeja desde la cita"><select id="ci-pt" value={f.protocoloId || ''} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} className={inputCls}><option value="">Sin guía clínica</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>}
           <Field label="Pieza (FDI)" id="ci-pz"><input id="ci-pz" value={f.pieza || ''} onChange={(e) => setF({ ...f, pieza: e.target.value })} placeholder="Ej.: 3.6" className={inputCls} /></Field>
           {asistentes.length > 0 && <Field label="Asistente" id="ci-as"><select id="ci-as" value={(f.asistente && f.asistente.uid) || ''} onChange={(e) => { const x = asistentes.find((y) => y.uid === e.target.value); setF({ ...f, asistente: x || null }); }} className={inputCls}><option value="">Sin asistente</option>{asistentes.map((x) => <option key={x.uid} value={x.uid}>{x.nombre}</option>)}</select></Field>}
         </div>
@@ -289,7 +289,7 @@ function DetalleCita({ c, cerrar, abrirFicha }) {
         <div className="mt-4 rounded-[10px] border border-[color-mix(in_srgb,var(--acento)_30%,transparent)] bg-acentosoft px-3.5 py-3">
           <p className="m-0 flex items-start gap-1.5 text-[13px] font-semibold text-acentodeep"><Ic n="book" s={14} className="mt-[2px]" />{proto.t || proto.corto}</p>
           <p className="m-0 mt-1 text-[12.5px] text-ink2">{c.bandeja && c.bandeja.items && c.bandeja.items.length ? `Bandeja lista: ${c.bandeja.items.length} materiales marcados por ${c.bandeja.por && c.bandeja.por.nombre}.` : 'Bandeja sin preparar.'}{c.evolucionId ? ' Evolución registrada.' : ''}</p>
-          <div className="mt-2 flex flex-wrap gap-2"><Btn sm v="primary" icon="book" onClick={() => setVerProto(true)}>Ver protocolo y bandeja</Btn>{clinico(rolClinica) && !c.evolucionId && <Btn sm icon="edit" onClick={() => setEvolucion(true)}>Registrar evolución</Btn>}</div>
+          <div className="mt-2 flex flex-wrap gap-2"><Btn sm v="primary" icon="book" onClick={() => setVerProto(true)}>Ver guía clínica y bandeja</Btn>{clinico(rolClinica) && !c.evolucionId && <Btn sm icon="edit" onClick={() => setEvolucion(true)}>Registrar evolución</Btn>}</div>
         </div>
       )}
       <p className="rotulo m-0 mb-2 mt-5">Estado</p>
@@ -508,7 +508,7 @@ function Evoluciones({ p }) {
   return (
     <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1fr_1.2fr]">
       <section className="flex flex-col gap-3 rounded-[22px] bg-card p-5 shadow-sh">
-        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Nueva evolución</p>{hayProtocolos && <Btn sm v="soft" icon="book" onClick={() => setConProtocolo(true)}>Evolución con protocolo</Btn>}</div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Nueva evolución</p>{hayProtocolos && <Btn sm v="soft" icon="book" onClick={() => setConProtocolo(true)}>Evolución con guía clínica</Btn>}</div>
         <div className="grid gap-3 sm:grid-cols-[100px_1fr]">
           <Field label="Pieza" id="ev-d"><input id="ev-d" value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} placeholder="1.6" className={inputCls} /></Field>
           <Field label="Procedimiento" id="ev-p"><input id="ev-p" list="arancel" value={f.procedimiento} onChange={(e) => setF({ ...f, procedimiento: e.target.value })} className={inputCls} /><datalist id="arancel">{(clinica.arancel || []).map((a) => <option key={a.codigo} value={a.nombre} />)}</datalist></Field>
@@ -523,7 +523,7 @@ function Evoluciones({ p }) {
         {lista === null ? <div className="h-40 animate-pulse rounded-[22px] bg-soft" /> : !lista.length ? <Vacio icon="edit" titulo="Sin evoluciones todavía" /> : lista.map((e) => (
           <article key={e.id} className="rounded-[18px] bg-card p-4 shadow-sh">
             <div className="flex flex-wrap items-baseline justify-between gap-2"><b className="text-[14.5px] text-ink">{[e.diente && 'Pieza ' + e.diente, e.procedimiento].filter(Boolean).join(' · ') || 'Evolución'}</b><span className="text-[12px] text-ink3">{new Date(e.fecha).toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' })}</span></div>
-            {e.protocolo && <p className="m-0 mt-1 flex items-start gap-1.5 rounded-md bg-acentosoft px-2 py-1 text-[12px] font-semibold text-acentodeep"><Ic n="book" s={12} className="mt-[3px]" /><span>Protocolo {e.protocolo.titulo} {versionTxt(e.protocolo.version)} · {resumenPasos(e.pasos)}</span></p>}
+            {e.protocolo && <p className="m-0 mt-1 flex items-start gap-1.5 rounded-md bg-acentosoft px-2 py-1 text-[12px] font-semibold text-acentodeep"><Ic n="book" s={12} className="mt-[3px]" /><span>Guía clínica: {e.protocolo.titulo} {versionTxt(e.protocolo.version)} · {resumenPasos(e.pasos)}</span></p>}
             <p className="m-0 mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-ink2">{e.nota}</p>
             {e.protocolo && (
               <details className="mt-2 rounded-[8px] border border-[var(--cl-line-2)] px-3 py-2 text-[13px]">
@@ -531,7 +531,7 @@ function Evoluciones({ p }) {
                 <ol className="m-0 mt-2 flex list-none flex-col gap-1 p-0">{(e.pasos || []).map((x) => <li key={x.i} className="flex gap-2"><span className="w-6 flex-none text-right tabular-nums text-ink3">{x.i + 1}.</span><span className="min-w-0 flex-1 text-ink">{x.corto}{x.nota ? <span className="block text-[12px] text-ink3">{x.nota}</span> : null}</span><span className={cx('flex-none text-[12px] font-semibold', { hecho: 'text-ok', modificado: 'text-warn', omitido: 'text-bad' }[x.estado] || 'text-ink3')}>{(ESTADOS_PASO_EVOL.find((s) => s.v === x.estado) || {}).t || x.estado}</span></li>)}</ol>
                 {(e.bandeja || []).length > 0 && <p className="m-0 mt-2 text-[12.5px] text-ink2"><b>Bandeja:</b> {e.bandeja.join(', ')}</p>}
                 <p className="m-0 mt-1 text-[12.5px] text-ink2"><b>Insumos:</b> {(e.insumos || []).length ? e.insumos.map((x) => `${x.nombre} ×${x.cantidad}`).join(', ') : 'no se registraron'}</p>
-                {e.protocolo.sha256 && <p className="m-0 mt-1 text-[11px] text-ink3">Texto del protocolo usado: {versionTxt(e.protocolo.version)} · huella {String(e.protocolo.sha256).slice(0, 12)}…</p>}
+                {e.protocolo.sha256 && <p className="m-0 mt-1 text-[11px] text-ink3">Texto del procedimiento usado: {versionTxt(e.protocolo.version)} · huella {String(e.protocolo.sha256).slice(0, 12)}…</p>}
               </details>
             )}
             <p className="m-0 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold"><span className="inline-flex items-center gap-1.5 text-ok"><Ic n="check" s={13} />Firmada por {e.profesional && e.profesional.nombre}</span>{e.lote && <span className="text-ink3">Instrumental: {e.lote}</span>}</p>
@@ -564,21 +564,21 @@ function PanelProtocoloCita({ cita, cerrar, registrar }) {
     catch (e) { avisar('No se pudo guardar la bandeja.', 'warn'); }
     setGuardando(false);
   };
-  if (!datos) return <PanelLateral titulo="Protocolo" cerrar={cerrar}><Vacio icon="book" titulo="Este protocolo no está disponible para tu cuenta" /></PanelLateral>;
+  if (!datos) return <PanelLateral titulo="Guía clínica" cerrar={cerrar}><Vacio icon="book" titulo="Esta guía clínica no está disponible para tu cuenta" /></PanelLateral>;
   const unido = (m) => { const u = mapa[m]; const it = u && inventario.find((y) => y.id === u.insumoId); return it ? `${it.nombre} ×${u.cantidad}` : ''; };
   return (
     <PanelLateral ancho={720} titulo={datos.titulo} cerrar={cerrar}
-      pie={<>{tab === 'bandeja' && puede && <Btn v="primary" icon="check" disabled={!cambiado || guardando} onClick={guardar}>{guardando ? 'Guardando…' : 'Guardar bandeja'}</Btn>}{clinico(rolClinica) && !cita.evolucionId && registrar && <Btn icon="edit" onClick={registrar}>Registrar evolución</Btn>}<Btn v="ghost" onClick={() => abrirProto(cita.protocoloId)}>Abrir el protocolo completo</Btn></>}>
+      pie={<>{tab === 'bandeja' && puede && <Btn v="primary" icon="check" disabled={!cambiado || guardando} onClick={guardar}>{guardando ? 'Guardando…' : 'Guardar bandeja'}</Btn>}{clinico(rolClinica) && !cita.evolucionId && registrar && <Btn icon="edit" onClick={registrar}>Registrar evolución</Btn>}<Btn v="ghost" onClick={() => abrirProto(cita.protocoloId)}>Abrir la guía clínica completa</Btn></>}>
       <div className="flex flex-col gap-4">
         <div className="rounded-[10px] border border-[var(--cl-line)] px-3.5 py-2.5 text-[13px] text-ink2">
           <b className="text-ink">{cita.pacienteNombre}</b> · {fechaLarga(cita.fecha)} · {cita.hora}{cita.pieza ? ' · pieza ' + cita.pieza : ''}<br />
-          {(profDe(clinica, cita.profesionalId) || {}).nombre || 'Profesional'}{cita.asistente ? ' · asistente ' + cita.asistente.nombre : ''}{meta.version ? ' · protocolo ' + versionTxt(meta.version) : ''}
+          {(profDe(clinica, cita.profesionalId) || {}).nombre || 'Profesional'}{cita.asistente ? ' · asistente ' + cita.asistente.nombre : ''}{meta.version ? ' · procedimiento ' + versionTxt(meta.version) : ''}
         </div>
         <Pestanas items={[['bandeja', 'Bandeja', marcados.length], ['pasos', 'Pasos', 0]]} valor={tab} onChange={setTab} />
         {tab === 'bandeja' && (<>
           {!puede && <p className="m-0 rounded-[8px] bg-[var(--cl-line-2)] px-3 py-2 text-[12.5px] text-ink2">Solo el odontólogo y el asistente de esta cita pueden marcar la bandeja.</p>}
           {cita.bandeja && cita.bandeja.por && <p className="m-0 text-[12px] text-ink3">Última vez marcada por {cita.bandeja.por.nombre} · {new Date(cita.bandeja.fecha).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>}
-          {!items.length ? <p className="m-0 text-[13px] text-ink3">Este protocolo no trae bandeja.</p> : (datos.bandeja || []).map((f, k) => (
+          {!items.length ? <p className="m-0 text-[13px] text-ink3">Este procedimiento no trae bandeja.</p> : (datos.bandeja || []).map((f, k) => (
             <section key={k} className="flex flex-col gap-1">
               <p className="rotulo m-0">{f.fase}</p>
               {(f.items || []).map((m) => (
@@ -655,7 +655,7 @@ function EvolucionProtocolo({ pacienteId, pacienteNombre, inicial = {}, cita, ce
   const libres = inventario.filter((x) => !insumos.some((y) => y.insumoId === x.id)).sort((a, b) => a.nombre.localeCompare(b.nombre));
   const firmar = async () => {
     if (enviando.current) return;
-    if (!pid || !datos) { setErr('Elige el protocolo.'); return; }
+    if (!pid || !datos) { setErr('Elige el procedimiento.'); return; }
     if (faltan.length) { setErr(`Falta la nota del paso ${faltan.map((x) => x.i + 1).join(', ')}: los pasos modificados u omitidos piden una nota corta.`); return; }
     if (nota.trim().length < 5) { setErr('Escribe la evolución.'); return; }
     enviando.current = true; setGuardando(true); setErr('');
@@ -672,13 +672,13 @@ function EvolucionProtocolo({ pacienteId, pacienteNombre, inicial = {}, cita, ce
   };
   const bandeja = (datos && datos.bandeja) || [];
   return (
-    <PanelLateral ancho={760} titulo={'Evolución con protocolo · ' + pacienteNombre} cerrar={() => { if (!guardando) cerrar(); }}
+    <PanelLateral ancho={760} titulo={'Evolución con guía clínica · ' + pacienteNombre} cerrar={() => { if (!guardando) cerrar(); }}
       pie={<><Btn v="primary" icon="check" disabled={guardando || !pid} onClick={firmar}>{guardando ? 'Firmando…' : 'Firmar evolución'}</Btn><Btn disabled={guardando} onClick={cerrar}>Cancelar</Btn><span className="self-center text-[12px] text-ink3">Queda a tu nombre y no se puede editar ni borrar.</span></>}>
       <div className="flex flex-col gap-5">
         {cita && <p className="m-0 rounded-[8px] bg-[var(--cl-line-2)] px-3 py-2 text-[12.5px] text-ink2">Desde la cita del {fechaLarga(cita.fecha)} a las {cita.hora}. Al firmar, la cita queda como atendida.</p>}
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Procedimiento" id="ep-proc" className="sm:col-span-2"><input id="ep-proc" list="arancel-ep" value={procedimiento} onChange={(e) => cambiarProcedimiento(e.target.value)} placeholder="Del arancel o escrito" className={inputCls} /><datalist id="arancel-ep">{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre} />)}</datalist></Field>
-          <Field label="Protocolo" id="ep-p" className="sm:col-span-2"><select id="ep-p" value={pid} onChange={(e) => elegir(e.target.value)} className={inputCls}><option value="">Elige un protocolo…</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>
+          <Field label="Guía clínica" id="ep-p" className="sm:col-span-2"><select id="ep-p" value={pid} onChange={(e) => elegir(e.target.value)} className={inputCls}><option value="">Elige una guía clínica…</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>
           <Field label="Pieza (FDI)" id="ep-d"><input id="ep-d" value={diente} onChange={(e) => setDiente(e.target.value)} placeholder="3.6" className={inputCls} /></Field>
           <Field label="Lote de esterilización" id="ep-l"><select id="ep-l" value={lote} onChange={(e) => setLote(e.target.value)} className={inputCls}><option value="">Sin registrar</option>{ciclos.map((c) => <option key={c.id} value={c.lote || ('Ciclo ' + c.ciclo)}>{(c.lote || 'Ciclo ' + c.ciclo) + ' · ' + c.equipo}</option>)}</select></Field>
         </div>
@@ -709,7 +709,7 @@ function EvolucionProtocolo({ pacienteId, pacienteNombre, inicial = {}, cita, ce
           )}
           <section className="flex flex-col gap-2">
             <p className="rotulo m-0">Insumos usados</p>
-            {!insumos.length && <p className="m-0 text-[13px] text-ink3">{(clinica.consumos || {})[pid] || Object.keys(mapaDe(pid)).length ? 'Sin insumos.' : 'Este protocolo aún no tiene consumo definido en Ajustes › Consumo por protocolo.'}</p>}
+            {!insumos.length && <p className="m-0 text-[13px] text-ink3">{(clinica.consumos || {})[pid] || Object.keys(mapaDe(pid)).length ? 'Sin insumos.' : 'Este procedimiento aún no tiene consumo definido en Ajustes › Consumo por procedimiento.'}</p>}
             {insumos.map((x) => (
               <div key={x.insumoId} className="flex items-center gap-2 text-[13.5px]">
                 <span className="min-w-0 flex-1 truncate text-ink">{x.nombre}</span>

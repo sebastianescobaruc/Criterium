@@ -60,8 +60,13 @@ export async function grabarVideo({ escenas: ESCENAS, salida, area = 'clinica', 
   console.log('· narración:', ESCENAS.reduce((s, e) => s + e.dur, 0).toFixed(1), 's');
 
   // 2. Entrar (sin grabar)
-  const b = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--hide-scrollbars'] });
+  // Micrófono de prueba en silencio (el de Chrome emite un pitido que el reconocimiento toma como órdenes)
+  const silencio = join(TMP, 'silencio.wav');
+  if (!existsSync(silencio)) execFileSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-t', '30', silencio], { stdio: 'ignore' });
+  const b = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--hide-scrollbars', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--use-file-for-fake-audio-capture=' + silencio, '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage();
+  // Sin pantalla completa al grabar (cambia el tamaño de la página y recorta la imagen): la app sigue como en el iPhone
+  await p.evaluateOnNewDocument(() => { try { Element.prototype.requestFullscreen = undefined; Element.prototype.webkitRequestFullscreen = undefined; } catch (e) {} });
   await p.setViewport({ width: 1600, height: 900, deviceScaleFactor: 1.2 });
   await p.goto(URL_SITIO, { waitUntil: 'networkidle2' }); await esperar(2500);
   await p.evaluate(() => { const el = [...document.querySelectorAll('button,a')].find((x) => x.textContent.trim() === 'Entrar'); el && el.click(); }); await esperar(1200);
@@ -91,6 +96,29 @@ export async function grabarVideo({ escenas: ESCENAS, salida, area = 'clinica', 
     async tecla(t) { await p.evaluate((t) => window.__v.tecla(t), t); },
     async portada(t, x) { await p.evaluate((t, x) => window.__v.portada(t, x), t, x); },
     async quitarPortada() { await p.evaluate(() => window.__v.quitarPortada()); await esperar(700); },
+    // Un botón dentro de la clase de Materia (iframe): baja hasta él dentro de la clase, mueve el cursor y lo toca
+    async clicIframe(texto) {
+      const h = await p.$('main iframe'); const fr = h && await h.contentFrame(); if (!fr) { console.log('  (no hay clase abierta)'); return; }
+      const hay = await fr.evaluate((t) => { const el = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith(t)); if (!el) return false; window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 160, behavior: 'smooth' }); return true; }, texto);
+      if (!hay) { console.log('  (no encontré «' + texto + '» en la clase)'); return; }
+      await esperar(800);
+      const pos = await fr.evaluate((t) => { const r = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith(t)).getBoundingClientRect(); return { x: r.left + Math.min(r.width / 2, 90), y: r.top + r.height / 2 }; }, texto);
+      const caja = await h.boundingBox();
+      await this.mover({ x: caja.x + pos.x, y: caja.y + pos.y });
+      await p.evaluate(() => window.__v.toca());
+      await fr.evaluate((t) => { [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith(t)).click(); }, texto);
+      await esperar(1100);
+    },
+    // El botón (por su texto) de la tarjeta que contiene un título
+    async clicEn(titulo, boton) {
+      const pos = await p.evaluate((titulo, boton) => {
+        const tit = [...document.querySelectorAll('main *')].filter((x) => x.children.length === 0 && x.textContent.includes(titulo))[0]; if (!tit) return null;
+        let n = tit; while (n && n !== document.body) { const bt = [...n.querySelectorAll('button,a')].find((x) => x.textContent.trim() === boton); if (bt) { bt.scrollIntoView({ block: 'center' }); window.__vt = bt; const r = bt.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; } n = n.parentElement; }
+        return null;
+      }, titulo, boton);
+      if (!pos) { console.log('  (no encontré «' + boton + '» de «' + titulo + '»)'); return; }
+      await this.mover(pos); await p.evaluate(() => { window.__v.toca(); window.__vt.click(); }); await esperar(1000);
+    },
     // Barra lateral de Universidad (íconos con aria-label); al acercar el cursor se despliega con los nombres
     async rail(t) { const pos = await p.evaluate((t) => { const el = [...document.querySelectorAll('aside button')].find((x) => x.offsetParent && (x.getAttribute('aria-label') === t || x.textContent.trim() === t || x.textContent.trim().endsWith(t))); if (!el) return null; window.__vt = el; const r = el.getBoundingClientRect(); return { x: r.left + 34, y: r.top + r.height / 2 }; }, t); if (!pos) { console.log('  (no encontré «' + t + '» en la barra)'); return; } await p.mouse.move(pos.x, pos.y); await this.mover(pos); await p.evaluate(() => { window.__v.toca(); window.__vt.click(); }); await esperar(700); await p.mouse.move(1500, 450); await esperar(900); await p.evaluate(() => window.scrollTo(0, 0)); }
   };
@@ -108,7 +136,7 @@ export async function grabarVideo({ escenas: ESCENAS, salida, area = 'clinica', 
     escrituras.push(import('node:fs/promises').then((fs) => fs.writeFile(f, Buffer.from(data, 'base64'))));
     cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
   });
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 70, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
   await esperar(400);
   await p.evaluate(() => { const d = document.createElement('i'); d.id = 'v-latido'; d.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;pointer-events:none'; document.body.appendChild(d); setInterval(() => { d.style.opacity = d.style.opacity === '0.01' ? '0.02' : '0.01'; }, 500); });
   const t0 = Date.now();

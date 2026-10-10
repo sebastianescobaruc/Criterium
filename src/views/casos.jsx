@@ -65,7 +65,7 @@ function TarjetaCaso({ c }) {
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-1.5"><EstadoPill estado={c.estado} /><Pill>{c.dientes || 'sin diente'}</Pill></div>
         <h3 className="m-0 text-[15.5px] font-bold leading-snug text-deep">{c.titulo || 'Caso sin título'}</h3>
-        <p className="m-0 line-clamp-2 text-[13px] leading-normal text-ink2">{proto ? proto.titulo : 'Sin protocolo de la biblioteca'}</p>
+        <p className="m-0 line-clamp-2 text-[13px] leading-normal text-ink2">{proto ? proto.titulo : 'Sin procedimiento de la biblioteca'}</p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2 text-[11.5px] text-ink3">
           <span>{prox ? 'Control ' + fechaCorta(prox + 'T12:00:00') : 'Actualizado ' + hace(c.actualizado)}</span>
           {(c.estado === 'borrador' || c.estado === 'cambios') && ch.bloqueaEnvio.length > 0 && <span className="font-semibold text-warn">{ch.bloqueaEnvio.length} pendiente{ch.bloqueaEnvio.length > 1 ? 's' : ''}</span>}
@@ -88,7 +88,7 @@ export function CasosLista() {
   return (
     <div className="flex flex-col gap-6">
       <PageHead eyebrow="Criterium · casos clínicos" titulo="Mis casos" acciones={<Btn v="primary" icon="plus" onClick={() => nuevoCaso()}>Nuevo caso</Btn>}>
-        Registra lo que haces en el box, compáralo paso a paso con el protocolo y envíalo a revisión. Las fotos se guardan completas, sin recortes.
+        Registra lo que haces en el box, compáralo paso a paso con el procedimiento y envíalo a revisión. Las fotos se guardan completas, sin recortes.
       </PageHead>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <Seg className="-mx-4 flex-nowrap overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" valor={filtroCasos} onChange={setFiltroCasos} opciones={[
@@ -103,7 +103,7 @@ export function CasosLista() {
       {lista.length === 0 ? (
         <Vacio titulo={mios.length ? 'Ningún caso coincide' : 'Todavía no registras casos'}
           accion={<Btn v="primary" icon="plus" onClick={() => nuevoCaso()}>Nuevo caso</Btn>}>
-          {mios.length ? 'Prueba con otro filtro o con otra búsqueda.' : 'Un caso junta los datos del paciente sin identificarlo, las fotos y cómo seguiste el protocolo.'}
+          {mios.length ? 'Prueba con otro filtro o con otra búsqueda.' : 'Un caso junta los datos del paciente sin identificarlo, las fotos y cómo seguiste el procedimiento.'}
         </Vacio>
       ) : <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">{lista.map((c) => <TarjetaCaso key={c.id} c={c} />)}</div>}
       {hayEjemplos && (
@@ -234,9 +234,9 @@ export function CasoEditor() {
         </section>
 
         <section className="flex flex-col gap-4">
-          <Field label="Protocolo que seguiste" id="caso-proto" hint="El revisor compara tu caso contra los pasos y la evidencia de este protocolo.">
+          <Field label="Procedimiento que seguiste" id="caso-proto" hint="El revisor compara tu caso contra los pasos y la evidencia de este procedimiento.">
             <select id="caso-proto" value={c.protocoloId} onChange={(e) => { const v = e.target.value; setC((x) => ({ ...x, protocoloId: v, pasos: {} })); }} className={inputCls}>
-              <option value="">Sin protocolo de la biblioteca</option>
+              <option value="">Sin procedimiento de la biblioteca</option>
               {protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
             </select>
           </Field>
@@ -279,8 +279,8 @@ export function CasoEditor() {
             </div>
           )}
           <Field label={d ? 'Evidencia adicional (opcional)' : 'Evidencia en que te apoyas'} id="caso-ev"
-            error={!d && mostrar((c.evidencia || '').trim().length < 20) ? 'Sin protocolo, tienes que declarar la evidencia: guía, revisión o estudio, con autor y año.' : ''}
-            hint={d ? 'Si tomaste una decisión fuera del protocolo, pon aquí la referencia.' : 'Autor, año y tipo de estudio. El revisor lo comprueba.'}>
+            error={!d && mostrar((c.evidencia || '').trim().length < 20) ? 'Sin procedimiento, tienes que declarar la evidencia: guía, revisión o estudio, con autor y año.' : ''}
+            hint={d ? 'Si tomaste una decisión fuera del procedimiento, pon aquí la referencia.' : 'Autor, año y tipo de estudio. El revisor lo comprueba.'}>
             <textarea id="caso-ev" rows={3} value={c.evidencia} onChange={(e) => set('evidencia', e.target.value)} placeholder="Ej.: Guía EFP S3 de periodontitis estadio I–III, 2020." className={cx(inputCls, 'resize-y leading-relaxed')} />
           </Field>
         </section>
@@ -327,7 +327,7 @@ export function CasoEditor() {
 export function Adherencia({ c }) {
   const d = c.protocoloId ? DATOS[c.protocoloId] : null;
   const { abrirProto } = useApp();
-  if (!d) return <p className="m-0 text-[13.5px] text-ink2">Este caso no se apoya en un protocolo de la biblioteca.</p>;
+  if (!d) return <p className="m-0 text-[13.5px] text-ink2">Este caso no se apoya en un procedimiento de la biblioteca.</p>;
   const cuenta = {}; d.pasos.forEach((s, i) => { const e = ((c.pasos || {})[i] || {}).estado || 'pendiente'; cuenta[e] = (cuenta[e] || 0) + 1; });
   return (
     <div className="tarjeta">
@@ -483,7 +483,7 @@ export function CasoDetalle() {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 rotulo">Adherencia al protocolo</h2>
+          <h2 className="m-0 rotulo">Adherencia al procedimiento</h2>
           <Adherencia c={c} />
           {c.evidencia && <div className="rounded-r bg-soft p-4"><h3 className="m-0 mb-1.5 text-[12px] font-bold text-ink2">Evidencia declarada por el autor</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink">{c.evidencia}</p></div>}
         </section>

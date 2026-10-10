@@ -11,7 +11,6 @@ export const TRAMOS_DEF = {
 export const RONDAS = 2;                          // siempre 2 rondas de panel
 export const PANEL = { protocolo: 5, materia: 3 }; // revisores necesarios por ronda
 export const UMBRAL = 0.8;                         // un paso se aprueba si ≥ 80 % pone 4 o 5 en los tres criterios
-export const CICLO_MESES = 3;                      // plazo para cumplir el compromiso
 export const CRITERIOS = [['pertinencia', 'Pertinencia'], ['claridad', 'Claridad'], ['respaldo', 'Respaldo en la evidencia']];
 export const ESTADOS_BORRADOR = [
   { v: 'borrador', t: 'Borrador' },
@@ -61,31 +60,30 @@ export function completados(revisiones, tipo) {
 }
 
 const mesDe = (iso) => String(iso || '').slice(0, 7);
-const sumarMes = (ym, n) => { const [a, m] = ym.split('-').map(Number); const d = new Date(Date.UTC(a, m - 1 + n, 1)); return d.toISOString().slice(0, 7); };
 
-// Avance del ciclo de 3 meses (compromiso mensual con margen acumulado):
-// cada mes se paga el fijo del tramo cuando lo acumulado del ciclo alcanza tramo × meses; lo que sobra queda para el ciclo
-// siguiente; bajo el mínimo no hay pago parcial. hoy: 'AAAA-MM-DD'.
-export function avanceTramo({ tipo, n, cicloInicio, revisiones, hoy, config }) {
-  const monto = montoTramo(tipo, n, config);
-  const inicio = mesDe(cicloInicio || hoy);
-  const meses = Array.from({ length: CICLO_MESES }, (_, k) => sumarMes(inicio, k));
-  const fin = sumarMes(inicio, CICLO_MESES);
-  const hechos = completados(revisiones, tipo).filter((c) => mesDe(c.fecha) >= inicio && mesDe(c.fecha) < fin);
-  const mesActual = mesDe(hoy);
-  const idx = Math.max(0, Math.min(CICLO_MESES - 1, meses.indexOf(mesActual) < 0 ? (mesActual >= fin ? CICLO_MESES - 1 : 0) : meses.indexOf(mesActual)));
-  const porMes = meses.map((m) => hechos.filter((c) => mesDe(c.fecha) === m).length);
-  const acumulado = hechos.length;
-  const pagados = n > 0 ? Math.min(CICLO_MESES, Math.floor(acumulado / n)) : 0;
-  const finCiclo = new Date(fin + '-01T12:00:00Z');
-  const diasRestantes = Math.max(0, Math.ceil((finCiclo - new Date(hoy + 'T12:00:00Z')) / 864e5));
-  const metaMes = n * (idx + 1);
-  return {
-    tipo, n, monto, meses, porMes, acumulado, meta: n * CICLO_MESES, mesIndice: idx,
-    hechosEsteMes: porMes[idx] || 0, faltanParaEsteMes: Math.max(0, metaMes - acumulado),
-    mesesPagados: pagados, pagoAcumulado: pagados * monto, pagoMaximo: CICLO_MESES * monto,
-    excedente: Math.max(0, acumulado - n * CICLO_MESES), diasRestantes, alDia: acumulado >= metaMes
-  };
+// Pago del mes (sin ciclos): si completas tu tramo, cobras su fijo; si no llegas, cobras justo los que revisaste, a la
+// tarifa del tramo más alto que alcanzaste (ej.: comprometido a 10, revisaste 7 → 7 × la tarifa del tramo de 5). Lo que
+// pasa de tu tramo se paga a la tarifa de tu tramo. Bajo el mínimo (el tramo más bajo) no se paga.
+export function pagoMes({ tipo, n, hechos, config }) {
+  const ts = tramos(tipo, config);
+  const tarifa = (t) => (t ? t.monto / t.n : 0);
+  const minimo = ts.length ? ts[0].n : 0;
+  const comprometido = ts.find((t) => t.n === n);
+  if (!hechos || hechos < minimo) return { monto: 0, cumplido: false, tarifa: 0, tramoAlcanzado: 0 };
+  if (comprometido && hechos >= comprometido.n) return { monto: Math.round(comprometido.monto + (hechos - comprometido.n) * tarifa(comprometido)), cumplido: true, tarifa: tarifa(comprometido), tramoAlcanzado: comprometido.n };
+  const alcanzado = ts.filter((t) => t.n <= hechos && (!comprometido || t.n <= comprometido.n)).pop();
+  return { monto: Math.round(hechos * tarifa(alcanzado)), cumplido: false, tarifa: tarifa(alcanzado), tramoAlcanzado: alcanzado ? alcanzado.n : 0 };
+}
+
+// Avance del mes en curso para «Mi tramo». hoy: 'AAAA-MM-DD'
+export function avanceMes({ tipo, n, revisiones, hoy, config }) {
+  const mes = mesDe(hoy);
+  const hechos = completados(revisiones, tipo).filter((c) => mesDe(c.fecha) === mes).length;
+  const [a, m] = mes.split('-').map(Number);
+  const finMes = new Date(Date.UTC(a, m, 1, 12));
+  const diasRestantes = Math.max(0, Math.ceil((finMes - new Date(hoy + 'T12:00:00Z')) / 864e5));
+  const pago = pagoMes({ tipo, n, hechos, config });
+  return { tipo, n, hechos, faltan: Math.max(0, n - hechos), diasRestantes, montoTramo: montoTramo(tipo, n, config), minimo: (tramos(tipo, config)[0] || {}).n || 0, ...pago };
 }
 
 // Visibilidad de un borrador: solo especialistas verificados (revisores), docentes, el equipo y su autor

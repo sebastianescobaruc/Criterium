@@ -174,12 +174,12 @@ export function Inicio() {
     <div className="flex flex-col gap-10 pb-8">
       <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12 pt-4">
         <div className="min-w-0">
-          <p className="rotulo m-0 mb-4">Biblioteca viva de protocolos</p>
+          <p className="rotulo m-0 mb-4">Biblioteca viva de procedimientos</p>
           <h1 className="m-0 mb-4 text-[36px] font-extrabold leading-[1.08] tracking-[-.03em] text-deep sm:text-[42px] xl:text-[48px] [text-wrap:balance]">
-            Protocolos clínicos con <span className="text-acento">la evidencia a la vista</span>.
+            Procedimientos clínicos con <span className="text-acento">la evidencia a la vista</span>.
           </h1>
           <p className="m-0 mb-8 max-w-[54ch] text-[16px] leading-relaxed text-ink2 sm:text-[18px]">
-            Qué hacer, por qué, y dónde todavía no se sabe. Registra tus casos, compáralos con el protocolo y somételos a revisión especializada.
+            Qué hacer, por qué, y dónde todavía no se sabe. Registra tus casos, compáralos con el procedimiento y somételos a revisión especializada.
           </p>
           <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }}
             className="flex max-w-[560px] items-center gap-2.5 rounded-full border border-line bg-card py-2 pl-5 pr-2 shadow-sh focus-within:border-acento focus-within:shadow-shlg transition-shadow">
@@ -196,7 +196,7 @@ export function Inicio() {
       </section>
 
       <section>
-        <p className="rotulo m-0 mb-2">Cómo está hecho cada protocolo</p>
+        <p className="rotulo m-0 mb-2">Cómo está hecho cada procedimiento</p>
         <h2 className="m-0 mb-5 text-[24px] font-extrabold leading-tight tracking-[-.025em] text-deep sm:text-[28px]">Cada paso dice qué hacer, cuándo terminaste y en qué evidencia se apoya.</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {CAPAS.map(([t, d, ic], k) => (
@@ -210,7 +210,7 @@ export function Inicio() {
       </section>
 
       <section>
-        <p className="rotulo m-0 mb-2">Cómo se produce un protocolo</p>
+        <p className="rotulo m-0 mb-2">Cómo se produce un procedimiento</p>
         <h2 className="m-0 mb-5 text-[24px] font-extrabold leading-tight tracking-[-.025em] text-deep sm:text-[28px]">La IA trabaja en la producción, no en la entrega.</h2>
         <ol className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {PRODUCCION.map(([t, d, ia], k) => (
@@ -230,7 +230,7 @@ export function Inicio() {
 
       <section>
         <div className="mb-5 flex items-end justify-between gap-4 border-b border-cardline pb-3">
-          <h2 className="m-0 text-[18px] font-bold text-deep">Protocolos recomendados</h2>
+          <h2 className="m-0 text-[18px] font-bold text-deep">Procedimientos recomendados</h2>
           <button type="button" onClick={() => go('biblioteca')} className="text-[13px] font-semibold text-acentodeep hover:underline">Ver biblioteca →</button>
         </div>
         {res.length === 0 ? (
@@ -246,8 +246,8 @@ export function Inicio() {
       
       <section className="grid items-center gap-6 rounded-[26px] bg-band px-6 py-8 sm:px-10 sm:py-10 md:grid-cols-[minmax(0,1.3fr)_auto]">
         <div>
-          <h2 className="m-0 mb-3 text-[26px] font-extrabold leading-[1.1] tracking-[-.03em] text-white [text-wrap:balance] sm:text-[32px]">Ningún protocolo está validado todavía.</h2>
-          <p className="m-0 max-w-[62ch] font-serif text-[16px] leading-relaxed text-[#D5E3E8] sm:text-[17px]">Cada protocolo pasará por un juicio de expertos: al menos 5 especialistas del área puntúan cada paso de 1 a 5 en pertinencia, claridad y respaldo de la evidencia, en hasta dos rondas. Un paso queda aprobado si el 80 % o más le pone 4 o 5. Si no hay acuerdo, se publica marcado «sin acuerdo experto» o se elimina.</p>
+          <h2 className="m-0 mb-3 text-[26px] font-extrabold leading-[1.1] tracking-[-.03em] text-white [text-wrap:balance] sm:text-[32px]">Ningún procedimiento está validado todavía.</h2>
+          <p className="m-0 max-w-[62ch] font-serif text-[16px] leading-relaxed text-[#D5E3E8] sm:text-[17px]">Cada procedimiento pasará por un juicio de expertos: al menos 5 especialistas del área puntúan cada paso de 1 a 5 en pertinencia, claridad y respaldo de la evidencia, en hasta dos rondas. Un paso queda aprobado si el 80 % o más le pone 4 o 5. Si no hay acuerdo, se publica marcado «sin acuerdo experto» o se elimina.</p>
         </div>
         <button type="button" onClick={() => go('postular')} className="justify-self-start rounded-full bg-[#F6F8F9] px-6 py-3 text-[14.5px] font-bold text-[#1B3949] hover:bg-white">Revisar casos clínicos</button>
       </section>
@@ -279,28 +279,28 @@ export function Biblioteca() {
   if (enEstudio && piloto.part.grupo === 'habitual') return (
     <div className="flex flex-col gap-6">
       <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
-      <Vacio icon="clock" titulo={'Los protocolos se abren el ' + fechaTxt(piloto.apertura)}>
-        Participas en un estudio de Criterium. Mientras dure, tu grupo trabaja como siempre, sin los protocolos. Ese día se abren para ti. Gracias por ser parte.
+      <Vacio icon="clock" titulo={'Los procedimientos se abren el ' + fechaTxt(piloto.apertura)}>
+        Participas en un estudio de Criterium. Mientras dure, tu grupo trabaja como siempre, sin los procedimientos. Ese día se abren para ti. Gracias por ser parte.
       </Vacio>
     </div>
   );
   if (!PROTOS.length) return (
     <div className="flex flex-col gap-6">
       <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
-      <Vacio icon="book" titulo="No pudimos cargar los protocolos">Revisa tu conexión y vuelve a entrar.</Vacio>
+      <Vacio icon="book" titulo="No pudimos cargar los procedimientos">Revisa tu conexión y vuelve a entrar.</Vacio>
     </div>
   );
   return (
     <div className="flex flex-col gap-6">
       <h1 className="m-0 text-[30px] font-bold tracking-[-.03em] text-deep sm:text-[36px]">Biblioteca</h1>
-      {enEstudio && <p className="suave m-0 rounded-rs px-4 py-3 text-[13.5px] leading-snug text-ink2"><b className="text-ink">Participas en un estudio de Criterium.</b> Mientras dure, ves los {PROTOS.length} protocolos del estudio. El resto se abre el {fechaTxt(piloto.apertura)}.</p>}
+      {enEstudio && <p className="suave m-0 rounded-rs px-4 py-3 text-[13.5px] leading-snug text-ink2"><b className="text-ink">Participas en un estudio de Criterium.</b> Mientras dure, ves los {PROTOS.length} procedimientos del estudio. El resto se abre el {fechaTxt(piloto.apertura)}.</p>}
       <div className="flex flex-col gap-3">
         <label className="flex max-w-[520px] items-center gap-2.5 rounded-full border border-line bg-card px-4 focus-within:border-acento md:hidden">
           <Ic n="search" s={16} className="text-ink3" />
-          <input id="busqueda-biblioteca" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="cementar, tallar, exodoncia del 1.8…" aria-label="Buscar un protocolo"
+          <input id="busqueda-biblioteca" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="cementar, tallar, exodoncia del 1.8…" aria-label="Buscar un procedimiento"
             className="min-w-0 flex-1 bg-transparent py-2.5 text-[14px] text-ink outline-none placeholder:text-ink3" />
         </label>
-        <div className="flex flex-wrap items-center gap-2"><ChipsEsp /><span className="ml-auto text-[13px] tabular-nums text-ink3">{res.length === 1 ? '1 protocolo' : res.length + ' protocolos'}</span></div>
+        <div className="flex flex-wrap items-center gap-2"><ChipsEsp /><span className="ml-auto text-[13px] tabular-nums text-ink3">{res.length === 1 ? '1 procedimiento' : res.length + ' protocolos'}</span></div>
       </div>
       {grupos.length === 0 && <p className="m-0 text-[14px] text-ink2">Nada coincide con “{q}”.</p>}
       {grupos.map((g) => (
@@ -431,8 +431,8 @@ export function FlujoPublicacion({ d, compacto = false }) {
   const etapas = [
     { t: 'Borrador', s: 'Lo redactó ' + f.autor + ' con el master prompt de Criterium.', ok: true },
     { t: 'Revisión de expertos', s: f.revisores + ' de ' + f.minimo + ' revisores. Cada experto corrige y comenta paso a paso.', actual: true },
-    { t: 'Filtro final', s: 'Se incorporan las correcciones y los comentarios que mejoran el protocolo.' },
-    { t: 'Publicado', s: 'Recién ahí el protocolo queda como versión revisada por expertos.' }
+    { t: 'Filtro final', s: 'Se incorporan las correcciones y los comentarios que mejoran el procedimiento.' },
+    { t: 'Publicado', s: 'Recién ahí el procedimiento queda como versión revisada por expertos.' }
   ];
   if (compacto) return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-rs bg-warnsoft px-4 py-3 text-[12.5px] font-semibold text-warn">
@@ -468,7 +468,7 @@ export function FlujoPublicacion({ d, compacto = false }) {
       <div className="flex flex-col gap-3 border-t border-line2 bg-soft px-5 py-4 sm:flex-row sm:items-center sm:px-6">
         <div className="min-w-0 flex-1">
           <b className="block text-[14.5px] text-deep">Se buscan revisores · {d.esp}</b>
-          <span className="block text-[13px] leading-snug text-ink2">Trabajo remoto, en cualquier momento libre. Revisas el protocolo paso a paso, corriges y comentas. Con un mínimo de {f.minimo} revisores pasa al filtro final y se publica.</span>
+          <span className="block text-[13px] leading-snug text-ink2">Trabajo remoto, en cualquier momento libre. Revisas el procedimiento paso a paso, corriges y comentas. Con un mínimo de {f.minimo} revisores pasa al filtro final y se publica.</span>
         </div>
         <Btn v="primary" sm onClick={() => go('postular')}>Postular como revisor</Btn>
       </div>
@@ -666,7 +666,7 @@ export function Protocolo() {
   // Puede no estar: el protocolo no existe o no está disponible para esta cuenta (modo piloto)
   if (!DATOS[protoId]) return (
     <div className="mx-auto max-w-[620px] pt-6">
-      <Vacio icon="book" titulo="Este protocolo no está disponible" accion={<Btn v="primary" onClick={() => go('biblioteca')}>Ir a la Biblioteca</Btn>}>No existe o tu cuenta todavía no tiene acceso a él.</Vacio>
+      <Vacio icon="book" titulo="Este procedimiento no está disponible" accion={<Btn v="primary" onClick={() => go('biblioteca')}>Ir a la Biblioteca</Btn>}>No existe o tu cuenta todavía no tiene acceso a él.</Vacio>
     </div>
   );
   const val = DATOS[protoId].validadoPor;
@@ -713,12 +713,12 @@ function VistaProtocolo() {
   const lado = (
     <>
       <div className="flex flex-col gap-2">
-        {esDocente && <Btn v="primary" icon="plus" onClick={() => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp })}>Registrar un caso con este protocolo</Btn>}
+        {esDocente && <Btn v="primary" icon="plus" onClick={() => nuevoCaso({ protocoloId: id, especialidad: d.esp === 'Cirugía bucal' ? 'Cirugía bucal' : d.esp })}>Registrar un caso con este procedimiento</Btn>}
         {d.pdf && <Btn icon="download" onClick={bajarPdfProto} disabled={bajando}>{bajando ? 'Preparando…' : 'Descargar el PDF de box'}</Btn>}
       </div>
       {esDocente && casosDeEste.length > 0 && (
         <div className="tarjeta p-4">
-          <h2 className="m-0 mb-2 rotulo">Tus casos con este protocolo</h2>
+          <h2 className="m-0 mb-2 rotulo">Tus casos con este procedimiento</h2>
           {casosDeEste.map((c) => (
             <button key={c.id} type="button" onClick={() => abrirCaso(c.id)} className="flex w-full items-center justify-between gap-2 border-t border-line2 py-2 text-left text-[13px] text-ink2 first:border-0 hover:text-ink">
               <span className="min-w-0 truncate">{c.dientes} · {c.titulo}</span><EstadoPill estado={c.estado} />
@@ -764,7 +764,7 @@ function VistaProtocolo() {
         <Aviso className="mb-5 !text-[12px]">{d.bandera}</Aviso>
         <FlujoPublicacion d={d} />
         <header className="border-b border-line pb-5">
-          <p className="rotulo m-0 mb-3">{d.esp} · Protocolo</p>
+          <p className="rotulo m-0 mb-3">{d.esp} · Procedimiento</p>
           <h1 className="m-0 mb-3.5 text-[27px] font-extrabold leading-[1.12] tracking-[-.03em] text-deep [text-wrap:balance] sm:text-[34px]">{d.titulo}</h1>
           <div className="mb-4 flex flex-wrap gap-1.5">{d.tags.map((t) => <Pill key={t}>{t}</Pill>)}</div>
           {aprobadores.length > 0 && (
@@ -809,8 +809,8 @@ function VistaProtocolo() {
         <section className="mt-8">
           <Pill tono="warn" className="mb-3">Sin validar · comentarios de la comunidad</Pill>
           <h2 className="m-0 mb-2 text-[22px] font-extrabold tracking-[-.025em] text-deep">Comenta cada paso</h2>
-          <p className="m-0 mb-4 max-w-[66ch] font-serif text-[15px] leading-relaxed text-ink2">Cada paso tiene su botón «Comentar», al lado de las fuentes. Marca «Corrección» si propones cambiarlo. Los comentarios no pasan por el validador ni por el panel: sirven para mejorar el protocolo, no para decidir un tratamiento.</p>
-          <Btn icon="chat" onClick={() => go('feed', { feedProto: id })}>Preguntar en el feed sobre este protocolo</Btn>
+          <p className="m-0 mb-4 max-w-[66ch] font-serif text-[15px] leading-relaxed text-ink2">Cada paso tiene su botón «Comentar», al lado de las fuentes. Marca «Corrección» si propones cambiarlo. Los comentarios no pasan por el validador ni por el panel: sirven para mejorar el procedimiento, no para decidir un tratamiento.</p>
+          <Btn icon="chat" onClick={() => go('feed', { feedProto: id })}>Preguntar en el feed sobre este procedimiento</Btn>
           <p className="m-0 mt-5 max-w-[72ch] text-[12px] leading-relaxed text-ink3">{d.nota}</p>
         </section>
       </div>

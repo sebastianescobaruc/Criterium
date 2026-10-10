@@ -39,8 +39,8 @@ const TIPOS = {
   pregunta: { t: 'Pregunta', ic: 'pregunta', tono: 'acento' },
   discusion: { t: 'Plan de tratamiento', ic: 'personas', tono: 'acento' },
   caso: { t: 'Caso clínico', ic: 'folder', tono: 'acento' },
-  borrador: { t: 'Borrador de protocolo', ic: 'edit', tono: 'warn' },
-  protocolo: { t: 'Protocolo', ic: 'book', tono: 'ok' },
+  borrador: { t: 'Borrador de procedimiento', ic: 'edit', tono: 'warn' },
+  protocolo: { t: 'Procedimiento', ic: 'book', tono: 'ok' },
   reel: { t: 'Reel', ic: 'video', tono: 'acento' }
 };
 const tipoDe = (p) => (TIPOS[p.tipo] ? p.tipo : 'publicacion');
@@ -158,7 +158,7 @@ export function Bienvenida({ editar = false, cerrar }) {
     </>,
     <>
       <h2 className="titulo-bv">¿Qué te interesa?</h2>
-      <p className="sub-bv">{CREATIVA ? 'Elige tus áreas. Tu inicio y las sugerencias de a quién seguir se ordenan según esto.' : 'Elige tus áreas. Tu inicio, las sugerencias de a quién seguir y los protocolos se ordenan según esto.'}</p>
+      <p className="sub-bv">{CREATIVA ? 'Elige tus áreas. Tu inicio y las sugerencias de a quién seguir se ordenan según esto.' : 'Elige tus áreas. Tu inicio, las sugerencias de a quién seguir y los procedimientos se ordenan según esto.'}</p>
       <p className="m-0 mb-2 text-[13px] font-semibold text-ink2">Áreas clínicas</p>
       <div className="flex flex-wrap gap-2">{INTERESES.map((a) => chip(f.intereses.includes(a), () => marca('intereses', a), a))}</div>
       <p className="m-0 mb-2 mt-5 text-[13px] font-semibold text-ink2">Temas</p>
@@ -301,7 +301,7 @@ function Crear() {
           </button>
         ); })}
       </div>
-      {moderado && <p className="m-0 mt-2.5 flex items-start gap-2 rounded-rs bg-warnsoft px-3 py-2 text-[12.5px] font-semibold leading-snug text-warn"><Ic n="stamp" s={15} className="mt-[1px]" />Pasa por el filtro del equipo Criterium antes de aparecer en el feed{tipo !== 'caso' ? '. Los protocolos se publican después de la revisión de al menos 5 expertos.' : '.'}</p>}
+      {moderado && <p className="m-0 mt-2.5 flex items-start gap-2 rounded-rs bg-warnsoft px-3 py-2 text-[12.5px] font-semibold leading-snug text-warn"><Ic n="stamp" s={15} className="mt-[1px]" />Pasa por el filtro del equipo Criterium antes de aparecer en el feed{tipo !== 'caso' ? '. Los procedimientos se publican después de la revisión de al menos 5 expertos.' : '.'}</p>}
       {tipo === 'discusion' && <p className="m-0 mt-2.5 text-[13px] leading-snug text-ink3">Cuenta el caso y propone los planes que estás considerando. La comunidad vota y explica por qué.</p>}
       {esReel && reel && (
         <div className="mt-3 flex gap-3 rounded-[18px] bg-soft p-3">
@@ -314,9 +314,9 @@ function Crear() {
         </div>
       )}
       <div className="mt-3 flex flex-col gap-3">
-        {conTitulo && <input value={f.titulo} onChange={(e) => { setF({ ...f, titulo: e.target.value }); setErr(''); }} aria-label="Título" placeholder={tipo === 'caso' ? 'Título del caso: qué se hizo y en qué diente' : tipo === 'discusion' ? 'El caso en una línea: ej. molar con lesión de furca grado II' : 'Título del protocolo'} className="w-full bg-transparent text-[18px] font-bold text-ink outline-none placeholder:text-ink3" />}
+        {conTitulo && <input value={f.titulo} onChange={(e) => { setF({ ...f, titulo: e.target.value }); setErr(''); }} aria-label="Título" placeholder={tipo === 'caso' ? 'Título del caso: qué se hizo y en qué diente' : tipo === 'discusion' ? 'El caso en una línea: ej. molar con lesión de furca grado II' : 'Título del procedimiento'} className="w-full bg-transparent text-[18px] font-bold text-ink outline-none placeholder:text-ink3" />}
         <textarea autoFocus value={f.txt} onChange={(e) => { setF({ ...f, txt: e.target.value }); setErr(''); }} rows={4} aria-label="Texto"
-          placeholder={{ publicacion: '¿Qué quieres compartir?', pregunta: '¿Qué te pasó en el box? Di en qué paso y qué dudas tienes.', discusion: 'Edad, motivo de consulta, hallazgos, diagnóstico y qué te hace dudar. Sin datos del paciente.', caso: 'Diagnóstico, qué hiciste y cómo resultó. Sin datos del paciente.', borrador: 'De qué trata el borrador, qué cubre y qué fuentes usaste.', protocolo: 'Resumen del protocolo: para qué caso es y qué cubre.' }[tipo]}
+          placeholder={{ publicacion: '¿Qué quieres compartir?', pregunta: '¿Qué te pasó en el box? Di en qué paso y qué dudas tienes.', discusion: 'Edad, motivo de consulta, hallazgos, diagnóstico y qué te hace dudar. Sin datos del paciente.', caso: 'Diagnóstico, qué hiciste y cómo resultó. Sin datos del paciente.', borrador: 'De qué trata el borrador, qué cubre y qué fuentes usaste.', protocolo: 'Resumen del procedimiento: para qué caso es y qué cubre.' }[tipo]}
           className="w-full resize-y bg-transparent text-[15px] leading-relaxed text-ink outline-none placeholder:text-ink3" />
         {tipo === 'discusion' && (
           <div className="flex flex-col gap-2">
@@ -352,7 +352,7 @@ function Crear() {
           {esReel && <select value={f.procedimiento} onChange={(e) => setF({ ...f, procedimiento: e.target.value })} aria-label="Procedimiento" className="rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Procedimiento</option>{PROCEDIMIENTOS.map(([g, l]) => <optgroup key={g} label={g}>{l.map((x) => <option key={x}>{x}</option>)}</optgroup>)}</select>}
           {clinico && <input value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} aria-label="Diente (FDI)" placeholder="Diente FDI, ej. 3.6" className="w-[150px] rounded-full bg-soft px-3 py-1.5 text-[13px] text-ink2 outline-none" />}
           {!CREATIVA && !['borrador', 'protocolo', 'reel'].includes(tipo) && (
-            <select value={f.protocoloId} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} aria-label="Protocolo relacionado" className="max-w-[260px] rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Protocolo relacionado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}</select>
+            <select value={f.protocoloId} onChange={(e) => setF({ ...f, protocoloId: e.target.value })} aria-label="Procedimiento relacionado" className="max-w-[260px] rounded-full border-0 bg-soft py-1.5 pl-3 pr-8 text-[13px] font-semibold text-ink2"><option value="">Procedimiento relacionado</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}</select>
           )}
         </div>
         {medios && <EspacioMedios caso={clinico} />}
@@ -656,7 +656,7 @@ function ASeguir({ horizontal = false }) {
 /* ═════════ FEED ═════════ */
 const PESTANAS = CREATIVA
   ? [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['reel', 'Reels'], ['caso', 'Casos'], ['discusion', 'Planes de tratamiento'], ['pregunta', 'Preguntas']]
-  : [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['reel', 'Reels'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Protocolos']];
+  : [['para-ti', 'Para ti'], ['siguiendo', 'Siguiendo'], ['reel', 'Reels'], ['pregunta', 'Preguntas'], ['caso', 'Casos'], ['protocolos', 'Procedimientos']];
 // Caso de la semana: lo destaca un docente o el equipo; se muestra 7 días, el más reciente
 const SEMANA = 7 * 864e5;
 function CasoSemana({ p }) {
@@ -808,7 +808,7 @@ export function PerfilPublico() {
   const oficial = pf.tipo === 'oficial';
   const publicados = posts.filter((p) => (p.estado || 'publicado') === 'publicado');
   const TABS = [['todo', 'Publicaciones', publicados], ['caso', 'Casos', publicados.filter((p) => tipoDe(p) === 'caso')],
-    CREATIVA ? ['discusion', 'Planes de tratamiento', publicados.filter((p) => tipoDe(p) === 'discusion')] : ['protocolos', 'Protocolos y borradores', publicados.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)))],
+    CREATIVA ? ['discusion', 'Planes de tratamiento', publicados.filter((p) => tipoDe(p) === 'discusion')] : ['protocolos', 'Procedimientos y borradores', publicados.filter((p) => ['borrador', 'protocolo'].includes(tipoDe(p)))],
     ...(yo ? [['revision', 'En revisión', pendientes]] : [])];
   const actual = TABS.find((t) => t[0] === tab) || TABS[0];
   const comp = completitud(pf);
@@ -911,7 +911,7 @@ export function Moderacion() {
   if (!esAdmin) return <Vacio icon="stamp" titulo="Solo para el equipo Criterium">Esta sección la usa el equipo que revisa lo que se publica.</Vacio>;
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-5">
-      <PageHead eyebrow="Equipo Criterium" titulo="Filtro de publicación">Casos clínicos, borradores y protocolos que esperan revisión antes de aparecer en el feed. Revisa que no traigan datos de pacientes, que sean pertinentes y que no indiquen algo peligroso.</PageHead>
+      <PageHead eyebrow="Equipo Criterium" titulo="Filtro de publicación">Casos clínicos, borradores y procedimientos que esperan revisión antes de aparecer en el feed. Revisa que no traigan datos de pacientes, que sean pertinentes y que no indiquen algo peligroso.</PageHead>
       {cola.length === 0 ? <Vacio icon="check" titulo="Nada pendiente">Todo lo enviado ya está revisado.</Vacio> : cola.map((p) => (
         <div key={p.id} className="flex flex-col gap-2.5">
           <Publicacion p={{ ...p, estado: 'revision' }} pendiente />

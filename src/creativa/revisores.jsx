@@ -6,13 +6,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../ctx.js';
 import { useMateria } from '../db.js';
 import { useRevisorVerificado, useConfigRevisores, useBorradores, useBorrador, useRevisionesBorrador, useMisRevisiones, useTramo, crearBorradorFS, guardarBorradorFS, borrarBorradorFS, enviarARevisionFS, enviarRevisionPanelFS, guardarTramoFS, cerrarRondaFS, publicarBorradorFS } from '../revisores-db.js';
-import { TRAMOS_DEF, RONDAS, PANEL, UMBRAL, CICLO_MESES, CRITERIOS, ESTADOS_BORRADOR, estadoBorrador, clp, tramos, consenso, validarRevision, itemsRevision, avanceTramo, puedeRevisar } from '../revisores.js';
+import { TRAMOS_DEF, RONDAS, PANEL, UMBRAL, CRITERIOS, ESTADOS_BORRADOR, estadoBorrador, clp, tramos, consenso, validarRevision, itemsRevision, avanceMes, puedeRevisar } from '../revisores.js';
 import { Ic, Btn, Field, Vacio, Seg, Avatar, inputCls, cx } from '../ui.jsx';
 
 export const ESPECIALIDADES_REV = ['Rehabilitación oral', 'Operatoria y cariología', 'Endodoncia', 'Periodoncia', 'Cirugía', 'Odontopediatría', 'Ortodoncia', 'Radiología', 'Patología oral', 'Trastornos temporomandibulares'];
 const hoyISO = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
 const fechaCorta = (s) => new Date(s).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
-const TIPO = { protocolo: 'Protocolo', materia: 'Materia', caso: 'Caso clínico' };
+const TIPO = { protocolo: 'Procedimiento', materia: 'Materia', caso: 'Caso clínico' };
 
 // Quién soy frente a los borradores (lo mismo que validan las reglas)
 function usePermisos() {
@@ -44,7 +44,7 @@ export function Revisores() {
       <header>
         <p className="rotulo m-0">Universidad</p>
         <h1 className="m-0 mt-1 text-[28px] font-bold tracking-[-.025em] text-deep sm:text-[32px]">Revisores</h1>
-        <p className="m-0 mt-1 max-w-[70ch] text-[14.5px] leading-relaxed text-ink2">Especialistas de cualquier lugar validan, en panel y a su ritmo, los borradores de protocolos, de materia y los casos clínicos. Nada se publica sin su consenso.</p>
+        <p className="m-0 mt-1 max-w-[70ch] text-[14.5px] leading-relaxed text-ink2">Especialistas de cualquier lugar validan, en panel y a su ritmo, los borradores de procedimientos, de materia y los casos clínicos. Nada se publica sin su consenso.</p>
       </header>
       <TabsRevisores />
       {tab === 'cola' && (p.veTodo ? <Cola p={p} /> : <ComoFunciona p={p} />)}
@@ -67,7 +67,7 @@ function Cola({ p }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Seg size="sm" valor={tipo} onChange={setTipo} opciones={[{ v: 'todos', t: 'Todo' }, { v: 'protocolo', t: 'Protocolos' }, { v: 'materia', t: 'Materia' }, { v: 'caso', t: 'Casos clínicos' }]} />
+        <Seg size="sm" valor={tipo} onChange={setTipo} opciones={[{ v: 'todos', t: 'Todo' }, { v: 'protocolo', t: 'Procedimientos' }, { v: 'materia', t: 'Materia' }, { v: 'caso', t: 'Casos clínicos' }]} />
         <select value={esp} onChange={(e) => setEsp(e.target.value)} aria-label="Especialidad" className={cx(inputCls, 'max-w-[260px] !py-1.5 text-[13px]')}>
           {p.especialidades.length > 0 && <option value="mias">Mis especialidades ({p.especialidades.join(', ')})</option>}
           <option value="todas">Todas las especialidades</option>
@@ -103,34 +103,30 @@ function EstadoPastilla({ estado }) {
   return <span className={cx('rounded-full px-2.5 py-1 text-[11.5px] font-bold', cls)}>{estadoBorrador(estado).t}</span>;
 }
 
-/* ── Mi tramo: tramo elegido, avance del ciclo de 3 meses, plazo y pago estimado ── */
+/* ── Mi tramo: tramo elegido, avance del mes, días que quedan y pago estimado (pago mensual, sin ciclos) ── */
 function MiTramo({ p }) {
   const { avisar } = useApp();
   const config = useConfigRevisores();
   const tramo = useTramo(p.uid, true);
   const mias = useMisRevisiones(p.uid, true);
   const hoy = hoyISO();
-  const inicioMes = hoy.slice(0, 8) + '01';
   const [edit, setEdit] = useState(null);
   if (tramo === undefined || mias === null) return <div className="h-40 animate-pulse rounded-[22px] bg-soft" />;
-  const t = tramo || { protocolo: 0, materia: 0, cicloInicio: inicioMes };
+  const t = tramo || { protocolo: 0, materia: 0 };
   const guardar = async () => {
-    try { await guardarTramoFS(p.uid, { protocolo: +edit.protocolo, materia: +edit.materia, cicloInicio: tramo && tramo.cicloInicio && (+edit.protocolo === t.protocolo && +edit.materia === t.materia) ? t.cicloInicio : inicioMes }); setEdit(null); avisar('Tramo guardado: el ciclo de 3 meses parte este mes'); }
+    try { await guardarTramoFS(p.uid, { protocolo: +edit.protocolo, materia: +edit.materia }); setEdit(null); avisar('Tramo guardado'); }
     catch (e) { avisar('No se pudo guardar el tramo.', 'warn'); }
   };
   const tarjeta = (tipo, titulo, unidad) => {
     const n = t[tipo] || 0;
-    const a = avanceTramo({ tipo, n, cicloInicio: t.cicloInicio, revisiones: (mias || []).map((r) => ({ ...r, fecha: r.fecha.slice(0, 10) })), hoy, config });
+    const a = avanceMes({ tipo, n, revisiones: (mias || []).map((r) => ({ ...r, fecha: r.fecha.slice(0, 10) })), hoy, config });
     return (
       <section className="flex flex-col gap-3 rounded-[22px] bg-card p-5 shadow-sh">
-        <div className="flex items-baseline justify-between gap-2"><p className="rotulo m-0">{titulo}</p><b className="text-[13px] text-ink2">{n ? `Tramo ${n} al mes · ${clp(a.monto)}` : 'Sin tramo'}</b></div>
+        <div className="flex items-baseline justify-between gap-2"><p className="rotulo m-0">{titulo}</p><b className="text-[13px] text-ink2">{n ? `Tramo ${n} al mes · ${clp(a.montoTramo)}` : 'Sin tramo'}</b></div>
         {!n ? <p className="m-0 text-[13.5px] text-ink2">Sin tramo pagado. Igual puedes revisar como voluntario y recibir tu certificado.</p> : (<>
-          <div className="flex items-end justify-between gap-3"><b className="text-[34px] font-extrabold leading-none tabular-nums text-deep">{a.acumulado}<span className="text-[16px] font-semibold text-ink3"> / {a.meta}</span></b><span className="text-right text-[12.5px] text-ink3">{unidad} completados en el ciclo<br />{a.diasRestantes} días para cerrar el ciclo</span></div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-soft"><span className="block h-full rounded-full bg-acento" style={{ width: Math.min(100, (a.acumulado / Math.max(1, a.meta)) * 100) + '%' }} /></div>
-          <div className="grid grid-cols-3 gap-2 text-[12.5px]">
-            {a.meses.map((m, k) => <div key={m} className={cx('rounded-[12px] px-2.5 py-2', k < a.mesesPagados ? 'bg-oksoft text-ok' : k === a.mesIndice ? 'bg-warnsoft text-warn' : 'bg-soft text-ink3')}><b className="block capitalize">{new Date(m + '-15').toLocaleDateString('es-CL', { month: 'long' })}</b>{k < a.mesesPagados ? 'Pagado' : k === a.mesIndice ? `${a.faltanParaEsteMes} por hacer` : 'Pendiente'}</div>)}
-          </div>
-          <p className="m-0 text-[13.5px] text-ink2">Pago estimado del ciclo: <b className="text-ink">{clp(a.pagoAcumulado)}</b> de {clp(a.pagoMaximo)}.{a.excedente > 0 ? ` Llevas ${a.excedente} de más: quedan para el próximo ciclo.` : ''}</p>
+          <div className="flex items-end justify-between gap-3"><b className="text-[34px] font-extrabold leading-none tabular-nums text-deep">{a.hechos}<span className="text-[16px] font-semibold text-ink3"> / {n}</span></b><span className="text-right text-[12.5px] text-ink3">{unidad} completados este mes<br />{a.diasRestantes} días para cerrar el mes</span></div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-soft"><span className={cx('block h-full rounded-full', a.cumplido ? 'bg-ok' : 'bg-acento')} style={{ width: Math.min(100, (a.hechos / Math.max(1, n)) * 100) + '%' }} /></div>
+          <p className="m-0 text-[13.5px] text-ink2">Pago estimado de este mes: <b className="text-ink">{clp(a.monto)}</b>{a.cumplido ? ' · tramo cumplido.' : a.hechos < a.minimo ? ` · desde ${a.minimo} ${unidad} se paga.` : ` · si completas los ${n}, cobras ${clp(a.montoTramo)}.`}</p>
         </>)}
       </section>
     );
@@ -138,17 +134,16 @@ function MiTramo({ p }) {
   const tabla = (tipo) => tramos(tipo, config);
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 [&>*]:min-w-0 md:grid-cols-2">{tarjeta('protocolo', 'Protocolos', 'protocolos')}{tarjeta('materia', 'Materia', 'materiales')}</div>
+      <div className="grid gap-4 [&>*]:min-w-0 md:grid-cols-2">{tarjeta('protocolo', 'Procedimientos', 'procedimientos')}{tarjeta('materia', 'Materia', 'materiales')}</div>
       <section className="flex flex-col gap-3 rounded-[22px] bg-card p-5 shadow-sh">
-        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Tu compromiso</p>{!edit && <Btn sm icon="edit" onClick={() => setEdit({ protocolo: t.protocolo || 0, materia: t.materia || 0 })}>Cambiar tramo</Btn>}</div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Tu compromiso del mes</p>{!edit && <Btn sm icon="edit" onClick={() => setEdit({ protocolo: t.protocolo || 0, materia: t.materia || 0 })}>Cambiar tramo</Btn>}</div>
         {edit ? (<>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Protocolos al mes" id="tr-p"><select id="tr-p" value={edit.protocolo} onChange={(e) => setEdit({ ...edit, protocolo: e.target.value })} className={inputCls}><option value={0}>Sin tramo (voluntario)</option>{tabla('protocolo').map((x) => <option key={x.n} value={x.n}>{x.n} al mes · {clp(x.monto)}</option>)}</select></Field>
+            <Field label="Procedimientos al mes" id="tr-p"><select id="tr-p" value={edit.protocolo} onChange={(e) => setEdit({ ...edit, protocolo: e.target.value })} className={inputCls}><option value={0}>Sin tramo (voluntario)</option>{tabla('protocolo').map((x) => <option key={x.n} value={x.n}>{x.n} al mes · {clp(x.monto)}</option>)}</select></Field>
             <Field label="Materiales al mes" id="tr-m"><select id="tr-m" value={edit.materia} onChange={(e) => setEdit({ ...edit, materia: e.target.value })} className={inputCls}><option value={0}>Sin tramo (voluntario)</option>{tabla('materia').map((x) => <option key={x.n} value={x.n}>{x.n} al mes · {clp(x.monto)}</option>)}</select></Field>
           </div>
-          <p className="m-0 text-[12.5px] text-ink3">Al cambiar de tramo parte un ciclo nuevo de {CICLO_MESES} meses desde este mes.</p>
           <div className="flex gap-2"><Btn v="primary" onClick={guardar}>Guardar</Btn><Btn onClick={() => setEdit(null)}>Cancelar</Btn></div>
-        </>) : <p className="m-0 text-[13.5px] text-ink2">Ciclo desde {new Date((t.cicloInicio || inicioMes) + 'T12:00:00').toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}. Cada mes que alcanzas tu tramo se paga el fijo; si un mes no llegas, lo que hiciste se acumula y lo puedes completar dentro del ciclo. Bajo el mínimo no hay pago parcial.</p>}
+        </>) : <p className="m-0 text-[13.5px] text-ink2">Se paga por mes. Si completas tu tramo, cobras su monto fijo. Si no llegas, cobras justo los que revisaste, a la tarifa del tramo que alcanzaste. Bajo el mínimo no se paga.</p>}
       </section>
     </div>
   );
@@ -161,10 +156,10 @@ function MisBorradores({ p }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-2">
-        <Btn v="primary" icon="plus" onClick={() => editarBorrador({ tipo: 'protocolo' })}>Subir borrador de protocolo</Btn>
+        <Btn v="primary" icon="plus" onClick={() => editarBorrador({ tipo: 'protocolo' })}>Subir borrador de procedimiento</Btn>
         {(p.esRevisorVerificado || p.esDocente) && <Btn icon="plus" onClick={() => editarBorrador({ tipo: 'materia' })}>Subir borrador de materia</Btn>}
       </div>
-      <p className="m-0 text-[13px] text-ink2">Un borrador de protocolo lo puede subir cualquier estudiante, dentista o especialista que haya hecho ese procedimiento. La materia la suben especialistas y docentes. Lo ven solo los especialistas y docentes hasta que el panel lo apruebe.</p>
+      <p className="m-0 text-[13px] text-ink2">Un borrador de procedimiento lo puede subir cualquier estudiante, dentista o especialista que haya hecho ese procedimiento. La materia la suben especialistas y docentes. Lo ven solo los especialistas y docentes hasta que el panel lo apruebe.</p>
       {mios === null ? <div className="h-32 animate-pulse rounded-[22px] bg-soft" /> : !mios.length ? <Vacio icon="folder" titulo="Todavía no subes borradores" /> : mios.map((b) => (
         <button key={b.id} type="button" onClick={() => abrirBorrador(b.id)} className="flex flex-wrap items-center gap-3 rounded-[18px] bg-card px-4 py-3 text-left shadow-sh hover:bg-soft">
           <span className="rounded-full bg-acentosoft px-2.5 py-1 text-[11.5px] font-bold text-acentodeep">{TIPO[b.tipo]}</span>
@@ -180,30 +175,30 @@ function MisBorradores({ p }) {
 function ComoFunciona({ p }) {
   const { go } = useApp();
   const config = useConfigRevisores();
-  const PERM = [['Subir un borrador de protocolo', 'Estudiantes, dentistas y especialistas que hayan hecho ese procedimiento'], ['Subir un borrador de materia', 'Especialistas y docentes'], ['Ver los borradores', 'Solo especialistas y docentes verificados'], ['Revisar, corregir y validar', 'Revisores verificados de la especialidad (nunca el autor)'], ['Ver lo publicado', 'Estudiantes y profesionales suscritos, clínicas e investigaciones que contratan Criterium']];
+  const PERM = [['Subir un borrador de procedimiento', 'Estudiantes, dentistas y especialistas que hayan hecho ese procedimiento'], ['Subir un borrador de materia', 'Especialistas y docentes'], ['Ver los borradores', 'Solo especialistas y docentes verificados'], ['Revisar, corregir y validar', 'Revisores verificados de la especialidad (nunca el autor)'], ['Ver lo publicado', 'Estudiantes y profesionales suscritos, clínicas e investigaciones que contratan Criterium']];
   return (
     <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-3 rounded-[22px] bg-card p-5 shadow-sh">
         <p className="rotulo m-0">El camino de un borrador</p>
         <ol className="m-0 grid list-none gap-2 p-0 sm:grid-cols-4">{ESTADOS_BORRADOR.map((e, k) => <li key={e.v} className="rounded-[14px] bg-soft px-3 py-3"><b className="block text-[22px] font-extrabold text-acento">{k + 1}</b><b className="block text-[14px] text-ink">{e.t}</b><span className="text-[12.5px] text-ink2">{['Lo sube quien hizo el procedimiento.', `Ronda 1: el panel puntúa cada paso.`, 'El autor corrige y va a la ronda 2.', 'Con consenso, el equipo lo publica.'][k]}</span></li>)}</ol>
-        <p className="m-0 text-[13px] text-ink2">Panel de {PANEL.protocolo} especialistas por protocolo y {PANEL.materia} por material. Siempre {RONDAS} rondas. Un paso se aprueba si al menos el {Math.round(UMBRAL * 100)} % pone 4 o 5 en pertinencia, claridad y respaldo. Las rondas pueden ser a distancia o en vivo.</p>
+        <p className="m-0 text-[13px] text-ink2">Panel de {PANEL.protocolo} especialistas por procedimiento y {PANEL.materia} por material. Siempre {RONDAS} rondas. Un paso se aprueba si al menos el {Math.round(UMBRAL * 100)} % pone 4 o 5 en pertinencia, claridad y respaldo. Las rondas pueden ser a distancia o en vivo.</p>
       </section>
       <section className="overflow-hidden rounded-[22px] bg-card shadow-sh">
         <p className="rotulo m-0 px-5 pb-2 pt-4">Quién puede hacer qué</p>
         {PERM.map(([a, q]) => <div key={a} className="grid gap-1 border-t border-line2 px-5 py-2.5 text-[13.5px] sm:grid-cols-[1fr_1.4fr]"><b className="text-ink">{a}</b><span className="text-ink2">{q}</span></div>)}
       </section>
       <section className="grid gap-4 [&>*]:min-w-0 md:grid-cols-2">
-        {[['protocolo', 'Protocolos al mes', 'Cada protocolo son 2 rondas (60 a 90 min en total).'], ['materia', 'Materiales al mes', 'Cada material toma unos 240 min.']].map(([tipo, t, nota]) => (
+        {[['protocolo', 'Procedimientos al mes', 'Cada procedimiento son 2 rondas (60 a 90 min en total).'], ['materia', 'Materiales al mes', 'Cada material toma unos 240 min.']].map(([tipo, t, nota]) => (
           <div key={tipo} className="flex flex-col gap-2 rounded-[22px] bg-card p-5 shadow-sh">
             <p className="rotulo m-0">Tramos · {t}</p>
             {tramos(tipo, config).map((x) => <div key={x.n} className="flex justify-between border-b border-line2 py-1.5 text-[14px] last:border-0"><span className="text-ink2">{x.n} al mes</span><b className="tabular-nums text-ink">{clp(x.monto)} / mes</b></div>)}
-            <p className="m-0 text-[12px] text-ink3">{nota} Bajo el mínimo no se paga. Plazo para cumplir: ciclo de {CICLO_MESES} meses.</p>
+            <p className="m-0 text-[12px] text-ink3">{nota} Se paga por mes: si no completas el tramo, cobras justo los que revisaste. Bajo el mínimo no se paga.</p>
           </div>
         ))}
       </section>
       <section className="flex flex-col gap-2 rounded-[22px] bg-acentosoft p-5">
         <b className="text-[15px] text-acentodeep">Además del pago</b>
-        <p className="m-0 text-[13.5px] leading-relaxed text-ink2">Tu firma en cada protocolo validado, certificado por revisión, insignia de revisor en tu perfil y ranking por especialidad.</p>
+        <p className="m-0 text-[13.5px] leading-relaxed text-ink2">Tu firma en cada procedimiento validado, certificado por revisión, insignia de revisor en tu perfil y ranking por especialidad.</p>
         {!p.veTodo && <Btn v="primary" className="self-start" onClick={() => go('contacto')}>Postular como revisor</Btn>}
         {!p.veTodo && <p className="m-0 text-[12px] text-ink3">El equipo verifica tu título de especialista o tu cargo docente antes de darte acceso.</p>}
       </section>
@@ -241,7 +236,7 @@ export function EditarBorrador() {
   });
   const validar = () => {
     if (f.titulo.trim().length < 6) return 'Escribe un título.';
-    if (tipo === 'protocolo' && !f.declaracion) return 'Para subir un protocolo tienes que haber hecho ese procedimiento.';
+    if (tipo === 'protocolo' && !f.declaracion) return 'Para subir un procedimiento tienes que haber hecho ese procedimiento.';
     if (tipo === 'protocolo' && !datos().contenido.pasos.length) return 'Agrega al menos un paso.';
     if (tipo === 'materia' && !f.html) return 'Sube el archivo HTML de la clase.';
     return '';
@@ -262,7 +257,7 @@ export function EditarBorrador() {
   return (
     <div className="mx-auto flex max-w-[900px] flex-col gap-4">
       <button type="button" onClick={() => irRevisores('mios')} className="inline-flex items-center gap-1.5 self-start rounded-full px-2.5 py-1.5 text-[13.5px] font-semibold text-acento hover:bg-soft"><Ic n="back" s={16} />Mis borradores</button>
-      <h1 className="m-0 text-[26px] font-bold tracking-[-.02em] text-deep">{borradorId ? 'Editar borrador' : tipo === 'protocolo' ? 'Subir borrador de protocolo' : 'Subir borrador de materia'}</h1>
+      <h1 className="m-0 text-[26px] font-bold tracking-[-.02em] text-deep">{borradorId ? 'Editar borrador' : tipo === 'protocolo' ? 'Subir borrador de procedimiento' : 'Subir borrador de materia'}</h1>
       {previo && previo.estado === 'correcciones' && <p className="m-0 rounded-[14px] bg-warnsoft px-4 py-3 text-[13.5px] text-warn">El panel pidió correcciones: revísalas en el borrador, corrige aquí y envíalo a la ronda 2.</p>}
       <section className="grid gap-3 rounded-[22px] bg-card p-5 shadow-sh sm:grid-cols-2">
         <Field label="Título" id="bo-t" className="sm:col-span-2"><input id="bo-t" value={f.titulo} onChange={(e) => set('titulo', e.target.value)} placeholder={tipo === 'protocolo' ? 'Ej.: Pulpotomía en molar temporal' : 'Ej.: Oclusión en prótesis total'} className={inputCls} /></Field>
@@ -324,7 +319,7 @@ export function VistaBorrador() {
         <p className="m-0 flex items-center gap-2 text-[13px] text-ink2"><Avatar nombre={b.autor.nombre} size={26} />Subido por {b.autor.nombre}{b.autor.rol ? ' · ' + b.autor.rol : ''}{b.declaracion ? ' · declara haber hecho el procedimiento' : ''}</p>
         <ol className="m-0 flex list-none flex-wrap gap-1.5 p-0">{ESTADOS_BORRADOR.map((e) => { const orden = ESTADOS_BORRADOR.findIndex((x) => x.v === b.estado), k = ESTADOS_BORRADOR.findIndex((x) => x.v === e.v); return <li key={e.v} className={cx('rounded-full px-3 py-1 text-[12px] font-semibold', k < orden ? 'bg-oksoft text-ok' : k === orden ? 'bg-deep text-onc' : 'bg-soft text-ink3')}>{e.t}</li>; })}</ol>
         {esAutor && ['borrador', 'correcciones'].includes(b.estado) && <div className="flex flex-wrap gap-2"><Btn v="primary" icon="edit" onClick={() => editarBorrador({ id: b.id })}>{b.estado === 'correcciones' ? 'Corregir y enviar a la ronda 2' : 'Editar y enviar a revisión'}</Btn>{b.estado === 'borrador' && <Btn v="ghost" onClick={async () => { await borrarBorradorFS(b.id); avisar('Borrador eliminado'); irRevisores('mios'); }}>Eliminar</Btn>}</div>}
-        {b.estado === 'aprobado' && b.tipo === 'protocolo' && b.publicadoId && <Btn v="primary" icon="book" className="self-start" onClick={() => abrirProto(b.publicadoId)}>Ver el protocolo publicado</Btn>}
+        {b.estado === 'aprobado' && b.tipo === 'protocolo' && b.publicadoId && <Btn v="primary" icon="book" className="self-start" onClick={() => abrirProto(b.publicadoId)}>Ver el procedimiento publicado</Btn>}
       </header>
 
       {b.tipo === 'protocolo' ? (
@@ -405,7 +400,7 @@ function FormRevisionBorrador({ b }) {
       <Field label="Comentario general (mínimo 40 caracteres)" id="rv-c"><textarea id="rv-c" rows={3} value={comentario} onChange={(e) => setComentario(e.target.value)} className={inputCls} /></Field>
       {err.map((x) => <p key={x} className="m-0 text-[13px] font-semibold text-bad">{x}</p>)}
       <Btn v="primary" icon="send" className="self-start" disabled={enviando} onClick={enviar}>Enviar revisión</Btn>
-      <p className="m-0 text-[12px] text-ink3">Queda a tu nombre y no se puede editar. Tu firma aparecerá en el protocolo si se publica.</p>
+      <p className="m-0 text-[12px] text-ink3">Queda a tu nombre y no se puede editar. Tu firma aparecerá en el procedimiento si se publica.</p>
     </section>
   );
 }

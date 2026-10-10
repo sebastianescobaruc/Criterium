@@ -106,7 +106,7 @@ export function PantallaLibre({ d, cur, visto, hechos, ir, siguiente, anterior, 
 function Segmentos({ d, cur, visto, hechos, ir }) {
   const N = d.pasos.length;
   return (
-    <nav aria-label="Avance del protocolo" className="flex min-w-0 flex-1 items-center gap-[3px] sm:gap-1">
+    <nav aria-label="Avance del procedimiento" className="flex min-w-0 flex-1 items-center gap-[3px] sm:gap-1">
       {d.pasos.map((p, k) => {
         const hecho = hechos.includes(k);
         const alcanzable = k <= visto || hecho;
@@ -330,7 +330,7 @@ function CierreLibre({ d, hechos, ir, reiniciar, onRegistrar, onVerTodo }) {
   const N = d.pasos.length;
   const faltan = d.pasos.map((s, i) => ({ s, i })).filter(({ i }) => !hechos.includes(i));
   return (
-    <section aria-label="Protocolo terminado" className="flex flex-col items-center text-center">
+    <section aria-label="Procedimiento terminado" className="flex flex-col items-center text-center">
       <span className="confirma grid h-20 w-20 place-items-center rounded-full bg-acento text-onc shadow-shlg"><Ic n="check" s={38} sw={2.6} /></span>
       <h2 className="m-0 mt-6 text-[32px] font-bold leading-[1.1] tracking-[-.025em] text-deep sm:text-[42px]">Terminaste.</h2>
       <p className="m-0 mt-3 text-[17px] text-ink2">Marcaste {hechos.length} de {N} pasos.</p>
@@ -353,7 +353,7 @@ function CierreLibre({ d, hechos, ir, reiniciar, onRegistrar, onVerTodo }) {
       <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[15px] font-semibold text-acento">
         {onRegistrar && <button type="button" onClick={onRegistrar} className="hover:underline">Registrar un caso</button>}
         <button type="button" onClick={reiniciar} className="hover:underline">Empezar de nuevo</button>
-        <button type="button" onClick={onVerTodo} className="hover:underline">Ver el protocolo completo</button>
+        <button type="button" onClick={onVerTodo} className="hover:underline">Ver el procedimiento completo</button>
       </div>
     </section>
   );

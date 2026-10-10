@@ -10,7 +10,7 @@ import { Btn, Field, Modal, Aviso, inputCls, cx } from '../ui.jsx';
 import { useCitas, crearCitaFS, editarCitaFS, eliminarCitaFS, evaluarCitaFS, useDocentes, useMisSolicitudes, crearSolicitudFS } from '../db.js';
 
 const protosAbiertos = () => PROTOS.filter((p) => p.abre && DATOS[p.id]);
-const nombreProto = (id) => { const p = PROTOS.find((x) => x.id === id); return p ? p.corto || p.t : 'Protocolo'; };
+const nombreProto = (id) => { const p = PROTOS.find((x) => x.id === id); return p ? p.corto || p.t : 'Procedimiento'; };
 const DIAS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const diaLargo = (iso) => { const d = new Date(iso + 'T12:00:00'); return ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'][d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()]; };
@@ -145,9 +145,9 @@ export function Agenda() {
 
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-5">
-      <Encabezado rotulo="Mi agenda" titulo="Tus pacientes, con el protocolo de cada cita."
+      <Encabezado rotulo="Mi agenda" titulo="Tus pacientes, con el procedimiento de cada cita."
         accion={<Btn v="primary" icon="plus" onClick={() => nueva(fecha >= hoy ? fecha : hoy, '09:00')}>Agendar paciente</Btn>}>
-        Toca un horario libre para agendar. Cada cita lleva su box, el protocolo y el docente que te evalúa. Del paciente se guardan solo sus iniciales.
+        Toca un horario libre para agendar. Cada cita lleva su box, el procedimiento y el docente que te evalúa. Del paciente se guardan solo sus iniciales.
       </Encabezado>
       {!docentes.length && <Aviso tono="neutro" className="!text-[12.5px]">Todavía no hay docentes verificados en Criterium. Para agendar, tu docente tiene que estar en la lista: pídeselo al equipo de Criterium.</Aviso>}
       <BarraAgenda vista={vista} setVista={setVista} fecha={fecha} setFecha={setFecha} />
@@ -177,7 +177,7 @@ export function Agenda() {
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
-                  {sel.estado !== 'cancelada' && DATOS[sel.protocoloId] && <Btn sm v="primary" icon="book" onClick={() => abrirProto(sel.protocoloId)}>Abrir el protocolo</Btn>}
+                  {sel.estado !== 'cancelada' && DATOS[sel.protocoloId] && <Btn sm v="primary" icon="book" onClick={() => abrirProto(sel.protocoloId)}>Abrir el procedimiento</Btn>}
                   {sel.estado === 'agendada' && <Btn sm onClick={() => setForm(sel)}>Editar</Btn>}
                   {sel.estado !== 'terminada' && <Btn sm v="ghost" onClick={() => setQuitar(true)}>{sel.estado === 'cancelada' ? 'Eliminar' : 'Cancelar'}</Btn>}
                 </div>
@@ -243,9 +243,9 @@ function FormCita({ inicial, docentes, citas, onClose, onGuardar }) {
           </Field>
         </div>
         {pisa.length > 0 && <Aviso tono="warn" className="!text-[12.5px]">Ya tienes en {c.box} a las {pisa[0].hora} «{nombreProto(pisa[0].protocoloId)}». Revisa la hora o el box.</Aviso>}
-        <Field label="Protocolo a realizar" id="c-proto" error={err.protocoloId}>
+        <Field label="Procedimiento a realizar" id="c-proto" error={err.protocoloId}>
           <select id="c-proto" value={c.protocoloId} onChange={f('protocoloId')} className={inputCls}>
-            <option value="">Elige un protocolo</option>
+            <option value="">Elige un procedimiento</option>
             {protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
           </select>
         </Field>
@@ -281,7 +281,7 @@ export function Calificaciones() {
   return (
     <div className="mx-auto flex max-w-[1000px] flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-5">
-        <Encabezado rotulo="Calificaciones" titulo="Tus notas, protocolo por protocolo.">Cada nota la pone el docente que te evaluó, al marcar la T de terminado. Toca una fila para ver el comentario.</Encabezado>
+        <Encabezado rotulo="Calificaciones" titulo="Tus notas, procedimiento por procedimiento.">Cada nota la pone el docente que te evaluó, al marcar la T de terminado. Toca una fila para ver el comentario.</Encabezado>
         <div className="flex gap-6">
           <div className="text-right"><p className="m-0 text-[10.5px] font-bold uppercase tracking-[.14em] text-rotulo">Pasos bien hechos</p><p className="m-0 text-[28px] font-extrabold tabular-nums text-deep">{pctPasos === null ? '—' : pctPasos + ' %'}</p></div>
           <div className="rounded-[18px] bg-panel px-5 py-3 text-right">
@@ -291,7 +291,7 @@ export function Calificaciones() {
           </div>
         </div>
       </div>
-      {listo && !vigentes.length && <p className="m-0 text-[14px] text-ink3">Todavía no tienes notas. Agenda un paciente con un protocolo y aparecerá aquí cuando tu docente lo evalúe.</p>}
+      {listo && !vigentes.length && <p className="m-0 text-[14px] text-ink3">Todavía no tienes notas. Agenda un paciente con un procedimiento y aparecerá aquí cuando tu docente lo evalúe.</p>}
       {grupos.map((g) => {
         const prom = promedioNotas(g.filas.filter((c) => c.evaluacion).map((c) => c.evaluacion));
         return (
@@ -302,7 +302,7 @@ export function Calificaciones() {
             </div>
             <table className="w-full border-collapse text-left">
               <thead className="hidden sm:table-header-group"><tr className="text-[10.5px] font-bold uppercase tracking-[.12em] text-ink3">
-                <th className="px-5 py-2 font-bold">Protocolo</th><th className="px-3 py-2 font-bold">Fecha</th><th className="px-3 py-2 font-bold">Estado</th><th className="px-5 py-2 text-right font-bold">Nota</th>
+                <th className="px-5 py-2 font-bold">Procedimiento</th><th className="px-3 py-2 font-bold">Fecha</th><th className="px-3 py-2 font-bold">Estado</th><th className="px-5 py-2 text-right font-bold">Nota</th>
               </tr></thead>
               <tbody>
                 {g.filas.map((c) => {
@@ -324,7 +324,7 @@ export function Calificaciones() {
                           )}
                           {e && e.comentario && <p className="m-0 mt-2 border-l-2 border-menta pl-3 text-[13.5px] leading-relaxed text-ink2">{e.comentario}</p>}
                           {!e && <p className="m-0 mt-1 text-[13px] text-ink2">Todavía sin evaluar.</p>}
-                          {DATOS[c.protocoloId] && <button type="button" onClick={() => abrirProto(c.protocoloId)} className="mt-2 text-[12.5px] font-semibold text-acento hover:underline">Repasar el protocolo ›</button>}
+                          {DATOS[c.protocoloId] && <button type="button" onClick={() => abrirProto(c.protocoloId)} className="mt-2 text-[12.5px] font-semibold text-acento hover:underline">Repasar el procedimiento ›</button>}
                         </td></tr>
                       )}
                     </React.Fragment>
@@ -352,7 +352,7 @@ export function Evaluaciones() {
   const pendientes = propias.filter((c) => c.estado === 'agendada');
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
-      <Encabezado rotulo="Portal docente · evaluaciones" titulo="Marca la T y pon la nota.">Aquí están las citas en que un estudiante te eligió como docente. Al terminar el protocolo, márcalo terminado, califica de 1,0 a 7,0 y, si quieres, marca los pasos bien hechos.</Encabezado>
+      <Encabezado rotulo="Portal docente · evaluaciones" titulo="Marca la T y pon la nota.">Aquí están las citas en que un estudiante te eligió como docente. Al terminar el procedimiento, márcalo terminado, califica de 1,0 a 7,0 y, si quieres, marca los pasos bien hechos.</Encabezado>
       <div className="flex flex-wrap gap-2" role="tablist">
         {[['pendientes', 'Por evaluar · ' + pendientes.length], ['agenda', 'Agenda'], ['libro', 'Libro de notas']].map(([v, t]) => (
           <button key={v} type="button" role="tab" aria-selected={tab === v} onClick={() => setTab(v)}
@@ -450,7 +450,7 @@ function FormEvaluacion({ cita, onClose, onGuardar }) {
         <button type="button" onClick={() => setTerminado(!terminado)} aria-pressed={terminado}
           className={cx('flex items-center gap-4 rounded-[18px] p-4 text-left transition-colors', terminado ? 'bg-panel text-panelink' : 'bg-soft text-ink')}>
           <span className={cx('grid h-12 w-12 flex-none place-items-center rounded-full text-[24px] font-extrabold', terminado ? 'bg-menta text-mentaink' : 'bg-card text-ink3')}>T</span>
-          <span><b className="block text-[15px]">Terminado</b><span className={cx('text-[12.5px]', terminado ? 'text-panelink2' : 'text-ink3')}>El estudiante completó el protocolo con este paciente.</span></span>
+          <span><b className="block text-[15px]">Terminado</b><span className={cx('text-[12.5px]', terminado ? 'text-panelink2' : 'text-ink3')}>El estudiante completó el procedimiento con este paciente.</span></span>
         </button>
         <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)]">
           <Field label="Nota (1,0 a 7,0)" id="ev-nota"><input id="ev-nota" inputMode="decimal" value={nota} onChange={(e) => setNota(e.target.value)} placeholder="6,0" className={inputCls + ' text-[22px] font-extrabold'} /></Field>
@@ -499,10 +499,10 @@ export function SolicitudesProtocolo() {
     <section className="flex flex-col gap-3 border-t border-line pt-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="max-w-[60ch]">
-          <p className="rotulo m-0 mb-1">¿Falta un protocolo?</p>
+          <p className="rotulo m-0 mb-1">¿Falta un procedimiento?</p>
           <p className="m-0 text-[14.5px] leading-relaxed text-ink2">Pídelo. Criterium lo publica en un plazo máximo de <b className="text-ink">{PLAZO_SOLICITUD} días hábiles</b>.</p>
         </div>
-        <Btn v="primary" icon="plus" onClick={() => setAbierto(true)}>Solicitar un protocolo</Btn>
+        <Btn v="primary" icon="plus" onClick={() => setAbierto(true)}>Solicitar un procedimiento</Btn>
       </div>
       {mias.length > 0 && (
         <ul className="m-0 flex list-none flex-col p-0">
@@ -518,7 +518,7 @@ export function SolicitudesProtocolo() {
         </ul>
       )}
       {abierto && (
-        <Modal open onClose={cerrar} title="Solicitar un protocolo">
+        <Modal open onClose={cerrar} title="Solicitar un procedimiento">
           {listo ? (
             <div className="flex flex-col items-start gap-3 p-6">
               <span className="grid h-12 w-12 place-items-center rounded-full bg-menta text-[22px] font-extrabold text-mentaink">✓</span>

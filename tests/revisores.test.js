@@ -1,6 +1,6 @@
 // Revisores: consenso del panel, validación de la revisión, protocolos completados y avance del tramo
 import { describe, it, expect } from 'vitest';
-import { consenso, validarRevision, completados, avanceTramo, montoTramo, puedeVerBorrador, puedeRevisar, TRAMOS_DEF } from '../src/revisores.js';
+import { consenso, validarRevision, completados, pagoMes, avanceMes, montoTramo, puedeVerBorrador, puedeRevisar, TRAMOS_DEF } from '../src/revisores.js';
 
 const B = { tipo: 'protocolo', especialidad: 'Endodoncia', estado: 'revision', autor: { uid: 'autor' }, contenido: { pasos: [{ corto: 'Aísla' }, { corto: 'Abre' }] } };
 const voto = (i, a, b, c) => ({ i, pertinencia: a, claridad: b, respaldo: c });
@@ -44,19 +44,26 @@ describe('tramos y pago', () => {
     const c = completados([r('p1', 1, '2026-10-02'), r('p1', 2, '2026-11-03'), r('p2', 1, '2026-10-05')], 'protocolo');
     expect(c).toEqual([{ borradorId: 'p1', fecha: '2026-11-03' }]);
   });
-  it('con menos del tramo no se paga; al completarlo se paga el mes, aunque sea con atraso', () => {
-    const revs = [];
-    for (let k = 1; k <= 2; k++) revs.push(r('p' + k, 1, '2026-10-01'), r('p' + k, 2, '2026-10-0' + (k + 1)));
-    let a = avanceTramo({ tipo: 'protocolo', n: 3, cicloInicio: '2026-10-01', revisiones: revs, hoy: '2026-10-20' });
-    expect(a.acumulado).toBe(2); expect(a.mesesPagados).toBe(0); expect(a.pagoAcumulado).toBe(0); expect(a.faltanParaEsteMes).toBe(1);
-    for (let k = 3; k <= 4; k++) revs.push(r('p' + k, 1, '2026-11-01'), r('p' + k, 2, '2026-11-0' + k));
-    a = avanceTramo({ tipo: 'protocolo', n: 3, cicloInicio: '2026-10-01', revisiones: revs, hoy: '2026-11-10' });
-    expect(a.acumulado).toBe(4); expect(a.mesesPagados).toBe(1); expect(a.pagoAcumulado).toBe(montoTramo('protocolo', 3)); expect(a.alDia).toBe(false);
+  it('si completas el tramo en el mes, cobras su fijo', () => {
+    expect(pagoMes({ tipo: 'protocolo', n: 5, hechos: 5 })).toMatchObject({ monto: 135000, cumplido: true });
   });
-  it('lo que sobra del ciclo queda como excedente, sin subir la tarifa', () => {
-    const revs = []; for (let k = 1; k <= 11; k++) revs.push(r('p' + k, 1, '2026-10-01'), r('p' + k, 2, '2026-12-01'));
-    const a = avanceTramo({ tipo: 'protocolo', n: 3, cicloInicio: '2026-10-01', revisiones: revs, hoy: '2026-12-15' });
-    expect(a.mesesPagados).toBe(3); expect(a.excedente).toBe(2); expect(a.pagoAcumulado).toBe(3 * TRAMOS_DEF.protocolo[0].monto);
+  it('si no llegas, cobras justo los que revisaste, a la tarifa del tramo alcanzado', () => {
+    expect(pagoMes({ tipo: 'protocolo', n: 10, hechos: 7 })).toMatchObject({ monto: 7 * 27000, cumplido: false, tramoAlcanzado: 5 });
+    expect(pagoMes({ tipo: 'protocolo', n: 10, hechos: 4 })).toMatchObject({ monto: 4 * 25000, tramoAlcanzado: 3 });
+  });
+  it('bajo el mínimo no se paga', () => {
+    expect(pagoMes({ tipo: 'protocolo', n: 5, hechos: 2 }).monto).toBe(0);
+    expect(pagoMes({ tipo: 'materia', n: 2, hechos: 0 }).monto).toBe(0);
+    expect(pagoMes({ tipo: 'materia', n: 2, hechos: 1 }).monto).toBe(180000);
+  });
+  it('lo que pasa del tramo se paga a la tarifa de tu tramo', () => {
+    expect(pagoMes({ tipo: 'protocolo', n: 3, hechos: 6 }).monto).toBe(75000 + 3 * 25000);
+  });
+  it('el avance cuenta solo lo completado este mes', () => {
+    const revs = [];
+    for (let k = 1; k <= 4; k++) revs.push(r('p' + k, 1, '2026-10-01'), r('p' + k, 2, k === 4 ? '2026-09-28' : '2026-10-0' + (k + 1)));
+    const a = avanceMes({ tipo: 'protocolo', n: 5, revisiones: revs, hoy: '2026-10-20' });
+    expect(a.hechos).toBe(3); expect(a.faltan).toBe(2); expect(a.monto).toBe(75000); expect(a.diasRestantes).toBe(12);
   });
   it('los montos salen de la configuración si existe', () => {
     expect(montoTramo('materia', 1)).toBe(180000);

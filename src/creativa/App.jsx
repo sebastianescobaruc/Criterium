@@ -63,11 +63,11 @@ const GRUPO_INICIAL = (() => { try { return sessionStorage.getItem('criterium-gr
 try { const i = new URLSearchParams(location.search).get('i'); if (i && /^[\w-]{4,128}$/.test(i)) { sessionStorage.setItem('criterium-invita', i); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
 // Dos áreas: Universidad (aprender, investigar, concursar) y Clínica (gestión clínica, solo para miembros de una clínica)
 const NAV_GENERAL = [['feed', 'home', 'Inicio'], ['chat', 'chat', 'Chat']];
-const NAV_UNI = [['biblioteca', 'book', 'Protocolos'], ['materia', 'birrete', 'Materia'], ['herramientas', 'tool', 'Herramientas'], ['investigaciones', 'sparkle', 'Investigaciones'], ['revisores', 'stamp', 'Revisores']];
+const NAV_UNI = [['biblioteca', 'book', 'Procedimientos'], ['materia', 'birrete', 'Materia'], ['herramientas', 'tool', 'Herramientas'], ['investigaciones', 'sparkle', 'Investigaciones'], ['revisores', 'stamp', 'Revisores']];
 const NAV_CLINICA = [['hoy', 'home', 'Hoy'], ['agenda', 'calendario', 'Agenda'], ['pacientes', 'personas', 'Pacientes'], ['seguimiento', 'send', 'Seguimiento'], ['caja', 'dinero', 'Caja'], ['gestion', 'grafico', 'Gestión']];
 const NAV_AJUSTES = [['ajustes', 'edit', 'Ajustes']];
 // Barra lateral de escritorio (íconos de creativa/iconos.jsx)
-const RAIL_UNI = [['feed', 'inicio', 'Inicio'], ['biblioteca', 'protocolos', 'Protocolos'], ['materia', 'materia', 'Materia'], ['herramientas', 'herramientas', 'Herramientas'], ['investigaciones', 'investigaciones', 'Investigaciones'], ['revisores', 'revisores', 'Revisores'], ['chat', 'chat', 'Chat']];
+const RAIL_UNI = [['feed', 'inicio', 'Inicio'], ['biblioteca', 'protocolos', 'Procedimientos'], ['materia', 'materia', 'Materia'], ['herramientas', 'herramientas', 'Herramientas'], ['investigaciones', 'investigaciones', 'Investigaciones'], ['revisores', 'revisores', 'Revisores'], ['chat', 'chat', 'Chat']];
 const RAIL_CLINICA = [['hoy', 'hoy', 'Hoy'], ['agenda', 'agenda', 'Agenda'], ['pacientes', 'pacientes', 'Pacientes'], ['seguimiento', 'seguimiento', 'Seguimiento'], ['caja', 'caja', 'Caja'], ['gestion', 'gestion', 'Gestión']];
 const NAV_SIN_CLINICA = [['clinica', 'diente', 'Para clínicas']];
 const NAV_SECUNDARIO = [['contacto', 'Contáctanos'], ['privacidad', 'Privacidad']];
@@ -313,7 +313,7 @@ function Red({ usuario, perfilAuth, setPerfilAuth }) {
       {/* Barra inferior del celular: Inicio, Casos, Subir (al centro), Herramientas, Más. El perfil va en la foto de arriba */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-cardline bg-[color-mix(in_srgb,var(--card)_82%,transparent)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="Navegación principal">
         <div className="mx-auto grid max-w-lg grid-cols-5 items-center">
-          {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Protocolos'], ['subir', 'plus', 'Subir'], clinica ? ['hoy', 'calendario', 'Clínica'] : ['investigaciones', 'sparkle', 'Investigar']].map(([v, i, t]) => {
+          {[['feed', 'home', 'Inicio'], ['biblioteca', 'book', 'Procedimientos'], ['subir', 'plus', 'Subir'], clinica ? ['hoy', 'calendario', 'Clínica'] : ['investigaciones', 'sparkle', 'Investigar']].map(([v, i, t]) => {
             const on = v === 'perfil' ? yoActivo : v === 'subir' ? view === 'subir' : activo(view, v) && view !== 'subir';
             if (v === 'subir') return (
               <button key={v} type="button" onClick={subirCaso} className="flex flex-col items-center gap-0.5 py-1.5 text-[11px] font-semibold text-ink3" aria-label="Subir un caso">

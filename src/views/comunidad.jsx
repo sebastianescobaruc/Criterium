@@ -65,7 +65,7 @@ export function PerfilModal({ open, onClose }) {
 /* ═════════ FEED (inicio) ═════════ */
 /* ═════════ GUÍA: qué se puede hacer en Criterium ═════════ */
 const PASOS_GUIA = [
-  { n: 1, icon: 'book', t: 'Aprende', d: 'Busca un protocolo. Cada paso dice qué hacer, cuándo está listo y con qué evidencia.', cta: 'Ver la biblioteca', ir: (a) => a.go('biblioteca') },
+  { n: 1, icon: 'book', t: 'Aprende', d: 'Busca un procedimiento. Cada paso dice qué hacer, cuándo está listo y con qué evidencia.', cta: 'Ver la biblioteca', ir: (a) => a.go('biblioteca') },
   { n: 2, icon: 'folder', t: 'Registra', d: 'Sube tu caso sin datos del paciente, con fotos y cómo seguiste cada paso.', cta: 'Nuevo caso', ir: (a) => a.nuevoCaso() },
   { n: 3, icon: 'stamp', t: 'Valida', d: 'Un revisor del área lo puntúa y lo aprueba, pide cambios o lo deniega. Siempre justificado.', cta: 'Ver revisión', ir: (a) => a.go('revision') },
   { n: 4, icon: 'chat', t: 'Conversa', d: 'Pregunta lo que te pasó en el box, responde a otros y sigue a tus colegas.', cta: 'Escribir', ir: () => { const el = document.getElementById('feed-txt'); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus({ preventScroll: true }); } } }
@@ -73,8 +73,8 @@ const PASOS_GUIA = [
 // Para estudiantes: sin registrar ni validar casos (eso es del portal docente)
 const PASOS_GUIA_EST = [
   PASOS_GUIA[0],
-  { n: 2, icon: 'check', t: 'Practica', d: 'Abre un protocolo y síguelo paso a paso, con la bandeja y la voz si quieres.', cta: 'Elegir protocolo', ir: (a) => a.go('biblioteca') },
-  { n: 3, icon: 'red', t: 'Explora', d: 'Mira en el mapa cómo se conectan los protocolos: técnicas, materiales y derivaciones.', cta: 'Ver el mapa', ir: (a) => a.go('mapa') },
+  { n: 2, icon: 'check', t: 'Practica', d: 'Abre un procedimiento y síguelo paso a paso, con la bandeja y la voz si quieres.', cta: 'Elegir procedimiento', ir: (a) => a.go('biblioteca') },
+  { n: 3, icon: 'red', t: 'Explora', d: 'Mira en el mapa cómo se conectan los procedimientos: técnicas, materiales y derivaciones.', cta: 'Ver el mapa', ir: (a) => a.go('mapa') },
   PASOS_GUIA[3]
 ];
 const leerGuia = () => { try { return localStorage.getItem('criterium-guia') === 'oculta'; } catch (e) { return false; } };
@@ -125,9 +125,9 @@ function Historias() {
   const lista = [...PROTOS].sort((a, b) => (b.abre ? 1 : 0) - (a.abre ? 1 : 0)).slice(0, 10);
   
   return (
-    <section aria-label="Protocolos recientes" className="-mx-4 sm:mx-0">
+    <section aria-label="Procedimientos recientes" className="-mx-4 sm:mx-0">
       <div className="flex items-center justify-between px-4 sm:px-0 mb-3">
-        <h2 className="text-[14px] font-bold text-ink">Protocolos recientes</h2>
+        <h2 className="text-[14px] font-bold text-ink">Procedimientos recientes</h2>
       </div>
       <div className="scroll-x flex items-start gap-3.5 overflow-x-auto px-4 pb-4 sm:px-0">
         {esDocente && <button type="button" onClick={() => nuevoCaso()} className="flex w-[120px] sm:w-[140px] flex-none flex-col gap-2 rounded-rs bg-acentosoft p-3 shadow-sh transition-shadow hover:shadow-shlg text-left border border-acento/20">
@@ -203,7 +203,7 @@ function Post({ p }) {
           <Ic n="heart" s={23} className={meGusta ? 'fill-current' : ''} />
         </button>
         <button type="button" onClick={() => setResp(!resp)} aria-label="Responder" className="rounded-full p-2 text-ink hover:text-ink2"><Ic n="chat" s={22} /></button>
-        {proto && <button type="button" onClick={() => abrirProto(proto.id)} aria-label="Abrir el protocolo" className="ml-auto rounded-full p-2 text-ink hover:text-ink2"><Ic n="book" s={22} /></button>}
+        {proto && <button type="button" onClick={() => abrirProto(proto.id)} aria-label="Abrir el procedimiento" className="ml-auto rounded-full p-2 text-ink hover:text-ink2"><Ic n="book" s={22} /></button>}
       </div>
       <div className="px-4 pb-3.5">
         {likes > 0 && <p className="m-0 text-[13.5px] font-semibold">{likes === 1 ? 'A 1 persona le pasó lo mismo' : 'A ' + likes + ' personas les pasó lo mismo'}</p>}
@@ -287,7 +287,7 @@ export function Feed() {
         <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="flex w-full items-center gap-2.5 rounded-full border border-line bg-card py-2 pl-5 pr-2 shadow-sh focus-within:border-acento">
           <Ic n="search" s={18} className="text-acento" sw={1.9} />
           <input id="busqueda-inicio" type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="¿Qué vas a hacer hoy?"
-            placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
+            placeholder="Buscar procedimiento: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
           <button type="submit" className="hidden sm:block flex-none rounded-full bg-acento px-5 py-2.5 text-[14px] font-semibold text-onc hover:bg-acentodeep">Buscar</button>
         </form>
 
@@ -307,8 +307,8 @@ export function Feed() {
           <div className="mt-2 flex flex-wrap items-center gap-2.5 pl-12">
             <label className={cx('relative inline-flex min-w-0 max-w-full flex-1 items-center rounded-full transition-colors sm:max-w-[320px] sm:flex-none', proto ? 'bg-acentosoft text-acentodeep' : 'bg-input text-ink2 ring-1 ring-inset ring-cardline hover:text-ink')}>
               <Ic n="book" s={14} className="pointer-events-none absolute left-3" />
-              <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué protocolo" className="w-full min-w-0 truncate rounded-full border-0 bg-transparent py-1.5 pl-8 text-[13px] font-semibold text-current outline-none focus-visible:ring-2 focus-visible:ring-acento">
-                <option value="">Agregar protocolo</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
+              <select id="feed-proto" value={proto} onChange={(e) => setProto(e.target.value)} aria-label="Sobre qué procedimiento" className="w-full min-w-0 truncate rounded-full border-0 bg-transparent py-1.5 pl-8 text-[13px] font-semibold text-current outline-none focus-visible:ring-2 focus-visible:ring-acento">
+                <option value="">Agregar procedimiento</option>{protosAbiertos().map((p) => <option key={p.id} value={p.id}>{p.t}</option>)}
               </select>
             </label>
             <Btn v="primary" sm className="ml-auto" onClick={publicar}>Publicar</Btn>
@@ -431,7 +431,7 @@ export function Postular() {
   const ic = (k) => cx(inputCls, intento && e[k] && inputErr);
   return (
     <div className="flex flex-col gap-7">
-      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Dos trabajos, ambos remotos y en tus tiempos libres. Como revisor de casos, puntúas los casos clínicos que registran los usuarios y los apruebas, pides cambios o los deniegas. Como revisor experto de protocolos, corriges y comentas paso a paso los borradores (por ejemplo, los que redactan los estudiantes): con un mínimo de 5 revisores, el borrador pasa por un filtro final que incorpora las correcciones y comentarios que lo mejoran, y se publica.</PageHead>
+      <PageHead eyebrow="Criterium · panel de revisores" titulo="Postular a revisor">Dos trabajos, ambos remotos y en tus tiempos libres. Como revisor de casos, puntúas los casos clínicos que registran los usuarios y los apruebas, pides cambios o los deniegas. Como revisor experto de procedimientos, corriges y comentas paso a paso los borradores (por ejemplo, los que redactan los estudiantes): con un mínimo de 5 revisores, el borrador pasa por un filtro final que incorpora las correcciones y comentarios que lo mejoran, y se publica.</PageHead>
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {AREAS.map((a) => {
           const mia = postulacion && postulacion.area === a;
@@ -446,7 +446,7 @@ export function Postular() {
       </div>
       <div className="grid gap-3.5 md:grid-cols-2">
         {[['Lo que se te pide', [['De 30 a 60 minutos por ronda.', 'Dos rondas, con fechas avisadas con anticipación.'], ['Puntuar cada paso', 'en pertinencia, claridad y suficiencia de la evidencia, y comentar lo que esté mal.'], ['Respuestas anónimas entre revisores', ', para que el resultado no lo determine la jerarquía.']]],
-          ['Lo que recibes', [['Tu nombre como revisor', 'en cada protocolo que firmes.'], ['Coautoría en el artículo de consenso', 'si cumples los criterios ICMJE.'], ['El material disponible para tus estudiantes', ', con la evidencia trazada.']]]].map(([t, l]) => (
+          ['Lo que recibes', [['Tu nombre como revisor', 'en cada procedimiento que firmes.'], ['Coautoría en el artículo de consenso', 'si cumples los criterios ICMJE.'], ['El material disponible para tus estudiantes', ', con la evidencia trazada.']]]].map(([t, l]) => (
           <div key={t} className="tarjeta p-5 sm:p-6">
             <h3 className="m-0 mb-3 text-[17px] font-bold text-deep">{t}</h3>
             <ul className="m-0 flex flex-col gap-2 pl-5 font-serif text-[14.5px] leading-relaxed text-ink2">{l.map(([b, r]) => <li key={b}><b className="font-sans text-[13.5px] text-ink">{b}</b> {r}</li>)}</ul>
@@ -477,7 +477,7 @@ export function Postular() {
             {campo('anos', 'Años de ejercicio o de docencia clínica', <select id="post-anos" value={f.anos} onChange={(x) => setF({ ...f, anos: x.target.value })} className={ic('anos')}><option value="">Elige un rango</option>{['Menos de 5 años', 'Entre 5 y 10 años', 'Entre 10 y 20 años', 'Más de 20 años'].map((a) => <option key={a}>{a}</option>)}</select>, 'El criterio de inclusión es cinco años en al menos una de las dos.')}
             {campo('correo', 'Correo institucional', <input id="post-correo" type="email" value={f.correo} onChange={(x) => setF({ ...f, correo: x.target.value })} placeholder="nombre@universidad.cl" className={ic('correo')} />)}
             <Field label="Algo que quieras decirnos (opcional)" id="post-nota" className="sm:col-span-2">
-              <textarea id="post-nota" rows={3} value={f.nota} onChange={(x) => setF({ ...f, nota: x.target.value })} placeholder="Si ya viste algo en un protocolo que te parece mal, este es un buen lugar para decirlo." className={cx(inputCls, 'resize-y')} />
+              <textarea id="post-nota" rows={3} value={f.nota} onChange={(x) => setF({ ...f, nota: x.target.value })} placeholder="Si ya viste algo en un procedimiento que te parece mal, este es un buen lugar para decirlo." className={cx(inputCls, 'resize-y')} />
             </Field>
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-4">

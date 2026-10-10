@@ -31,7 +31,7 @@ import Migracion from './views/migracion.jsx';
 const VISTAS = ['inicio', 'biblioteca', 'proto', 'casos', 'caso', 'editor', 'revision', 'herramientas', 'feed', 'postular', 'contacto', 'perfil', 'moderacion', 'piloto', 'privacidad'];
 // Secciones guardadas para más adelante (el código sigue en views/): no aparecen en el menú y go() las manda al inicio
 const OCULTAS = ['mapa', 'agenda', 'calificaciones', 'evaluaciones', 'asistente'];
-const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Protocolo', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
+const RUTAS = { inicio: 'Sobre Criterium', biblioteca: 'Biblioteca', mapa: 'Biblioteca · Mapa', agenda: 'Mi agenda', calificaciones: 'Calificaciones', evaluaciones: 'Evaluaciones', proto: 'Biblioteca · Procedimiento', casos: 'Mis casos', caso: 'Mis casos · Caso', editor: 'Mis casos · Editar',
   revision: 'Revisión', asistente: 'Asistente', herramientas: 'Herramientas', feed: 'Inicio', postular: 'Postular a revisor', contacto: 'Contáctanos', perfil: 'Perfil', moderacion: 'Filtro de publicación', privacidad: 'Privacidad y términos' };
 
 // Menú principal: tres lugares. Lo demás va abajo, como enlaces chicos.
@@ -420,7 +420,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
               <div className={cx(lateral && 'lg:hidden')}>{marca()}</div>
               <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="ml-2 hidden max-w-[440px] flex-1 items-center gap-2 rounded-full border border-cardline bg-card px-4 shadow-sh focus-within:border-acento md:flex">
                 <Ic n="search" s={15} className="text-ink3" />
-                <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (view !== 'biblioteca' && e.target.value) go('biblioteca'); }} aria-label="Buscar un protocolo" placeholder="Buscar protocolo: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
+                <input id="busqueda-top" type="search" value={q} onChange={(e) => { setQ(e.target.value); if (view !== 'biblioteca' && e.target.value) go('biblioteca'); }} aria-label="Buscar un procedimiento" placeholder="Buscar procedimiento: cementar, exodoncia del 1.8…" className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] text-ink outline-none placeholder:text-ink3" />
               </form>
               <div className="ml-auto flex items-center gap-2">
                 <button type="button" onClick={() => setBuscarMovil(!buscarMovil)} className="rounded-full p-2 text-ink2 hover:bg-soft md:hidden" aria-label="Buscar"><Ic n="search" /></button>
@@ -431,7 +431,7 @@ function AppConUsuario({ usuario, perfilAuth, setPerfilAuth }) {
             {buscarMovil && (
               <form onSubmit={(e) => { e.preventDefault(); go('biblioteca'); }} className="flex items-center gap-2 border-t border-line px-4 py-2.5 md:hidden">
                 <Ic n="search" s={15} className="text-ink3" />
-                <input id="busqueda-movil" type="search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar protocolo…" aria-label="Buscar un protocolo" className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
+                <input id="busqueda-movil" type="search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar procedimiento…" aria-label="Buscar un procedimiento" className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] text-ink outline-none placeholder:text-ink3" />
                 <button type="submit" className="rounded-full bg-acento px-3.5 py-1.5 text-[13px] font-semibold text-onc">Buscar</button>
               </form>
             )}

@@ -338,13 +338,13 @@ function Endo({ st, f }) {
           <Aviso>{r.conflicto}</Aviso>
         </>}
         <Origen items={[
-          segun('Las reglas vienen del protocolo de bio/necropulpectomía de premolar superior: LT igual a LRD menos 1 mm, pasaje a LT más 1 mm, Gates y aguja a dos tercios de la LAD, lima maestra mínima 30, step-back hasta 50.',
+          segun('Las reglas vienen del procedimiento de bio/necropulpectomía de premolar superior: LT igual a LRD menos 1 mm, pasaje a LT más 1 mm, Gates y aguja a dos tercios de la LAD, lima maestra mínima 30, step-back hasta 50.',
             'Las reglas vienen de un borrador de Criterium para bio/necropulpectomía de premolar superior, todavía sin revisión de especialista: LT igual a LRD menos 1 mm, pasaje a LT más 1 mm, Gates y aguja a dos tercios de la LAD, lima maestra mínima 30, step-back hasta 50.'),
-          segun('El escalonado de menos 1, menos 2 y menos 3 mm está en el protocolo. Seguir bajando hasta llegar al 50 es una extensión de esa regla, no algo que el documento diga paso por paso.',
+          segun('El escalonado de menos 1, menos 2 y menos 3 mm está en el procedimiento. Seguir bajando hasta llegar al 50 es una extensión de esa regla, no algo que el documento diga paso por paso.',
             'El escalonado de menos 1, menos 2 y menos 3 mm está en ese borrador. Seguir bajando hasta llegar al 50 es una extensión de esa regla, no algo que el documento diga paso por paso.'),
-          segun('La biopulpectomía está resuelta con la misma resta de 1 mm. El protocolo dice 1 a 1,5 mm para ese caso: hay que decidir cuál se usa.',
+          segun('La biopulpectomía está resuelta con la misma resta de 1 mm. El procedimiento dice 1 a 1,5 mm para ese caso: hay que decidir cuál se usa.',
             'La biopulpectomía está resuelta con la misma resta de 1 mm. El borrador dice 1 a 1,5 mm para ese caso: hay que decidir cuál se usa.'),
-          segun('Falta el número de limas por encima de la inicial: el protocolo dice 4 o 5 en necropulpectomía, y eso todavía no entra en el cálculo.',
+          segun('Falta el número de limas por encima de la inicial: el procedimiento dice 4 o 5 en necropulpectomía, y eso todavía no entra en el cálculo.',
             'Falta el número de limas por encima de la inicial: el borrador dice 4 o 5 en necropulpectomía, y eso todavía no entra en el cálculo.'),
           'La calculadora no reemplaza la radiografía de conductometría.'
         ]} />
@@ -399,7 +399,7 @@ function Anestesia({ st, f }) {
         <Elige label="Paciente" value={st.aModo} onChange={f('aModo')} opciones={[['adulto', 'Adulto'], ['nino', 'Niño · AAPD']]} />
         <p className="m-0 text-[14px] leading-relaxed text-ink2">{nino
           ? 'Dosis máxima para menores de 18 años según la tabla de la Academia Americana de Odontología Pediátrica (AAPD). Es más baja que la del adulto: en lidocaína, 4,4 mg por kilo en vez de 7. Tubos de 1,8 ml.'
-          : 'Lidocaína al 2 % con epinefrina 1:100.000 en tubos de 1,8 ml. El techo es 7 mg por kilo, sin pasar nunca de 500 mg.' + segun(' Es el mismo dato que usa el protocolo de exodoncia.', '')}</p>
+          : 'Lidocaína al 2 % con epinefrina 1:100.000 en tubos de 1,8 ml. El techo es 7 mg por kilo, sin pasar nunca de 500 mg.' + segun(' Es el mismo dato que usa el procedimiento de exodoncia.', '')}</p>
         {nino && <Elige label="Anestésico" value={st.nAnest} onChange={f('nAnest')} opciones={Object.entries(ANEST_NINO).map(([k, a]) => [k, a.t.replace(' con epinefrina', '').replace(' sin vasoconstrictor', ' sin vaso').replace(' con levonordefrina', ' + levo')])} />}
         <div className="grid gap-3.5 sm:grid-cols-2">
           {nino ? <>
@@ -436,7 +436,7 @@ function Anestesia({ st, f }) {
           'El anestésico tópico también se absorbe y la AAPD pide sumarlo al total. La calculadora no lo incluye.',
           'Prilocaína y bupivacaína no están cargadas. La bupivacaína no se recomienda bajo 12 años.'
         ] : [
-          segun('Fuente: ficha técnica de la FDA para lidocaína con epinefrina (Xylocaine Dental, DailyMed), la misma que cita el protocolo de exodoncia. Falta el localizador de párrafo.',
+          segun('Fuente: ficha técnica de la FDA para lidocaína con epinefrina (Xylocaine Dental, DailyMed), la misma que cita el procedimiento de exodoncia. Falta el localizador de párrafo.',
             'Fuente: ficha técnica de la FDA para lidocaína con epinefrina (Xylocaine Dental, DailyMed). Falta el localizador de párrafo.'),
           'La dosis máxima es un techo, no una meta. Quedarse corto por miedo a la dosis es un error más frecuente que pasarse.',
           'No calcula el límite propio de la epinefrina en pacientes con enfermedad cardiovascular. Ese caso se decide aparte.',

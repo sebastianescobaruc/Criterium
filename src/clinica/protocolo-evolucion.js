@@ -39,7 +39,7 @@ export function borradorNota({ procedimiento, protocoloId, version, diente, paso
   const ps = pasos || [];
   const partes = [];
   if (procedimiento && String(procedimiento).trim()) partes.push(String(procedimiento).trim().replace(/\.$/, '') + '.');
-  if (protocoloId) partes.push(`Protocolo Criterium ${protocoloId}${version ? ' ' + versionTxt(version) : ''}.`);
+  if (protocoloId) partes.push(`Guía clínica Criterium ${protocoloId}${version ? ' ' + versionTxt(version) : ''}.`);
   if (diente && String(diente).trim()) partes.push(`Pieza ${String(diente).trim()}.`);
   if (ps.length) {
     const hechos = ps.filter((p) => p.estado === 'hecho').length;

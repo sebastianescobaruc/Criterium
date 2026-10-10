@@ -16,7 +16,7 @@ export const ESTADOS = {
 export const MOTIVOS = [
   'Indicación no justificada',
   'Paso crítico omitido',
-  'Desvío del protocolo sin respaldo',
+  'Desvío del procedimiento sin respaldo',
   'Evidencia insuficiente para lo que se hizo',
   'Registro incompleto: fotos, radiografía o ficha',
   'Riesgo para el paciente no declarado'
@@ -160,7 +160,7 @@ export function chequeoCaso(c) {
       if (est === 'hecho' && s.disputa && !esCritico(s)) add('info', et + ': se siguió un paso en disputa, pendiente del panel.');
     });
   } else {
-    if (!c.evidencia || c.evidencia.trim().length < 20) add('falla', 'Sin protocolo de la biblioteca: el caso tiene que declarar en qué evidencia se apoya.', true);
+    if (!c.evidencia || c.evidencia.trim().length < 20) add('falla', 'Sin procedimiento de la biblioteca: el caso tiene que declarar en qué evidencia se apoya.', true);
     else add('revisar', 'La evidencia la declara el autor. El revisor tiene que comprobarla.');
   }
   const fotos = c.fotos || [];
@@ -458,7 +458,7 @@ export function casoMarkdown(c) {
     '**Paciente:** ' + [c.paciente.iniciales, c.paciente.edad && c.paciente.edad + ' años', c.paciente.sexo].filter(Boolean).join(' · '), '',
     '## Diagnóstico', '', c.diagnostico, '', '## Procedimiento', '', c.procedimiento, ''];
   if (d) {
-    L.push('## Adherencia al protocolo', '', d.titulo, '');
+    L.push('## Adherencia al procedimiento', '', d.titulo, '');
     d.pasos.forEach((s, i) => {
       const r = (c.pasos || {})[i] || {};
       L.push('- ' + nn(i) + ' · ' + s.corto + ': **' + (r.estado || 'sin marcar') + '**' + (r.nota ? ' — ' + r.nota : ''));
@@ -526,7 +526,7 @@ export function chequeoCita(c) {
   const e = {};
   if (!/^\d{4}-\d{2}-\d{2}$/.test(c.fecha || '')) e.fecha = 'Elige la fecha.';
   if (!/^\d{2}:\d{2}$/.test(c.hora || '')) e.hora = 'Elige la hora.';
-  if (!c.protocoloId) e.protocoloId = 'Elige el protocolo que vas a realizar.';
+  if (!c.protocoloId) e.protocoloId = 'Elige el procedimiento que vas a realizar.';
   if (!c.docenteUid) e.docenteUid = 'Elige el docente que te va a evaluar.';
   if (!BOXES.includes(c.box)) e.box = 'Elige el box.';
   if (!DURACIONES.includes(Number(c.duracion))) e.duracion = 'Elige la duración.';

@@ -19,7 +19,7 @@ const telefonoVisible = (t) => t.replace(/^\+56(9)(\d{4})(\d{4})$/, '+56 $1 $2 $
 
 export function Contacto() {
   const { setMensajes, avisar, perfil, usuario } = useApp();
-  const MOTIVOS_C = CREATIVA ? ['Consulta sobre Criterium', 'Encontré un error', 'Quiero sumar a mi universidad', 'Soy docente y quiero revisar casos', 'Otro'] : ['Encontré un error en un protocolo', 'Quiero proponer un protocolo', 'Consulta sobre el proyecto', 'Soy docente y quiero saber más', 'Otro'];
+  const MOTIVOS_C = CREATIVA ? ['Consulta sobre Criterium', 'Encontré un error', 'Quiero sumar a mi universidad', 'Soy docente y quiero revisar casos', 'Otro'] : ['Encontré un error en un procedimiento', 'Quiero proponer un procedimiento', 'Consulta sobre el proyecto', 'Soy docente y quiero saber más', 'Otro'];
   const [f, setF] = useState({ motivo: MOTIVOS_C[0], nombre: (perfil && perfil.nombre) || '', correo: (usuario && usuario.email) || '', msg: '' });
   const [intento, setIntento] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -41,9 +41,9 @@ export function Contacto() {
       <div className="flex min-w-0 flex-col gap-5">
         <header className="max-w-[62ch]">
           <h1 className="m-0 mb-2 text-[30px] font-extrabold tracking-[-.03em] text-deep sm:text-[36px]">Contáctanos</h1>
-          <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">{CREATIVA ? 'Criterium lo hacen dos estudiantes de Odontología. Si algo no funciona, tienes una idea o quieres sumar a tu universidad, escríbenos.' : 'Criterium lo hacen dos estudiantes de Odontología. Si algo está mal en un protocolo, falta uno que necesitas o quieres sumarte, escríbenos.'}</p>
+          <p className="m-0 font-serif text-[17px] leading-relaxed text-ink2">{CREATIVA ? 'Criterium lo hacen dos estudiantes de Odontología. Si algo no funciona, tienes una idea o quieres sumar a tu universidad, escríbenos.' : 'Criterium lo hacen dos estudiantes de Odontología. Si algo está mal en un procedimiento, falta uno que necesitas o quieres sumarte, escríbenos.'}</p>
         </header>
-        {CREATIVA ? <Aviso><b>Criterium está en desarrollo.</b> Lo que se publica no reemplaza el juicio clínico ni la indicación de tu docente.</Aviso> : <Aviso><b>Este sitio está en desarrollo.</b> Los protocolos son borradores sin revisión de especialista y no deben usarse como estándar de atención.</Aviso>}
+        {CREATIVA ? <Aviso><b>Criterium está en desarrollo.</b> Lo que se publica no reemplaza el juicio clínico ni la indicación de tu docente.</Aviso> : <Aviso><b>Este sitio está en desarrollo.</b> Los procedimientos son borradores sin revisión de especialista y no deben usarse como estándar de atención.</Aviso>}
         {listo ? (
           <div className="flex flex-col gap-3 rounded-r border-2 border-acento bg-card p-5 sm:p-6">
             <Pill tono="acento" className="self-start"><Ic n="check" s={13} sw={2.4} />Mensaje enviado</Pill>
@@ -57,7 +57,7 @@ export function Contacto() {
               <Field label="Nombre" id="c-nombre" error={intento ? e.nombre : ''}><input id="c-nombre" value={f.nombre} onChange={(x) => setF({ ...f, nombre: x.target.value })} placeholder="Tu nombre" className={ic('nombre')} /></Field>
               <Field label="Correo" id="c-correo" error={intento ? e.correo : ''}><input id="c-correo" type="email" value={f.correo} onChange={(x) => setF({ ...f, correo: x.target.value })} placeholder="tucorreo@ejemplo.cl" className={ic('correo')} /></Field>
             </div>
-            <Field label="Mensaje" id="c-msg" error={intento ? e.msg : ''}><textarea id="c-msg" rows={5} value={f.msg} onChange={(x) => setF({ ...f, msg: x.target.value })} placeholder={CREATIVA ? 'Cuéntanos qué pasa. No escribas datos de pacientes.' : 'Cuéntanos qué pasa. Si es un error en un protocolo, di cuál y en qué paso. No escribas datos de pacientes.'} className={cx(ic('msg'), 'resize-y leading-relaxed')} /></Field>
+            <Field label="Mensaje" id="c-msg" error={intento ? e.msg : ''}><textarea id="c-msg" rows={5} value={f.msg} onChange={(x) => setF({ ...f, msg: x.target.value })} placeholder={CREATIVA ? 'Cuéntanos qué pasa. No escribas datos de pacientes.' : 'Cuéntanos qué pasa. Si es un error en un procedimiento, di cuál y en qué paso. No escribas datos de pacientes.'} className={cx(ic('msg'), 'resize-y leading-relaxed')} /></Field>
             <Btn v="primary" type="submit" className="justify-self-start" disabled={enviando}>{enviando ? 'Enviando…' : 'Enviar mensaje'}</Btn>
           </form>
         )}

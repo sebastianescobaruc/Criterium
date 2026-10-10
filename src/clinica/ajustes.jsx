@@ -18,7 +18,7 @@ export function Ajustes() {
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-4">
       <Cabecera titulo="Ajustes" sub="Cómo funciona tu clínica" />
-      <Pestanas items={[['general', 'General'], ['profesionales', 'Profesionales'], ['arancel', 'Arancel y convenios'], protocolosClinica().length > 0 && ['consumos', 'Consumo por protocolo'], ['equipo', 'Equipo y permisos']]} valor={tab} onChange={(k) => irClinica('ajustes', k)} />
+      <Pestanas items={[['general', 'General'], ['profesionales', 'Profesionales'], ['arancel', 'Arancel y convenios'], protocolosClinica().length > 0 && ['consumos', 'Consumo por guía clínica'], ['equipo', 'Equipo y permisos']]} valor={tab} onChange={(k) => irClinica('ajustes', k)} />
       {tab === 'general' && <General />}
       {tab === 'profesionales' && <Profesionales />}
       {tab === 'arancel' && <Arancel />}
@@ -112,13 +112,13 @@ function Arancel() {
   return (
     <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="rotulo m-0">Arancel · {l.length} prestaciones</p>{protos.length > 0 && <p className="m-0 mt-1 text-[12px] text-ink3">«Protocolo»: el de Criterium que se preselecciona al registrar una evolución de esa prestación.</p>}</div><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar" aria-label="Buscar prestación" className={cx(inputCls, 'max-w-[220px]')} /></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="rotulo m-0">Arancel · {l.length} prestaciones</p>{protos.length > 0 && <p className="m-0 mt-1 text-[12px] text-ink3">«Procedimiento»: el de Criterium que se preselecciona al registrar una evolución de esa prestación.</p>}</div><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar" aria-label="Buscar prestación" className={cx(inputCls, 'max-w-[220px]')} /></div>
         <Tarjeta>{l.map((a, i) => (!q || a.nombre.toLowerCase().includes(q.toLowerCase())) && (
           <Fila key={i}>
             <input value={a.codigo} onChange={(e) => set(i, 'codigo', e.target.value.toUpperCase())} aria-label="Código" className={cx(inputCls, 'w-20 flex-none !px-2 !py-1.5 text-[13px]')} />
             <input value={a.nombre} onChange={(e) => set(i, 'nombre', e.target.value)} aria-label="Prestación" className={cx(inputCls, 'min-w-0 flex-1 !px-2 !py-1.5 text-[13.5px]')} />
             <input type="number" value={a.valor} onChange={(e) => set(i, 'valor', Math.max(0, Math.round(+e.target.value)))} aria-label="Valor" className={cx(inputCls, 'w-28 flex-none !px-2 !py-1.5 text-right text-[13.5px] tabular-nums')} />
-            {protos.length > 0 && <select value={a.protocoloId || ''} onChange={(e) => set(i, 'protocoloId', e.target.value)} aria-label="Protocolo" title="Protocolo de Criterium para esta prestación" className={cx(inputCls, 'hidden w-48 flex-none !px-2 !py-1.5 text-[12.5px] md:block')}><option value="">Sin protocolo</option>{protos.map((p) => <option key={p.id} value={p.id}>{p.corto || p.t}</option>)}</select>}
+            {protos.length > 0 && <select value={a.protocoloId || ''} onChange={(e) => set(i, 'protocoloId', e.target.value)} aria-label="Guía clínica" title="Guía clínica de Criterium para esta prestación" className={cx(inputCls, 'hidden w-48 flex-none !px-2 !py-1.5 text-[12.5px] md:block')}><option value="">Sin guía clínica</option>{protos.map((p) => <option key={p.id} value={p.id}>{p.corto || p.t}</option>)}</select>}
             <button type="button" onClick={() => setL(l.filter((_, j) => j !== i))} aria-label="Quitar prestación" className="rounded-full p-1.5 text-ink3 hover:bg-soft hover:text-bad"><Ic n="trash" s={15} /></button>
           </Fila>
         ))}</Tarjeta>
@@ -175,14 +175,14 @@ function Consumos() {
     setErr('');
     if (await guardar({ ['consumos.' + pid]: lista, ['bandejaInsumos.' + pid]: mapaLimpio }, 'Consumo guardado')) { setL(lista); setMapa(mapaLimpio); }
   };
-  if (!protos.length) return <Vacio icon="book" titulo="No hay protocolos disponibles para esta cuenta" />;
+  if (!protos.length) return <Vacio icon="book" titulo="No hay procedimientos disponibles para esta cuenta" />;
   return (
     <div className="flex flex-col gap-4">
-      <Field label="Protocolo" id="co-p" className="max-w-[460px]"><select id="co-p" value={pid} onChange={(e) => cambiar(e.target.value)} className={inputCls}>{protos.map((p) => <option key={p.id} value={p.id}>{p.t || p.corto}</option>)}</select></Field>
+      <Field label="Guía clínica" id="co-p" className="max-w-[460px]"><select id="co-p" value={pid} onChange={(e) => cambiar(e.target.value)} className={inputCls}>{protos.map((p) => <option key={p.id} value={p.id}>{p.t || p.corto}</option>)}</select></Field>
       <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1fr_1.25fr]">
         <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--cl-line)] bg-card p-4">
           <p className="rotulo m-0">Insumos que siempre gasta, por atención</p>
-          <p className="m-0 text-[12px] text-ink3">Los que se usan en toda atención de este protocolo (guantes, eyectores…). Los materiales de la bandeja se unen a la derecha.</p>
+          <p className="m-0 text-[12px] text-ink3">Los que se usan en toda atención de este procedimiento (guantes, eyectores…). Los materiales de la bandeja se unen a la derecha.</p>
           {!inventario.length && <p className="m-0 text-[13px] text-ink3">Primero agrega insumos en Inventario.</p>}
           {l.map((x, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -197,12 +197,12 @@ function Consumos() {
             <Btn sm icon="plus" onClick={() => setL([...l, { insumoId: '', cantidad: 1 }])} disabled={!inventario.length}>Agregar insumo</Btn>
             {cambiado && <Btn sm v="primary" onClick={enviar}>Guardar cambios</Btn>}
           </div>
-          <p className="m-0 text-[12px] text-ink3">Al firmar una evolución con este protocolo, estas cantidades vienen precargadas (se pueden cambiar) y se descuentan del inventario.</p>
+          <p className="m-0 text-[12px] text-ink3">Al firmar una evolución con este procedimiento, estas cantidades vienen precargadas (se pueden cambiar) y se descuentan del inventario.</p>
         </section>
         <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--cl-line)] bg-[var(--cl-nav)] p-4">
-          <p className="rotulo m-0">Bandeja del protocolo · une cada material con tu inventario</p>
+          <p className="rotulo m-0">Bandeja del procedimiento · une cada material con tu inventario</p>
           <p className="m-0 text-[12px] text-ink3">Cuando el odontólogo o el asistente marquen un material en la bandeja de la cita, el insumo unido se precarga en la evolución y se descuenta al firmar. Lo que no unas (fresas, sonda…) queda registrado sin tocar el inventario.</p>
-          {!bandeja.length ? <p className="m-0 text-[13px] text-ink3">Este protocolo no trae bandeja.</p> : bandeja.map((f, k) => (
+          {!bandeja.length ? <p className="m-0 text-[13px] text-ink3">Este procedimiento no trae bandeja.</p> : bandeja.map((f, k) => (
             <div key={k} className="flex flex-col gap-1.5">
               <b className="text-[12.5px] text-deep">{f.fase}</b>
               {(f.items || []).map((it) => { const u = mapa[it] || {}; return (
@@ -223,7 +223,7 @@ function Consumos() {
 // Columnas: administración, odontólogo, asistente, recepción
 const PERMISOS = [
   ['Agenda, pacientes (datos administrativos), confirmaciones, lista de espera', true, true, true, true],
-  ['Protocolo de la cita y su bandeja (marcar materiales: solo quien está en esa cita)', true, true, true, false],
+  ['Procedimiento de la cita y su bandeja (marcar materiales: solo quien está en esa cita)', true, true, true, false],
   ['Ficha clínica: antecedentes, odontograma, evoluciones, documentos', true, true, false, false],
   ['Plan de tratamiento y presupuestos (crear)', true, true, false, false],
   ['Pagos, cierre de caja, inventario, esterilización, tareas', true, true, true, true],

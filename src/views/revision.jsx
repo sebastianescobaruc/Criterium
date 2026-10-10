@@ -12,7 +12,7 @@ function Intro() {
   return (
     <div className="flex flex-col gap-7">
       <PageHead eyebrow="Criterium · revisión por pares" titulo="Revisión de casos">
-        Un especialista del área mira tu caso contra el protocolo y la evidencia, puntúa tres criterios y firma un veredicto: aprobado, cambios pedidos o denegado.
+        Un especialista del área mira tu caso contra el procedimiento y la evidencia, puntúa tres criterios y firma un veredicto: aprobado, cambios pedidos o denegado.
       </PageHead>
       <div className="grid gap-3.5 md:grid-cols-3">
         {[
@@ -60,7 +60,7 @@ function Cola() {
   return (
     <div className="flex flex-col gap-6">
       <PageHead eyebrow="Modo revisor" titulo="Cola de revisión" acciones={<Btn onClick={() => setModoRevisor(false)}>Salir del modo revisor</Btn>}>
-        Los casos más antiguos van primero. Abre uno, compáralo con el protocolo y firma tu veredicto.
+        Los casos más antiguos van primero. Abre uno, compáralo con el procedimiento y firma tu veredicto.
       </PageHead>
       {!verificado && <Aviso tono="acento">Estás en modo de prueba. En Criterium real solo revisan especialistas verificados del área del caso.</Aviso>}
       <Seg valor={tab} onChange={setTab} opciones={[{ v: 'pendientes', t: 'Pendientes', n: pend.length }, { v: 'hechas', t: 'Revisadas por ti', n: hechas.length }]} />
@@ -86,7 +86,7 @@ function Cola() {
                       {c.ejemplo && <Pill>Ejemplo</Pill>}
                     </div>
                     <h3 className="m-0 text-[15.5px] font-bold leading-snug text-deep">{c.titulo}</h3>
-                    <p className="m-0 mt-0.5 text-[12.5px] text-ink3">{(c.autorUid === myUid || c.autor?.id === myUid) ? 'Tú' : (c.autor?.nombre || c.autorNombre || 'Autor')}{c.autor?.rol ? ' · ' + c.autor.rol : ''} · {d ? d.titulo : 'sin protocolo'} · enviado {hace(c.actualizado)}</p>
+                    <p className="m-0 mt-0.5 text-[12.5px] text-ink3">{(c.autorUid === myUid || c.autor?.id === myUid) ? 'Tú' : (c.autor?.nombre || c.autorNombre || 'Autor')}{c.autor?.rol ? ' · ' + c.autor.rol : ''} · {d ? d.titulo : 'sin procedimiento'} · enviado {hace(c.actualizado)}</p>
                   </div>
                 </div>
                 <Btn v={tab === 'pendientes' ? 'primary' : 'outline'} icon={tab === 'pendientes' ? 'stamp' : undefined} onClick={() => setRevisando(c.id)} className="justify-self-start">{tab === 'pendientes' ? 'Revisar' : 'Ver'}</Btn>
@@ -129,7 +129,7 @@ function FormRevision({ c, ch, onFirmar }) {
 
   const sugeridos = [];
   if (ch.items.some((x) => /paso crítico/.test(x.txt))) sugeridos.push('Paso crítico omitido');
-  if (ch.items.some((x) => /sin justificar/.test(x.txt))) sugeridos.push('Desvío del protocolo sin respaldo');
+  if (ch.items.some((x) => /sin justificar/.test(x.txt))) sugeridos.push('Desvío del procedimiento sin respaldo');
   if (ch.items.some((x) => /registro fotográfico|radiografía/.test(x.txt))) sugeridos.push('Registro incompleto: fotos, radiografía o ficha');
 
   const razonesNoAprobar = [];
@@ -161,7 +161,7 @@ function FormRevision({ c, ch, onFirmar }) {
         'Reglas: un paso crítico omitido no se aprueba; un desvío tiene que estar justificado con evidencia del mismo nivel o mayor que la del paso; una revisión de estudios in vitro tiene techo de grado C; lo que no tiene respaldo es práctica habitual, no evidencia.',
         'No inventes referencias, autores ni DOI. Usa solo lo que está en el texto.',
         'Escribe en español simple y breve, para un estudiante. Como máximo seis observaciones, las más importantes.',
-        '', 'CASO:', casoMarkdown(c), '', c.protocoloId ? 'PROTOCOLO:\n' + textoProtocolo(c.protocoloId) : 'El caso no usa un protocolo de la biblioteca.', '',
+        '', 'CASO:', casoMarkdown(c), '', c.protocoloId ? 'PROTOCOLO:\n' + textoProtocolo(c.protocoloId) : 'El caso no usa un procedimiento de la biblioteca.', '',
         'Devuelve solo JSON con esta forma exacta:',
         '{"sugerencia": "aprobado | cambios | denegado", "observaciones": [{"paso": "07", "txt": ""}], "resumen": ""}'
       ].join('\n');
@@ -208,7 +208,7 @@ function FormRevision({ c, ch, onFirmar }) {
             <h3 className="m-0 rotulo">Segunda lectura</h3>
             <Btn sm v="soft" icon="sparkle" onClick={segunda} disabled={iaCargando}>{iaCargando ? 'Leyendo…' : ia ? 'Pedir otra' : 'Pedir al asistente'}</Btn>
           </div>
-          <p className="m-0 text-[11.5px] leading-snug text-ink3">La hace un modelo de lenguaje con el caso y el protocolo. Sirve para ver lo que una regla fija no ve. La decisión es tuya.</p>
+          <p className="m-0 text-[11.5px] leading-snug text-ink3">La hace un modelo de lenguaje con el caso y el procedimiento. Sirve para ver lo que una regla fija no ve. La decisión es tuya.</p>
           {iaErr && <Aviso tono="warn">{iaErr}</Aviso>}
           {ia && (
             <div className="flex flex-col gap-2">
@@ -259,7 +259,7 @@ function PantallaRevision() {
           <div className="tarjeta p-5"><h2 className="m-0 mb-2 rotulo">Procedimiento</h2><p className="m-0 font-serif text-[15px] leading-relaxed text-ink">{c.procedimiento}</p></div>
         </section>
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 rotulo">Adherencia al protocolo</h2>
+          <h2 className="m-0 rotulo">Adherencia al procedimiento</h2>
           <Adherencia c={c} />
           {c.evidencia && <div className="rounded-r bg-soft p-4"><h3 className="m-0 mb-1.5 text-[12px] font-bold text-ink2">Evidencia declarada por el autor</h3><p className="m-0 font-serif text-[14.5px] leading-relaxed text-ink">{c.evidencia}</p></div>}
         </section>
@@ -274,7 +274,7 @@ function PantallaRevision() {
                 return (
                   <div key={i} className="rounded-rs bg-soft p-3.5">
                     <div className="mb-1 text-[13px] font-bold text-ink">{nn(i)} · {s.corto} {s.marca && <span className={cx('text-[11px]', esCritico(s) ? 'text-bad' : 'text-warn')}>{s.marca}</span>}</div>
-                    <p className="m-0 mb-2 text-[13px] leading-snug text-ink2"><b>El protocolo dice:</b> {s.hacer}</p>
+                    <p className="m-0 mb-2 text-[13px] leading-snug text-ink2"><b>El procedimiento dice:</b> {s.hacer}</p>
                     {s.disputa && <p className="m-0 mb-2 text-[12.5px] leading-snug text-warn">{s.disputa}</p>}
                     {s.sinEv && <p className="m-0 mb-2 text-[12.5px] text-ink3">{s.sinEv}</p>}
                     {fuentes.map((f, k) => <div key={k} className="mt-1.5 rounded-[9px] border border-line bg-card px-3 py-2"><Pill tono="acento">{f.grado}</Pill><div className="mt-1 text-[12.5px] leading-snug text-ink">{f.cita}</div></div>)}

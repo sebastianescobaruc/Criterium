@@ -25,6 +25,9 @@ const { user } = await signInWithEmailAndPassword(getAuth(app), env.CRITERIUM_AD
 const perfil = (await getDoc(doc(db, 'perfiles', user.uid))).data() || {};
 await setDoc(doc(db, 'revisores', user.uid), { nombre: perfil.nombre || 'Equipo Criterium', especialidades: ESPECIALIDADES, verificado: ahora(), nota: 'Revisor de demostración (equipo)' }, { merge: true });
 console.log('· revisor verificado:', perfil.nombre, '·', ESPECIALIDADES.length, 'especialidades');
+// Tramo de ejemplo para ver «Mi tramo» (5 protocolos y 1 material al mes, ciclo desde este mes); no se pisa si ya eligió uno
+const tr = await getDoc(doc(db, 'tramos', user.uid));
+if (!tr.exists()) { await setDoc(doc(db, 'tramos', user.uid), { protocolo: 5, materia: 1, cicloInicio: new Date().toISOString().slice(0, 8) + '01', actualizado: ahora() }); console.log('· tramo de ejemplo: 5 protocolos y 1 material al mes'); }
 
 // 2. Un borrador de ejemplo en revisión, subido por una cuenta de ejemplo
 const ya = (await getDocs(collection(db, 'borradores'))).docs.find((d) => d.data().titulo === TITULO);
