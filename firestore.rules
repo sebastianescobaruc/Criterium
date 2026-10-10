@@ -481,6 +481,8 @@ service cloud.firestore {
     function miembroDe(cid) { return conSesion() && rolEn(cid) in ['admin', 'odontologo', 'recepcion']; }
     function clinicoDe(cid) { return conSesion() && rolEn(cid) in ['admin', 'odontologo']; }
     function adminDe(cid) { return conSesion() && rolEn(cid) == 'admin'; }
+    function listaCorta(d, k) { return !(k in d) || (d[k] is list && d[k].size() <= 80); }
+    function evolucionConProtocoloValida(d) { return (!('protocolo' in d) || d.protocolo is map) && listaCorta(d, 'pasos') && listaCorta(d, 'insumos'); }
     match /clinicas/{cid} {
       allow get: if miembroDe(cid);
       allow list: if conSesion() && resource.data.miembros.get(request.auth.uid, '') in ['admin', 'odontologo', 'recepcion'];
@@ -493,9 +495,12 @@ service cloud.firestore {
         match /clinico/{d} {
           allow read, write: if clinicoDe(cid);
         }
+        // Evolución con protocolo (opcional): protocolo { id, version, sha256, titulo }, pasos [{ i, corto, estado, nota }]
+        // e insumos [{ insumoId, nombre, cantidad }]. Si vienen, se valida su forma; nunca se editan ni se borran.
         match /evoluciones/{e} {
           allow read: if clinicoDe(cid);
-          allow create: if clinicoDe(cid) && request.resource.data.profesional.uid == request.auth.uid && request.resource.data.firmada == true;
+          allow create: if clinicoDe(cid) && request.resource.data.profesional.uid == request.auth.uid && request.resource.data.firmada == true
+            && evolucionConProtocoloValida(request.resource.data);
           allow update, delete: if false;
         }
         match /documentos/{d} {
@@ -535,7 +540,9 @@ service cloud.firestore {
         allow delete: if adminDe(cid);
         match /movimientos/{m} {
           allow read: if miembroDe(cid);
-          allow create: if miembroDe(cid) && request.resource.data.por.uid == request.auth.uid && request.resource.data.cantidad is int && request.resource.data.cantidad > 0;
+          // Si el movimiento sale de una evolución con protocolo, trae solo su evolucionId (nada clínico: recepción lo lee)
+          allow create: if miembroDe(cid) && request.resource.data.por.uid == request.auth.uid && request.resource.data.cantidad is int && request.resource.data.cantidad > 0
+            && (!('evolucionId' in request.resource.data) || request.resource.data.evolucionId is string);
           allow update, delete: if false;
         }
       }
