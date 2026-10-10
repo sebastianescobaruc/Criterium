@@ -156,10 +156,13 @@ function Consumos() {
   const inventario = (useColeccionClinica(clinica.id, 'inventario') || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
   const [pid, setPid] = useState((protos[0] || {}).id || '');
   const original = ((clinica.consumos || {})[pid]) || [];
+  const mapaOriginal = ((clinica.bandejaInsumos || {})[pid]) || {};
   const [l, setL] = useState(original);
+  const [mapa, setMapa] = useState(mapaOriginal);
   const [err, setErr] = useState('');
-  const cambiar = (id) => { setPid(id); setL(((clinica.consumos || {})[id]) || []); setErr(''); };
-  const cambiado = JSON.stringify(l) !== JSON.stringify(original);
+  const cambiar = (id) => { setPid(id); setL(((clinica.consumos || {})[id]) || []); setMapa(((clinica.bandejaInsumos || {})[id]) || {}); setErr(''); };
+  const cambiado = JSON.stringify(l) !== JSON.stringify(original) || JSON.stringify(mapa) !== JSON.stringify(mapaOriginal);
+  const unir = (item, cambio) => { const actual = mapa[item] || { insumoId: '', cantidad: 1 }; const n = { ...actual, ...cambio }; const m = { ...mapa }; if (!n.insumoId) delete m[item]; else m[item] = n; setMapa(m); };
   const bandeja = (datosProtocolo(pid) || {}).bandeja || [];
   const nombre = (id) => (inventario.find((x) => x.id === id) || {}).nombre || 'Insumo borrado';
   const unidad = (id) => (inventario.find((x) => x.id === id) || {}).unidad || '';
@@ -167,16 +170,19 @@ function Consumos() {
     const lista = l.filter((x) => x.insumoId).map((x) => ({ insumoId: x.insumoId, cantidad: Math.round(+x.cantidad) }));
     if (lista.some((x) => !(x.cantidad > 0))) { setErr('Cada cantidad tiene que ser un número entero mayor que 0.'); return; }
     if (new Set(lista.map((x) => x.insumoId)).size !== lista.length) { setErr('Hay un insumo repetido.'); return; }
+    const mapaLimpio = Object.fromEntries(Object.entries(mapa).filter(([, v]) => v && v.insumoId).map(([k, v]) => [k, { insumoId: v.insumoId, cantidad: Math.round(+v.cantidad) }]));
+    if (Object.values(mapaLimpio).some((v) => !(v.cantidad > 0))) { setErr('En la bandeja, cada cantidad tiene que ser un número entero mayor que 0.'); return; }
     setErr('');
-    if (await guardar({ ['consumos.' + pid]: lista }, 'Consumo guardado')) setL(lista);
+    if (await guardar({ ['consumos.' + pid]: lista, ['bandejaInsumos.' + pid]: mapaLimpio }, 'Consumo guardado')) { setL(lista); setMapa(mapaLimpio); }
   };
   if (!protos.length) return <Vacio icon="book" titulo="No hay protocolos disponibles para esta cuenta" />;
   return (
     <div className="flex flex-col gap-4">
       <Field label="Protocolo" id="co-p" className="max-w-[460px]"><select id="co-p" value={pid} onChange={(e) => cambiar(e.target.value)} className={inputCls}>{protos.map((p) => <option key={p.id} value={p.id}>{p.t || p.corto}</option>)}</select></Field>
-      <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1.2fr_1fr]">
+      <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1fr_1.25fr]">
         <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--cl-line)] bg-card p-4">
-          <p className="rotulo m-0">Insumos que gasta, por atención</p>
+          <p className="rotulo m-0">Insumos que siempre gasta, por atención</p>
+          <p className="m-0 text-[12px] text-ink3">Los que se usan en toda atención de este protocolo (guantes, eyectores…). Los materiales de la bandeja se unen a la derecha.</p>
           {!inventario.length && <p className="m-0 text-[13px] text-ink3">Primero agrega insumos en Inventario.</p>}
           {l.map((x, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -189,28 +195,39 @@ function Consumos() {
           {err && <p className="m-0 text-[13px] font-semibold text-bad">{err}</p>}
           <div className="flex flex-wrap gap-2">
             <Btn sm icon="plus" onClick={() => setL([...l, { insumoId: '', cantidad: 1 }])} disabled={!inventario.length}>Agregar insumo</Btn>
-            {cambiado && <Btn sm v="primary" onClick={enviar}>Guardar consumo</Btn>}
+            {cambiado && <Btn sm v="primary" onClick={enviar}>Guardar cambios</Btn>}
           </div>
           <p className="m-0 text-[12px] text-ink3">Al firmar una evolución con este protocolo, estas cantidades vienen precargadas (se pueden cambiar) y se descuentan del inventario.</p>
         </section>
-        <section className="flex flex-col gap-2 rounded-[10px] border border-[var(--cl-line)] bg-[var(--cl-nav)] p-4">
-          <p className="rotulo m-0">Bandeja del protocolo · lo que pide</p>
+        <section className="flex flex-col gap-3 rounded-[10px] border border-[var(--cl-line)] bg-[var(--cl-nav)] p-4">
+          <p className="rotulo m-0">Bandeja del protocolo · une cada material con tu inventario</p>
+          <p className="m-0 text-[12px] text-ink3">Cuando el odontólogo o el asistente marquen un material en la bandeja de la cita, el insumo unido se precarga en la evolución y se descuenta al firmar. Lo que no unas (fresas, sonda…) queda registrado sin tocar el inventario.</p>
           {!bandeja.length ? <p className="m-0 text-[13px] text-ink3">Este protocolo no trae bandeja.</p> : bandeja.map((f, k) => (
-            <div key={k}><b className="text-[12.5px] text-deep">{f.fase}</b><ul className="m-0 mt-1 list-disc pl-5 text-[12.5px] leading-relaxed text-ink2">{(f.items || []).map((it, j) => <li key={j}>{it}</li>)}</ul></div>
+            <div key={k} className="flex flex-col gap-1.5">
+              <b className="text-[12.5px] text-deep">{f.fase}</b>
+              {(f.items || []).map((it) => { const u = mapa[it] || {}; return (
+                <div key={it} className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1 rounded-[8px] bg-card px-2.5 py-2 sm:grid-cols-[1fr_170px_64px]">
+                  <span className="min-w-0 text-[12.5px] text-ink2">{it}</span>
+                  <select value={u.insumoId || ''} onChange={(e) => unir(it, { insumoId: e.target.value })} aria-label={'Insumo para ' + it} className={cx(inputCls, '!py-1 text-[12.5px]')}><option value="">Sin unir</option>{inventario.map((y) => <option key={y.id} value={y.id}>{y.nombre}</option>)}</select>
+                  {u.insumoId ? <input type="number" min="1" step="1" value={u.cantidad} onChange={(e) => unir(it, { cantidad: e.target.value })} aria-label={'Cantidad para ' + it} className={cx(inputCls, '!py-1 text-right text-[12.5px] tabular-nums')} /> : <span className="hidden sm:block" />}
+                </div>
+              ); })}
+            </div>
           ))}
-          <p className="m-0 mt-1 text-[11.5px] text-ink3">Solo como guía: cada clínica decide qué insumos de su inventario corresponden.</p>
         </section>
       </div>
     </div>
   );
 }
 
+// Columnas: administración, odontólogo, asistente, recepción
 const PERMISOS = [
-  ['Agenda, pacientes (datos administrativos), confirmaciones, lista de espera', true, true, true],
-  ['Ficha clínica: antecedentes, odontograma, evoluciones, documentos', true, true, false],
-  ['Plan de tratamiento y presupuestos (crear)', true, true, false],
-  ['Pagos, cierre de caja, inventario, esterilización, tareas', true, true, true],
-  ['Gastos, honorarios, registro de accesos y ajustes', true, false, false]
+  ['Agenda, pacientes (datos administrativos), confirmaciones, lista de espera', true, true, true, true],
+  ['Protocolo de la cita y su bandeja (marcar materiales: solo quien está en esa cita)', true, true, true, false],
+  ['Ficha clínica: antecedentes, odontograma, evoluciones, documentos', true, true, false, false],
+  ['Plan de tratamiento y presupuestos (crear)', true, true, false, false],
+  ['Pagos, cierre de caja, inventario, esterilización, tareas', true, true, true, true],
+  ['Gastos, honorarios, registro de accesos y ajustes', true, false, false, false]
 ];
 
 function Equipo() {
@@ -250,8 +267,8 @@ function Equipo() {
       <section className="flex flex-col gap-2">
         <p className="rotulo m-0">Qué puede hacer cada rol</p>
         <Tarjeta>
-          <div className="grid grid-cols-[1fr_repeat(3,64px)] gap-2 border-b border-line2 px-4 py-2 text-[11.5px] font-bold uppercase tracking-wide text-ink3"><span /><span className="text-center">Adm.</span><span className="text-center">Odont.</span><span className="text-center">Recep.</span></div>
-          {PERMISOS.map(([t, ...v]) => <div key={t} className="grid grid-cols-[1fr_repeat(3,64px)] items-center gap-2 border-b border-line2 px-4 py-2.5 text-[13px] text-ink2 last:border-0"><span>{t}</span>{v.map((x, i) => <span key={i} className={cx('grid place-items-center', x ? 'text-ok' : 'text-ink3')}>{x ? <Ic n="check" s={15} /> : '—'}</span>)}</div>)}
+          <div className="grid grid-cols-[1fr_repeat(4,56px)] gap-2 border-b border-line2 px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-ink3"><span /><span className="text-center">Adm.</span><span className="text-center">Odont.</span><span className="text-center">Asist.</span><span className="text-center">Recep.</span></div>
+          {PERMISOS.map(([t, ...v]) => <div key={t} className="grid grid-cols-[1fr_repeat(4,56px)] items-center gap-2 border-b border-line2 px-4 py-2.5 text-[13px] text-ink2 last:border-0"><span>{t}</span>{v.map((x, i) => <span key={i} className={cx('grid place-items-center', x ? 'text-ok' : 'text-ink3')}>{x ? <Ic n="check" s={15} /> : '—'}</span>)}</div>)}
         </Tarjeta>
         <p className="m-0 text-[12px] text-ink3">Los permisos los hacen cumplir las reglas del servidor, no solo la pantalla.</p>
       </section>

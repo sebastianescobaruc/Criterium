@@ -16,7 +16,7 @@ export const clp = (n) => new Intl.NumberFormat('es-CL', { style: 'currency', cu
 export const edad = (nac) => { if (!nac) return ''; const d = new Date(nac + 'T12:00:00'), h = new Date(); let e = h.getFullYear() - d.getFullYear(); if (h < new Date(h.getFullYear(), d.getMonth(), d.getDate())) e--; return e >= 0 && e < 120 ? e : ''; };
 export const nombreDe = (p) => [p && p.nombres, p && p.apellidos].filter(Boolean).join(' ') || 'Paciente';
 export const telefonoWa = (t) => String(t || '').replace(/\D/g, '');
-export const ROLES = { admin: 'Administración', odontologo: 'Odontólogo', recepcion: 'Recepción' };
+export const ROLES = { admin: 'Administración', odontologo: 'Odontólogo', asistente: 'Asistente dental', recepcion: 'Recepción' };
 export const clinico = (rol) => rol === 'admin' || rol === 'odontologo';
 // Estados de una cita, en el orden del día: agendada → confirmada → llegó (sala de espera) → en atención → atendida
 export const ESTADOS_CITA = [

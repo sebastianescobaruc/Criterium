@@ -23,7 +23,7 @@ export function useMisClinicas(uid) {
   const [l, set] = useState(null);
   useEffect(() => {
     if (!uid) { set([]); return; }
-    return onSnapshot(query(collection(db, 'clinicas'), where('miembros.' + uid, 'in', ['admin', 'odontologo', 'recepcion'])), (s) => set(docs(s)), () => set([]));
+    return onSnapshot(query(collection(db, 'clinicas'), where('miembros.' + uid, 'in', ['admin', 'odontologo', 'recepcion', 'asistente'])), (s) => set(docs(s)), () => set([]));
   }, [uid]);
   return l;
 }
