@@ -3,14 +3,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../ctx.js';
 import { actualizarClinicaFS, useColeccionClinica } from './db.js';
-import { PROTOS, DATOS } from '../data.js';
+import { protocolosClinica, datosProtocolo } from './protocolos.js';
 import { usePerfiles } from '../db.js';
 import { clp, ROLES, Cabecera, Pestanas, Tarjeta, Fila } from './comun.jsx';
 import { Ic, Btn, Field, Vacio, Avatar, inputCls, cx } from '../ui.jsx';
 
 const nid = () => Math.random().toString(36).slice(2, 8);
-// Protocolos que esta cuenta puede ver (llegan de Firestore según el modo piloto): se calculan al dibujar, nunca al cargar
-export const protocolosClinica = () => PROTOS.filter((p) => DATOS[p.id] && Array.isArray(DATOS[p.id].pasos));
+
 
 export function Ajustes() {
   const { tabClinica, irClinica, rolClinica } = useApp();
@@ -161,7 +160,7 @@ function Consumos() {
   const [err, setErr] = useState('');
   const cambiar = (id) => { setPid(id); setL(((clinica.consumos || {})[id]) || []); setErr(''); };
   const cambiado = JSON.stringify(l) !== JSON.stringify(original);
-  const bandeja = (DATOS[pid] && DATOS[pid].bandeja) || [];
+  const bandeja = (datosProtocolo(pid) || {}).bandeja || [];
   const nombre = (id) => (inventario.find((x) => x.id === id) || {}).nombre || 'Insumo borrado';
   const unidad = (id) => (inventario.find((x) => x.id === id) || {}).unidad || '';
   const enviar = async () => {

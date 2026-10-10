@@ -5,7 +5,9 @@
 // Mientras no exista revisión legal (Ley 20.584, reglamento de ficha clínica, Ley 21.719), solo clínicas de demostración.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../ctx.js';
-import { usePacientes, usePaciente, useFicha, useSub, useCitas, useColeccionClinica, guardarPacienteFS, guardarFichaFS, agregarEvolucionFS, emitirDocumentoFS, guardarCitaFS, guardarPresupuestoFS, registrarPagoFS, registrarAccesoFS } from './db.js';
+import { usePacientes, usePaciente, useFicha, useSub, useCitas, useColeccionClinica, guardarPacienteFS, guardarFichaFS, agregarEvolucionFS, emitirDocumentoFS, guardarCitaFS, guardarPresupuestoFS, registrarPagoFS, registrarAccesoFS, nuevoIdEvolucion, firmarEvolucionProtocoloFS } from './db.js';
+import { protocolosClinica, datosProtocolo, metaProtocolo } from './protocolos.js';
+import { ESTADOS_PASO_EVOL, pideNota, versionTxt, pasosIniciales, insumosIniciales, pasosSinNota, borradorNota, avisosStock, insumosUsados, resumenPasos } from './protocolo-evolucion.js';
 import { Odontograma, cpod } from './odontograma.jsx';
 import { PlanTratamiento, PerioFicha, LaboratorioPaciente, ControlPaciente } from './plan.jsx';
 import { PLANTILLAS, imprimirHoja, textoHtml, firmasHtml, tablaHtml } from './documentos.js';
@@ -474,6 +476,8 @@ function Evoluciones({ p }) {
   const ciclos = (useColeccionClinica(clinica.id, 'esterilizacion') || []).filter((c) => c.quimico === 'ok' && c.biologico !== 'falla').slice(0, 15);
   const [f, setF] = useState({ diente: '', procedimiento: '', nota: '', lote: '' });
   const [err, setErr] = useState('');
+  const [conProtocolo, setConProtocolo] = useState(false);
+  const hayProtocolos = protocolosClinica().length > 0;
   const firmar = async () => {
     if (f.nota.trim().length < 5) { setErr('Escribe la evolución.'); return; }
     try { await agregarEvolucionFS(clinica.id, pacienteId, { ...f, nota: f.nota.trim(), profesional: { uid: myUid, nombre: (perfil && perfil.nombre) || 'Profesional' } }); setF({ diente: '', procedimiento: '', nota: '', lote: '' }); setErr(''); avisar('Evolución firmada'); }
@@ -482,7 +486,7 @@ function Evoluciones({ p }) {
   return (
     <div className="grid gap-4 [&>*]:min-w-0 lg:grid-cols-[1fr_1.2fr]">
       <section className="flex flex-col gap-3 rounded-[22px] bg-card p-5 shadow-sh">
-        <p className="rotulo m-0">Nueva evolución</p>
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="rotulo m-0">Nueva evolución</p>{hayProtocolos && <Btn sm v="soft" icon="book" onClick={() => setConProtocolo(true)}>Evolución con protocolo</Btn>}</div>
         <div className="grid gap-3 sm:grid-cols-[100px_1fr]">
           <Field label="Pieza" id="ev-d"><input id="ev-d" value={f.diente} onChange={(e) => setF({ ...f, diente: e.target.value })} placeholder="1.6" className={inputCls} /></Field>
           <Field label="Procedimiento" id="ev-p"><input id="ev-p" list="arancel" value={f.procedimiento} onChange={(e) => setF({ ...f, procedimiento: e.target.value })} className={inputCls} /><datalist id="arancel">{(clinica.arancel || []).map((a) => <option key={a.codigo} value={a.nombre} />)}</datalist></Field>
@@ -497,12 +501,120 @@ function Evoluciones({ p }) {
         {lista === null ? <div className="h-40 animate-pulse rounded-[22px] bg-soft" /> : !lista.length ? <Vacio icon="edit" titulo="Sin evoluciones todavía" /> : lista.map((e) => (
           <article key={e.id} className="rounded-[18px] bg-card p-4 shadow-sh">
             <div className="flex flex-wrap items-baseline justify-between gap-2"><b className="text-[14.5px] text-ink">{[e.diente && 'Pieza ' + e.diente, e.procedimiento].filter(Boolean).join(' · ') || 'Evolución'}</b><span className="text-[12px] text-ink3">{new Date(e.fecha).toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' })}</span></div>
+            {e.protocolo && <p className="m-0 mt-1 flex items-start gap-1.5 rounded-md bg-acentosoft px-2 py-1 text-[12px] font-semibold text-acentodeep"><Ic n="book" s={12} className="mt-[3px]" /><span>Protocolo {e.protocolo.titulo} {versionTxt(e.protocolo.version)} · {resumenPasos(e.pasos)}</span></p>}
             <p className="m-0 mt-1.5 whitespace-pre-line text-[14px] leading-relaxed text-ink2">{e.nota}</p>
+            {e.protocolo && (
+              <details className="mt-2 rounded-[8px] border border-[var(--cl-line-2)] px-3 py-2 text-[13px]">
+                <summary className="cursor-pointer font-semibold text-acento">Pasos e insumos</summary>
+                <ol className="m-0 mt-2 flex list-none flex-col gap-1 p-0">{(e.pasos || []).map((x) => <li key={x.i} className="flex gap-2"><span className="w-6 flex-none text-right tabular-nums text-ink3">{x.i + 1}.</span><span className="min-w-0 flex-1 text-ink">{x.corto}{x.nota ? <span className="block text-[12px] text-ink3">{x.nota}</span> : null}</span><span className={cx('flex-none text-[12px] font-semibold', { hecho: 'text-ok', modificado: 'text-warn', omitido: 'text-bad' }[x.estado] || 'text-ink3')}>{(ESTADOS_PASO_EVOL.find((s) => s.v === x.estado) || {}).t || x.estado}</span></li>)}</ol>
+                <p className="m-0 mt-2 text-[12.5px] text-ink2"><b>Insumos:</b> {(e.insumos || []).length ? e.insumos.map((x) => `${x.nombre} ×${x.cantidad}`).join(', ') : 'no se registraron'}</p>
+                {e.protocolo.sha256 && <p className="m-0 mt-1 text-[11px] text-ink3">Texto del protocolo usado: {versionTxt(e.protocolo.version)} · huella {String(e.protocolo.sha256).slice(0, 12)}…</p>}
+              </details>
+            )}
             <p className="m-0 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold"><span className="inline-flex items-center gap-1.5 text-ok"><Ic n="check" s={13} />Firmada por {e.profesional && e.profesional.nombre}</span>{e.lote && <span className="text-ink3">Instrumental: {e.lote}</span>}</p>
           </article>
         ))}
       </section>
+      {conProtocolo && <EvolucionProtocolo p={p} inicial={f} ciclos={ciclos} cerrar={() => setConProtocolo(false)} />}
     </div>
+  );
+}
+
+/* ── Evolución con protocolo: pasos (como en Mis casos), insumos usados, borrador de la nota y firma en un solo guardado ── */
+function EvolucionProtocolo({ p, inicial, ciclos, cerrar }) {
+  const { clinica, pacienteId, myUid, perfil, avisar } = useApp();
+  const protos = protocolosClinica();
+  const inventario = useColeccionClinica(clinica.id, 'inventario') || [];
+  const [eid] = useState(() => nuevoIdEvolucion(clinica.id, pacienteId));
+  const arancelDe = (nombre) => (clinica.arancel || []).find((a) => a.nombre === nombre && a.protocoloId && protos.some((x) => x.id === a.protocoloId));
+  const [procedimiento, setProcedimiento] = useState(inicial.procedimiento || '');
+  const [pid, setPid] = useState(() => (arancelDe(inicial.procedimiento) || {}).protocoloId || '');
+  const [elegidoAMano, setElegidoAMano] = useState(false);
+  const [diente, setDiente] = useState(inicial.diente || '');
+  const [lote, setLote] = useState(inicial.lote || '');
+  const [pasos, setPasos] = useState(() => pasosIniciales(datosProtocolo(pid)));
+  const [insumos, setInsumos] = useState([]);
+  const [insumosListos, setInsumosListos] = useState(false);
+  const [nota, setNota] = useState('');
+  const [notaEditada, setNotaEditada] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [err, setErr] = useState('');
+  const enviando = useRef(false);
+  const datos = datosProtocolo(pid);
+  const meta = metaProtocolo(pid);
+  // Al elegir un protocolo: pasos en «Hecho» e insumos estándar de la clínica
+  const elegir = (id, aMano = true) => { setPid(id); if (aMano) setElegidoAMano(true); setPasos(pasosIniciales(datosProtocolo(id))); setInsumos(insumosIniciales((clinica.consumos || {})[id], inventario)); setInsumosListos(true); };
+  useEffect(() => { if (pid && !insumosListos && inventario.length) { setInsumos(insumosIniciales((clinica.consumos || {})[pid], inventario)); setInsumosListos(true); } }, [inventario.length]);
+  const cambiarProcedimiento = (v) => { setProcedimiento(v); const a = arancelDe(v); if (a && !elegidoAMano && a.protocoloId !== pid) elegir(a.protocoloId, false); };
+  const borrador = borradorNota({ procedimiento: procedimiento || (datos && datos.titulo), protocoloId: pid, version: meta.version, diente, pasos, insumos, lote });
+  useEffect(() => { if (!notaEditada) setNota(borrador); }, [borrador, notaEditada]);
+  const faltan = pasosSinNota(pasos);
+  const avisos = avisosStock(insumos, inventario);
+  const setPaso = (i, cambio) => setPasos(pasos.map((x) => (x.i === i ? { ...x, ...cambio } : x)));
+  const libres = inventario.filter((x) => !insumos.some((y) => y.insumoId === x.id)).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const firmar = async () => {
+    if (enviando.current) return;
+    if (!pid || !datos) { setErr('Elige el protocolo.'); return; }
+    if (faltan.length) { setErr(`Falta la nota del paso ${faltan.map((x) => x.i + 1).join(', ')}: los pasos modificados u omitidos piden una nota corta.`); return; }
+    if (nota.trim().length < 5) { setErr('Escribe la evolución.'); return; }
+    enviando.current = true; setGuardando(true); setErr('');
+    const por = { uid: myUid, nombre: (perfil && perfil.nombre) || 'Profesional' };
+    const usados = insumosUsados(insumos);
+    const evolucion = {
+      diente: diente.trim(), procedimiento: (procedimiento || datos.titulo || '').trim(), nota: nota.trim(), lote, firmada: true, profesional: por,
+      protocolo: { id: pid, version: meta.version || '', sha256: meta.sha256 || '', titulo: datos.titulo || '' },
+      pasos: pasos.map((x) => ({ i: x.i, corto: x.corto, estado: x.estado, nota: String(x.nota || '').trim() })),
+      insumos: usados
+    };
+    try { await firmarEvolucionProtocoloFS(clinica.id, pacienteId, eid, evolucion, usados, por); avisar(usados.length ? 'Evolución firmada · inventario descontado' : 'Evolución firmada'); cerrar(); }
+    catch (e) { enviando.current = false; setGuardando(false); setErr(e && e.code === 'permission-denied' ? 'Esta evolución ya estaba firmada o no tienes permiso. Revisa la lista antes de volver a intentar.' : 'No se pudo guardar. Revisa tu conexión y vuelve a intentar: no se guardó nada.'); }
+  };
+  return (
+    <PanelLateral ancho={760} titulo={'Evolución con protocolo · ' + nombreDe(p)} cerrar={() => { if (!guardando) cerrar(); }}
+      pie={<><Btn v="primary" icon="check" disabled={guardando || !pid} onClick={firmar}>{guardando ? 'Firmando…' : 'Firmar evolución'}</Btn><Btn disabled={guardando} onClick={cerrar}>Cancelar</Btn><span className="self-center text-[12px] text-ink3">Queda a tu nombre y no se puede editar ni borrar.</span></>}>
+      <div className="flex flex-col gap-5">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Procedimiento" id="ep-proc" className="sm:col-span-2"><input id="ep-proc" list="arancel-ep" value={procedimiento} onChange={(e) => cambiarProcedimiento(e.target.value)} placeholder="Del arancel o escrito" className={inputCls} /><datalist id="arancel-ep">{(clinica.arancel || []).map((a) => <option key={a.codigo + a.nombre} value={a.nombre} />)}</datalist></Field>
+          <Field label="Protocolo" id="ep-p" className="sm:col-span-2"><select id="ep-p" value={pid} onChange={(e) => elegir(e.target.value)} className={inputCls}><option value="">Elige un protocolo…</option>{protos.map((x) => <option key={x.id} value={x.id}>{x.t || x.corto}</option>)}</select></Field>
+          <Field label="Pieza (FDI)" id="ep-d"><input id="ep-d" value={diente} onChange={(e) => setDiente(e.target.value)} placeholder="3.6" className={inputCls} /></Field>
+          <Field label="Lote de esterilización" id="ep-l"><select id="ep-l" value={lote} onChange={(e) => setLote(e.target.value)} className={inputCls}><option value="">Sin registrar</option>{ciclos.map((c) => <option key={c.id} value={c.lote || ('Ciclo ' + c.ciclo)}>{(c.lote || 'Ciclo ' + c.ciclo) + ' · ' + c.equipo}</option>)}</select></Field>
+        </div>
+        {pid && datos && (<>
+          <section className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-2"><p className="rotulo m-0">Pasos · {resumenPasos(pasos)}</p>{meta.version && <span className="text-[11.5px] text-ink3">{versionTxt(meta.version)}{meta.sha256 ? ' · huella ' + meta.sha256.slice(0, 10) + '…' : ''}</span>}</div>
+            <ol className="m-0 flex list-none flex-col gap-2 p-0">
+              {pasos.map((x) => (
+                <li key={x.i} className="rounded-[8px] border border-[var(--cl-line)] px-3 py-2">
+                  <div className="flex flex-wrap items-center gap-2"><span className="w-6 flex-none text-right text-[12.5px] font-bold tabular-nums text-ink3">{x.i + 1}</span><span className="min-w-0 flex-1 text-[13.5px] text-ink">{x.corto}</span><Seg size="sm" valor={x.estado} onChange={(v) => setPaso(x.i, { estado: v })} opciones={ESTADOS_PASO_EVOL} /></div>
+                  {pideNota(x.estado) && <input value={x.nota} onChange={(e) => setPaso(x.i, { nota: e.target.value })} placeholder={x.estado === 'omitido' ? '¿Por qué se omitió?' : 'Qué hiciste distinto y por qué'} aria-label={'Nota del paso ' + (x.i + 1)} className={cx(inputCls, 'mt-2', !String(x.nota || '').trim() && '!border-warn')} />}
+                </li>
+              ))}
+            </ol>
+          </section>
+          <section className="flex flex-col gap-2">
+            <p className="rotulo m-0">Insumos usados</p>
+            {!insumos.length && <p className="m-0 text-[13px] text-ink3">{(clinica.consumos || {})[pid] ? 'Sin insumos.' : 'Este protocolo aún no tiene consumo definido en Ajustes › Consumo por protocolo.'}</p>}
+            {insumos.map((x) => (
+              <div key={x.insumoId} className="flex items-center gap-2 text-[13.5px]">
+                <span className="min-w-0 flex-1 truncate text-ink">{x.nombre}</span>
+                <input type="number" min="0" step="1" value={x.cantidad} onChange={(e) => setInsumos(insumos.map((y) => (y.insumoId === x.insumoId ? { ...y, cantidad: Math.max(0, Math.round(+e.target.value || 0)) } : y)))} aria-label={'Cantidad de ' + x.nombre} className={cx(inputCls, 'w-20 text-right tabular-nums')} />
+                <span className="w-16 truncate text-[12px] text-ink3">{x.unidad}</span>
+                <button type="button" onClick={() => setInsumos(insumos.filter((y) => y.insumoId !== x.insumoId))} aria-label={'Quitar ' + x.nombre} className="rounded-full p-1.5 text-ink3 hover:bg-soft"><Ic n="x" s={14} /></button>
+              </div>
+            ))}
+            {libres.length > 0 && <select value="" onChange={(e) => { const it = inventario.find((y) => y.id === e.target.value); if (it) setInsumos([...insumos, { insumoId: it.id, nombre: it.nombre, unidad: it.unidad || '', cantidad: 1 }]); }} aria-label="Agregar otro insumo" className={cx(inputCls, 'max-w-[320px]')}><option value="">+ Agregar otro insumo del inventario…</option>{libres.map((y) => <option key={y.id} value={y.id}>{y.nombre}</option>)}</select>}
+            <p className="m-0 text-[12px] text-ink3">0 = no se usó. Al firmar, lo usado se descuenta del inventario.</p>
+            {avisos.length > 0 && <div className="rounded-[8px] bg-warnsoft px-3 py-2 text-[12.5px] text-warn">{avisos.map((a) => <p key={a.insumoId} className="m-0"><b>{a.nombre}</b>: {a.tipo === 'negativo' ? `el stock quedaría en ${a.queda} (bajo cero).` : `quedaría en ${a.queda}, bajo su mínimo.`}</p>)}<p className="m-0 mt-1">Puedes firmar igual: revisa el inventario después.</p></div>}
+          </section>
+          <section className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2"><p className="rotulo m-0">Evolución</p>{notaEditada && <button type="button" onClick={() => setNotaEditada(false)} className="text-[12.5px] font-semibold text-acento">Rehacer el borrador</button>}</div>
+            <textarea rows={6} value={nota} onChange={(e) => { setNota(e.target.value); setNotaEditada(true); }} aria-label="Texto de la evolución" className={inputCls} />
+            <p className="m-0 text-[12px] text-ink3">Se redacta sola con lo que marcas. Puedes editarla antes de firmar.</p>
+          </section>
+        </>)}
+        {err && <p className="m-0 rounded-[8px] bg-badsoft px-3 py-2 text-[13px] font-semibold text-bad">{err}</p>}
+      </div>
+    </PanelLateral>
   );
 }
 

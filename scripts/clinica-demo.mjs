@@ -144,6 +144,24 @@ if (clin) {
   if (sin.length) { const bp = writeBatch(db); sin.forEach((d, i) => bp.update(d.ref, { profesionalId: ['yo', 'p3', 'p2'][i % 3] })); await bp.commit(); console.log('· presupuestos con profesional:', sin.length); }
 }
 
+// --protocolos: conecta la demo con los protocolos para probar «Evolución con protocolo»: las resinas del arancel apuntan a
+// resina-clase-i, su consumo es resina A2 ×1 y ácido ×1, y deja esos stocks en 5 y 3 (los de los criterios de aceptación).
+if (clin && process.argv.includes('--protocolos')) {
+  const inv = (await getDocs(collection(db, 'clinicas', CID, 'inventario'))).docs.map((d) => ({ id: d.id, ...d.data() }));
+  const res = inv.find((x) => /resina compuesta a2/i.test(x.nombre)), aci = inv.find((x) => /ortofosf/i.test(x.nombre));
+  if (!res || !aci) console.log('· faltan la resina o el ácido en el inventario de la demo');
+  else {
+    const actual = (await getDoc(doc(db, 'clinicas', CID))).data();
+    const arancel = (actual.arancel || []).map((a) => (/^resina compuesta/i.test(a.nombre) ? { ...a, protocoloId: 'resina-clase-i' } : a));
+    await setDoc(doc(db, 'clinicas', CID), { arancel, consumos: { ...(actual.consumos || {}), 'resina-clase-i': [{ insumoId: res.id, cantidad: 1 }, { insumoId: aci.id, cantidad: 1 }] } }, { merge: true });
+    const bs = writeBatch(db);
+    bs.update(doc(db, 'clinicas', CID, 'inventario', res.id), { stock: 5 });
+    bs.update(doc(db, 'clinicas', CID, 'inventario', aci.id), { stock: 3 });
+    await bs.commit();
+    console.log('· protocolos conectados: resina-clase-i (resina ×1, ácido ×1); stocks 5 y 3');
+  }
+}
+
 if (process.argv.includes('--investigacion')) {
   const ya = await getDocs(query(collection(db, 'investigaciones'), where('autorUid', '==', yo)));
   if (ya.docs.some((d) => /portafolio digital/i.test(d.data().titulo || ''))) console.log('· el póster ya estaba publicado');

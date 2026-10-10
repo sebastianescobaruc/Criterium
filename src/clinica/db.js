@@ -113,6 +113,19 @@ export async function moverStockFS(cid, itemId, tipo, cantidad, nota, por) {
   b.set(doc(collection(db, 'clinicas', cid, 'inventario', itemId, 'movimientos')), { tipo, cantidad, nota, por, fecha: ahora() });
   await b.commit();
 }
+// Evolución con protocolo: el id se crea antes (al abrir el formulario) para usarlo en los movimientos. Un solo batch
+// guarda la evolución, descuenta cada insumo usado y deja su movimiento ({evolucionId}_{insumoId}). Si el batch se
+// repitiera (doble clic, reintento), esas escrituras serían ediciones y las reglas las rechazan: no se duplica nada.
+export const nuevoIdEvolucion = (cid, pid) => doc(collection(db, 'clinicas', cid, 'pacientes', pid, 'evoluciones')).id;
+export async function firmarEvolucionProtocoloFS(cid, pid, eid, evolucion, insumos, por) {
+  const b = writeBatch(db); const fecha = ahora();
+  b.set(doc(db, 'clinicas', cid, 'pacientes', pid, 'evoluciones', eid), { ...evolucion, fecha });
+  (insumos || []).filter((x) => x.cantidad > 0).forEach((x) => {
+    b.update(doc(db, 'clinicas', cid, 'inventario', x.insumoId), { stock: increment(-x.cantidad), actualizado: fecha });
+    b.set(doc(db, 'clinicas', cid, 'inventario', x.insumoId, 'movimientos', eid + '_' + x.insumoId), { tipo: 'salida', cantidad: x.cantidad, nota: 'Consumo en atención clínica', por, evolucionId: eid, fecha });
+  });
+  await b.commit();
+}
 export function useMovimientos(cid, itemId) {
   const [l, set] = useState(null);
   useEffect(() => { if (!cid || !itemId) { set([]); return; } return vivo(query(collection(db, 'clinicas', cid, 'inventario', itemId, 'movimientos'), orderBy('fecha', 'desc'), limit(50)), set, docs); }, [cid, itemId]);

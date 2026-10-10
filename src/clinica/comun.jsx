@@ -108,10 +108,10 @@ export function Kpis({ items }) {
   );
 }
 // Panel que entra desde la derecha (detalle de una cita, de un insumo…)
-export function PanelLateral({ titulo, cerrar, children, pie }) {
+export function PanelLateral({ titulo, cerrar, children, pie, ancho = 440 }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-[rgba(15,37,48,.28)]" onMouseDown={(e) => { if (e.target === e.currentTarget) cerrar(); }} onKeyDown={(e) => e.key === 'Escape' && cerrar()}>
-      <aside role="dialog" aria-modal="true" aria-label={titulo} className="cl-drawer flex h-full w-full max-w-[440px] flex-col border-l border-[var(--cl-line)] bg-card shadow-[-12px_0_40px_rgba(15,37,48,.12)]">
+      <aside role="dialog" aria-modal="true" aria-label={titulo} style={{ maxWidth: ancho }} className="cl-drawer flex h-full w-full flex-col border-l border-[var(--cl-line)] bg-card shadow-[-12px_0_40px_rgba(15,37,48,.12)]">
         <div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-[var(--cl-line)] px-5"><h2 className="m-0 truncate text-[15px] font-bold text-deep">{titulo}</h2><button type="button" onClick={cerrar} aria-label="Cerrar" className="rounded-md p-1.5 text-ink3 hover:bg-[var(--cl-hover)]"><Ic n="x" s={18} /></button></div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {pie && <div className="flex flex-none flex-wrap gap-2 border-t border-[var(--cl-line)] px-5 py-3">{pie}</div>}
