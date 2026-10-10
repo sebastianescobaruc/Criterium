@@ -478,14 +478,14 @@ service cloud.firestore {
     // odontograma, evoluciones, documentos) solo admin y odontólogo. Evoluciones, documentos, pagos y accesos no se editan
     // ni se borran. Las clínicas las crea el equipo Criterium. Mientras no haya revisión legal: solo clínicas de demostración.
     function rolEn(cid) { return get(/databases/$(database)/documents/clinicas/$(cid)).data.miembros.get(request.auth.uid, ''); }
-    function miembroDe(cid) { return conSesion() && rolEn(cid) in ['admin', 'odontologo', 'recepcion']; }
+    function miembroDe(cid) { return conSesion() && rolEn(cid) in ['admin', 'odontologo', 'recepcion', 'asistente']; }
     function clinicoDe(cid) { return conSesion() && rolEn(cid) in ['admin', 'odontologo']; }
     function adminDe(cid) { return conSesion() && rolEn(cid) == 'admin'; }
     function listaCorta(d, k) { return !(k in d) || (d[k] is list && d[k].size() <= 80); }
-    function evolucionConProtocoloValida(d) { return (!('protocolo' in d) || d.protocolo is map) && listaCorta(d, 'pasos') && listaCorta(d, 'insumos'); }
+    function evolucionConProtocoloValida(d) { return (!('protocolo' in d) || d.protocolo is map) && listaCorta(d, 'pasos') && listaCorta(d, 'insumos') && listaCorta(d, 'bandeja') && (!('citaId' in d) || d.citaId is string); }
     match /clinicas/{cid} {
       allow get: if miembroDe(cid);
-      allow list: if conSesion() && resource.data.miembros.get(request.auth.uid, '') in ['admin', 'odontologo', 'recepcion'];
+      allow list: if conSesion() && resource.data.miembros.get(request.auth.uid, '') in ['admin', 'odontologo', 'recepcion', 'asistente'];
       allow create: if esAdmin();
       allow update: if adminDe(cid) || esAdmin();
       allow delete: if false;
@@ -509,8 +509,12 @@ service cloud.firestore {
           allow update, delete: if false;
         }
       }
+      // La bandeja de la cita (los materiales que se van a usar) la marcan solo los involucrados: su odontólogo y su
+      // asistente (involucrados [uid], que se arma al agendar). Quien marca no puede cambiar involucrados en la misma escritura.
       match /citas/{id} {
-        allow read, create, update: if miembroDe(cid);
+        allow read: if miembroDe(cid);
+        allow create: if miembroDe(cid) && (!('bandeja' in request.resource.data) || request.auth.uid in request.resource.data.get('involucrados', []));
+        allow update: if miembroDe(cid) && (!cambia().hasAny(['bandeja']) || (request.auth.uid in resource.data.get('involucrados', []) && !cambia().hasAny(['involucrados'])));
         allow delete: if false;
       }
       match /presupuestos/{id} {

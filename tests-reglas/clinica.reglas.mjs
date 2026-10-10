@@ -5,7 +5,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebas
 import { doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, increment } from 'firebase/firestore';
 
 let env;
-const ADM = 'adm-clinica', ODO = 'odonto', REC = 'recepcion', EXT = 'externo', EQ = 'equipo';
+const ADM = 'adm-clinica', ODO = 'odonto', REC = 'recepcion', EXT = 'externo', EQ = 'equipo', ASI = 'asistente';
 const como = (u) => env.authenticatedContext(u, { email: u + '@correo.cl', email_verified: true }).firestore();
 const ahora = () => new Date().toISOString();
 const C = 'clinica-demo';
@@ -17,7 +17,7 @@ beforeEach(async () => {
   await env.withSecurityRulesDisabled(async (c) => {
     const db = c.firestore();
     await setDoc(doc(db, 'admins', EQ), { nombre: 'Equipo' });
-    await setDoc(doc(db, 'clinicas', C), { nombre: 'Demo', demo: true, miembros: { [ADM]: 'admin', [ODO]: 'odontologo', [REC]: 'recepcion' } });
+    await setDoc(doc(db, 'clinicas', C), { nombre: 'Demo', demo: true, miembros: { [ADM]: 'admin', [ODO]: 'odontologo', [REC]: 'recepcion', [ASI]: 'asistente' } });
     await setDoc(doc(db, 'clinicas', C, 'pacientes', 'p1'), { nombres: 'Ficticio', apellidos: 'Uno', ficticio: true });
     await setDoc(doc(db, 'clinicas', C, 'pacientes', 'p1', 'clinico', 'ficha'), { alergias: 'ninguna' });
     await setDoc(doc(db, 'clinicas', C, 'pacientes', 'p1', 'evoluciones', 'e1'), { nota: 'x', profesional: { uid: ODO }, firmada: true, fecha: ahora() });
@@ -159,4 +159,29 @@ test('un movimiento con evolucionId que no es texto se rechaza', async () => {
   await sembrarInventario();
   await assertFails(setDoc(doc(como(ODO), 'clinicas', C, 'inventario', 'res', 'movimientos', 'm1'), { tipo: 'salida', cantidad: 1, por: { uid: ODO }, evolucionId: 42, fecha: ahora() }));
   await assertSucceeds(setDoc(doc(como(ODO), 'clinicas', C, 'inventario', 'res', 'movimientos', 'm2'), { tipo: 'salida', cantidad: 1, por: { uid: ODO }, evolucionId: 'ev-x', fecha: ahora() }));
+});
+
+/* ── Asistente y bandeja de la cita ── */
+test('el asistente es miembro: ve la clínica y las citas, pero no la ficha ni las evoluciones', async () => {
+  await assertSucceeds(getDoc(doc(como(ASI), 'clinicas', C)));
+  await assertSucceeds(getDocs(query(collection(como(ASI), 'clinicas'), where('miembros.' + ASI, 'in', ['admin', 'odontologo', 'recepcion', 'asistente']))));
+  await assertSucceeds(getDocs(collection(como(ASI), 'clinicas', C, 'citas')));
+  await assertFails(getDoc(doc(como(ASI), 'clinicas', C, 'pacientes', 'p1', 'clinico', 'ficha')));
+  await assertFails(getDocs(collection(como(ASI), 'clinicas', C, 'pacientes', 'p1', 'evoluciones')));
+});
+test('la bandeja de la cita la marcan solo sus involucrados (odontólogo y asistente)', async () => {
+  await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), 'clinicas', C, 'citas', 'c1'), { pacienteId: 'p1', fecha: '2026-10-12', hora: '10:00', estado: 'agendada', protocoloId: 'resina-clase-i', involucrados: [ODO, ASI] }); });
+  const band = (uid) => ({ bandeja: { items: ['Dique de goma'], por: { uid, nombre: 'X' }, fecha: ahora() } });
+  await assertSucceeds(updateDoc(doc(como(ODO), 'clinicas', C, 'citas', 'c1'), band(ODO)));
+  await assertSucceeds(updateDoc(doc(como(ASI), 'clinicas', C, 'citas', 'c1'), band(ASI)));
+  await assertFails(updateDoc(doc(como(REC), 'clinicas', C, 'citas', 'c1'), band(REC)));
+  await assertFails(updateDoc(doc(como(ADM), 'clinicas', C, 'citas', 'c1'), band(ADM)));
+  await assertFails(updateDoc(doc(como(ODO), 'clinicas', C, 'citas', 'c1'), { ...band(ODO), involucrados: [ODO, REC] }));
+  await assertSucceeds(updateDoc(doc(como(REC), 'clinicas', C, 'citas', 'c1'), { estado: 'confirmada' }));
+  await assertFails(addDoc(collection(como(REC), 'clinicas', C, 'citas'), { pacienteId: 'p1', fecha: '2026-10-13', hora: '10:00', estado: 'agendada', involucrados: [ODO], ...band(REC) }));
+});
+test('evolución con bandeja y citaId: citaId tiene que ser texto', async () => {
+  await assertSucceeds(setDoc(doc(como(ODO), 'clinicas', C, 'pacientes', 'p1', 'evoluciones', 'ev-b1'), evoProto(ODO, { bandeja: ['Dique de goma'], citaId: 'c1' })));
+  await assertFails(setDoc(doc(como(ODO), 'clinicas', C, 'pacientes', 'p1', 'evoluciones', 'ev-b2'), evoProto(ODO, { bandeja: ['Dique de goma'], citaId: 7 })));
+  await assertFails(setDoc(doc(como(ODO), 'clinicas', C, 'pacientes', 'p1', 'evoluciones', 'ev-b3'), evoProto(ODO, { bandeja: Array.from({ length: 81 }, (_, i) => 'm' + i) })));
 });
