@@ -2,7 +2,8 @@
 import React from 'react';
 import { Logo } from '../ui.jsx';
 
-export const LEMA_RED = 'Odontología basada en evidencia';
+// Lema de la marca (2026-10-11, fase 3 del rediseño): va en el inicio de sesión, la pantalla de carga y la portada
+export const LEMA_RED = 'Cada paso, con criterio.';
 export function CartelRed({ size = 26, oscuro = false }) {
   const fs = Math.max(9, Math.round(size * 0.4));
   return (

@@ -9,6 +9,7 @@ const SECCIONES = [
     'Tu cuenta: nombre y correo. El correo no se muestra a nadie.',
     'Tu perfil profesional: etapa, institución, año, intereses y presentación. Lo ven las personas con cuenta.',
     'Lo que publicas, comentas y respondes, siempre con tu nombre.',
+    'Si pides una demo o te unes a la lista de espera desde la portada: tu nombre, tu correo, tu rol y lo que quieras agregar (teléfono, clínica o institución, mensaje). Solo para contactarte.',
     CREATIVA ? 'Los casos clínicos que subes y sus revisiones, sin datos que identifiquen al paciente.' : 'Si eres docente, los casos clínicos que registras, sin datos que identifiquen al paciente.',
     CREATIVA ? 'En tu navegador, comodidades como lo que guardaste para después. No salen de tu equipo.' : 'En tu navegador, comodidades como la voz elegida o los pasos que marcaste. No salen de tu equipo.'
   ]],
@@ -20,7 +21,7 @@ const SECCIONES = [
   ['Quién ve qué', [
     'Tu perfil y tus publicaciones: las personas con cuenta en Criterium.',
     CREATIVA ? 'Un caso en revisión: tú y quienes lo revisan (docentes y el equipo Criterium), hasta que se publique.' : 'Un caso, borrador o procedimiento en revisión: tú y el equipo Criterium, hasta que se apruebe.',
-    'Tus mensajes de contacto: solo el equipo Criterium.'
+    'Tus mensajes de contacto y tus datos de «Agenda una demo» o «Lista de espera»: solo el equipo Criterium.'
   ]],
   ['Dónde se guarda', [
     'En Google Firebase (servidores de Google). Usamos lo mínimo para que la app funcione.',

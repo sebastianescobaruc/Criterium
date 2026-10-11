@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logo y eslogan · propuestas</title>
+<!-- Fase 3 del rediseño: dos propuestas de logo y tres eslóganes. Ábrela en el navegador (archivo local). Nada se aplica hasta elegir. -->
+<style>
+  :root{--fondo:#fff;--alt:#F5F7F8;--borde:#DEE4E6;--texto:#121A1E;--texto2:#4E5A60;--texto3:#5F6C73;--marca:#0B1F27;--marca2:#122E37;--menta:#5CCFC0;--pri:#2C6674;--aviso:#85540F;--avisof:#FBF0DB}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);font:16px/1.6 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,'Segoe UI',Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+  .pag{max-width:1200px;margin:0 auto;padding:0 16px}
+  @media(min-width:640px){.pag{padding:0 32px}}
+  header{border-bottom:1px solid var(--borde)}
+  header .pag{display:flex;align-items:center;gap:12px;height:64px}
+  .rot{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--texto3);margin:0}
+  h1{font-size:clamp(2.125rem,1.6rem + 2.1vw,3.25rem);line-height:1.06;letter-spacing:-.032em;margin:.5rem 0 0}
+  h2{font-size:clamp(1.75rem,1.4rem + 1.4vw,2.5rem);line-height:1.1;letter-spacing:-.026em;margin:.4rem 0 0}
+  h3{font-size:1.1rem;letter-spacing:-.016em;margin:0}
+  p{margin:0}
+  .bajada{font-size:clamp(1.0625rem,1rem + .3vw,1.25rem);color:var(--texto2);max-width:38rem;margin-top:1rem}
+  section{padding:64px 0;border-top:1px solid var(--borde)}
+  .grid{display:grid;gap:16px}
+  @media(min-width:900px){.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}}
+  .caja{border:1px solid var(--borde);border-radius:12px;padding:24px;min-width:0}
+  .oscura{background:var(--marca);border-color:var(--marca);color:#fff}
+  .oscura .nota{color:#A8BFC6}
+  .nota{font-size:14px;color:var(--texto3);margin-top:8px}
+  .centro{display:flex;align-items:center;justify-content:center;min-height:220px}
+  .tamanos{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
+  .tamanos figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--texto3)}
+  canvas{image-rendering:pixelated;border:1px solid var(--borde);border-radius:6px}
+  .pestanas{display:flex;flex-direction:column;gap:10px}
+  .barra{display:flex;align-items:flex-end;gap:2px;padding:8px 8px 0;border-radius:10px 10px 0 0;overflow:hidden}
+  .barra.cl{background:#DEE1E6}.barra.os{background:#202124}
+  .pes{display:flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:8px 8px 0 0;font:12px/1 -apple-system,'Segoe UI',sans-serif;min-width:0;width:200px}
+  .cl .pes.act{background:#fff;color:#202124}.cl .pes{color:#45474a}
+  .os .pes.act{background:#35363A;color:#E8EAED}.os .pes{color:#9AA0A6}
+  .pes span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lock{display:flex;align-items:center;gap:10px;font-weight:700;font-size:26px;letter-spacing:-.03em;flex-wrap:wrap}
+  .lock small{font-weight:500;color:var(--texto3);letter-spacing:-.02em;font-size:26px}
+  .oscura .lock small{color:#A8BFC6}
+  .icono-ios{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px}
+  .icono-ios img{width:60px;height:60px;border-radius:14px}
+  .fondo-ios{display:flex;gap:28px;padding:28px;border-radius:20px;background:linear-gradient(160deg,#C9D6DB,#8BA6B0);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .slogan{font-size:clamp(2rem,1.4rem + 2.6vw,3.5rem);line-height:1.04;letter-spacing:-.036em;font-weight:700;margin:0}
+  .recom{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:600;background:#E5F3EB;color:#256B48}
+  .chip{display:inline-flex;border-radius:999px;padding:2px 10px;font-size:12.5px;font-weight:600;background:#ECF0F1;color:var(--texto2)}
+  .encab{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .letra{font-size:clamp(4rem,10vw,7rem);font-weight:800;letter-spacing:-.05em;line-height:1}
+</style>
+</head>
+<body>
+<header><div class="pag"><b style="font-size:17px;letter-spacing:-.02em">Criterium</b><span class="chip">Fase 3 · Logo y eslogan</span></div></header>
+
+<div class="pag">
+  <div style="padding:64px 0 48px">
+    <p class="rot">Propuestas para elegir</p>
+    <h1>Dos logos, tres eslóganes</h1>
+    <p class="bajada">Las dos propuestas comparten el nombre en la letra del sistema y el <b>punto menta</b> como acento. Cambia el símbolo: uno abstracto y uno dental. Ninguna se aplica hasta que elijas.</p>
+  </div>
+
+  <!-- ─────────── PROPUESTA A ─────────── -->
+  <section>
+    <div class="encab"><p class="rot">Propuesta A</p><span class="chip">Abstracta</span></div>
+    <h2>El punto de criterio</h2>
+    <p class="bajada">Una C gruesa que se abre hacia un punto. La C es el recorrido de la atención; el punto, el criterio con que termina cada paso. Es la misma sonda que hoy dibuja la C en la pantalla de carga: la marca y la animación cuentan lo mismo. Sin diente: se lee igual en la clínica, en la universidad y a 16 px.</p>
+    <div class="grid g2" style="margin-top:32px">
+      <div class="caja centro"><img src="a-isotipo.svg" width="200" height="200" alt="Isotipo A sobre claro"></div>
+      <div class="caja oscura centro"><img src="a-isotipo-oscuro.svg" width="200" height="200" alt="Isotipo A sobre oscuro"></div>
+      <div class="caja centro" style="min-height:140px"><img src="a-logotipo.svg" height="64" alt="Logotipo A claro"></div>
+      <div class="caja oscura centro" style="min-height:140px"><img src="a-logotipo-oscuro.svg" height="64" alt="Logotipo A oscuro"></div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="caja">
+        <h3>Tamaños reales</h3>
+        <div class="tamanos" style="margin-top:16px">
+          <figure><img src="a-favicon.svg" width="128" height="128" alt=""><span>App · 512 (a 128)</span></figure>
+          <figure><img src="a-favicon.svg" width="64" height="64" alt=""><span>64</span></figure>
+          <figure><img src="a-favicon.svg" width="32" height="32" alt=""><span>32</span></figure>
+          <figure><img src="a-favicon.svg" width="16" height="16" alt=""><span>16</span></figure>
+          <figure><canvas data-src="a-favicon.svg" width="128" height="128"></canvas><span>16 px, cada píxel ×8</span></figure>
+        </div>
+      </div>
+      <div class="caja">
+        <h3>En la pestaña del navegador (16 px)</h3>
+        <div class="pestanas" style="margin-top:16px">
+          <div class="barra cl"><div class="pes act"><img src="a-favicon.svg" width="16" height="16" alt=""><span>Criterium Clínica</span></div><div class="pes"><span>Correo</span></div></div>
+          <div class="barra os"><div class="pes act"><img src="a-favicon.svg" width="16" height="16" alt=""><span>Criterium Clínica</span></div><div class="pes"><span>Correo</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="caja"><div class="lock"><img src="a-isotipo.svg" width="36" height="36" alt="">Criterium <small>Clínica</small></div><div class="lock" style="margin-top:18px"><img src="a-isotipo.svg" width="36" height="36" alt="">Criterium <small>Universidad</small></div><p class="nota">Las dos líneas de producto con el mismo símbolo.</p></div>
+      <div class="caja oscura"><div class="lock"><img src="a-isotipo-oscuro.svg" width="36" height="36" alt="">Criterium <small>Clínica</small></div><div class="lock" style="margin-top:18px"><img src="a-isotipo-oscuro.svg" width="36" height="36" alt="">Criterium <small>Universidad</small></div><p class="nota">Sobre la sección oscura.</p></div>
+    </div>
+  </section>
+
+  <!-- ─────────── PROPUESTA B ─────────── -->
+  <section>
+    <div class="encab"><p class="rot">Propuesta B</p><span class="chip">Dental</span></div>
+    <h2>La raíz</h2>
+    <p class="bajada">Un molar simple en dos piezas: la corona, que es lo que se ve, y la raíz en menta, que es lo que lo sostiene. La idea: <b>la evidencia es la raíz</b>. El corte entre las dos es el límite amelocementario. Es inconfundiblemente dental: una administradora sabe en un segundo que es un software para su clínica.</p>
+    <div class="grid g2" style="margin-top:32px">
+      <div class="caja centro"><img src="b-isotipo.svg" width="200" height="200" alt="Isotipo B sobre claro"></div>
+      <div class="caja oscura centro"><img src="b-isotipo-oscuro.svg" width="200" height="200" alt="Isotipo B sobre oscuro"></div>
+      <div class="caja centro" style="min-height:140px"><img src="b-logotipo.svg" height="64" alt="Logotipo B claro"></div>
+      <div class="caja oscura centro" style="min-height:140px"><img src="b-logotipo-oscuro.svg" height="64" alt="Logotipo B oscuro"></div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="caja">
+        <h3>Tamaños reales</h3>
+        <div class="tamanos" style="margin-top:16px">
+          <figure><img src="b-favicon.svg" width="128" height="128" alt=""><span>App · 512 (a 128)</span></figure>
+          <figure><img src="b-favicon.svg" width="64" height="64" alt=""><span>64</span></figure>
+          <figure><img src="b-favicon.svg" width="32" height="32" alt=""><span>32</span></figure>
+          <figure><img src="b-favicon.svg" width="16" height="16" alt=""><span>16</span></figure>
+          <figure><canvas data-src="b-favicon.svg" width="128" height="128"></canvas><span>16 px, cada píxel ×8</span></figure>
+        </div>
+      </div>
+      <div class="caja">
+        <h3>En la pestaña del navegador (16 px)</h3>
+        <div class="pestanas" style="margin-top:16px">
+          <div class="barra cl"><div class="pes act"><img src="b-favicon.svg" width="16" height="16" alt=""><span>Criterium Clínica</span></div><div class="pes"><span>Correo</span></div></div>
+          <div class="barra os"><div class="pes act"><img src="b-favicon.svg" width="16" height="16" alt=""><span>Criterium Clínica</span></div><div class="pes"><span>Correo</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="caja"><div class="lock"><img src="b-isotipo.svg" width="36" height="36" alt="">Criterium <small>Clínica</small></div><div class="lock" style="margin-top:18px"><img src="b-isotipo.svg" width="36" height="36" alt="">Criterium <small>Universidad</small></div><p class="nota">Las dos líneas de producto con el mismo símbolo.</p></div>
+      <div class="caja oscura"><div class="lock"><img src="b-isotipo-oscuro.svg" width="36" height="36" alt="">Criterium <small>Clínica</small></div><div class="lock" style="margin-top:18px"><img src="b-isotipo-oscuro.svg" width="36" height="36" alt="">Criterium <small>Universidad</small></div><p class="nota">Sobre la sección oscura.</p></div>
+    </div>
+  </section>
+
+  <!-- ─────────── COMPARACIÓN ─────────── -->
+  <section>
+    <p class="rot">Lado a lado</p>
+    <h2>A 16 px, con el actual</h2>
+    <div class="grid g4" style="margin-top:32px">
+      <div class="caja"><h3>Actual</h3><div class="tamanos" style="margin-top:16px"><figure><img src="../../public/favicon.svg" width="16" height="16" alt=""><span>16</span></figure><figure><canvas data-src="../../public/favicon.svg" width="128" height="128"></canvas><span>×8</span></figure></div><p class="nota">La muela se vuelve una mancha.</p></div>
+      <div class="caja"><h3>A · El punto</h3><div class="tamanos" style="margin-top:16px"><figure><img src="a-favicon.svg" width="16" height="16" alt=""><span>16</span></figure><figure><canvas data-src="a-favicon.svg" width="128" height="128"></canvas><span>×8</span></figure></div><p class="nota">La C y el punto siguen separados.</p></div>
+      <div class="caja"><h3>B · La raíz</h3><div class="tamanos" style="margin-top:16px"><figure><img src="b-favicon.svg" width="16" height="16" alt=""><span>16</span></figure><figure><canvas data-src="b-favicon.svg" width="128" height="128"></canvas><span>×8</span></figure></div><p class="nota">Se lee como diente; el corte se suaviza.</p></div>
+      <div class="caja"><h3>En el celular</h3><div class="fondo-ios" style="margin-top:16px"><div class="icono-ios"><img src="a-favicon.svg" alt="">Criterium</div><div class="icono-ios"><img src="b-favicon.svg" alt="">Criterium</div></div></div>
+    </div>
+  </section>
+
+  <!-- ─────────── ESLOGAN ─────────── -->
+  <section>
+    <p class="rot">Eslogan</p>
+    <h2>Tres opciones</h2>
+    <p class="bajada">Va como título de la portada, sobre la frase que explica qué es Criterium y los dos caminos. La prueba: que una administradora entienda en 5 segundos qué es y qué lo hace distinto.</p>
+    <div class="grid" style="margin-top:32px">
+      <div class="caja" style="padding:32px;border-color:#2C6674;box-shadow:0 0 0 1px #2C6674">
+        <div class="encab"><p class="rot">1</p><span class="recom">✓ Recomendado</span></div>
+        <p class="slogan" style="margin-top:10px">De la cita a la caja, con la misma guía.</p>
+        <p class="nota" style="font-size:15px;color:var(--texto2);max-width:46rem">Dice lo que hace distinto a Criterium: la guía del procedimiento recorre toda la atención. «Cita» y «caja» son palabras de la administradora: orden y plata. Funciona para los dos caminos (el estudiante aprende con la misma guía que después usa en su clínica).</p>
+      </div>
+      <div class="caja" style="padding:32px">
+        <p class="rot">2</p>
+        <p class="slogan" style="margin-top:10px">Cada paso, con criterio.</p>
+        <p class="nota" style="font-size:15px;color:var(--texto2);max-width:46rem">El tuyo, pulido. Corto, juega con el nombre y dura años. Pero no dice qué es: sirve mejor como firma bajo el logo (pie de página, presentaciones, redes) que como título.</p>
+      </div>
+      <div class="caja" style="padding:32px">
+        <p class="rot">3</p>
+        <p class="slogan" style="margin-top:10px">La guía clínica que ordena tu clínica.</p>
+        <p class="nota" style="font-size:15px;color:var(--texto2);max-width:46rem">Nuevo. Le habla directo a la administradora («ordena») y se recuerda por el juego de palabras. Deja fuera a estudiantes y docentes: sirve como título del camino «Soy clínica».</p>
+      </div>
+    </div>
+    <p class="nota" style="margin-top:20px">Descarté «De la guía al box, todo conectado» (con el 1 queda repetida) y «Atiende con evidencia. Gestiona sin papeles» (clara, pero «sin papeles» lo promete cualquier software de gestión).</p>
+  </section>
+</div>
+
+<script>
+  // Dibuja cada logo a 16 × 16 y lo amplía ×8 sin suavizar: así se ve lo que de verdad queda en la pestaña.
+  document.querySelectorAll('canvas[data-src]').forEach((cv) => {
+    const img = new Image();
+    img.onload = () => {
+      const p = document.createElement('canvas'); p.width = p.height = 16;
+      p.getContext('2d').drawImage(img, 0, 0, 16, 16);
+      const c = cv.getContext('2d'); c.imageSmoothingEnabled = false;
+      c.fillStyle = '#fff'; c.fillRect(0, 0, 128, 128); c.drawImage(p, 0, 0, 128, 128);
+    };
+    img.src = cv.dataset.src;
+  });
+</script>
+</body>
+</html>

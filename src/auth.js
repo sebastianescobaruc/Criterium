@@ -22,6 +22,8 @@ export function useUsuario() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       setUsuario(user);
+      // Marca para index.html: sin ella, la Red abre la portada sin cargar Firebase (src/portada/publica.jsx)
+      try { if (user) localStorage.setItem('criterium-sesion', '1'); else localStorage.removeItem('criterium-sesion'); } catch (e) {}
       if (user) {
         // El perfil no puede dejar pegada la pantalla de carga: se espera a lo más 2,5 s y, si llega después, se usa igual
         const leer = getDoc(doc(db, 'usuarios', user.uid)).then((snap) => { setPerfil(snap.exists() ? snap.data() : null); }).catch(() => setPerfil(null));

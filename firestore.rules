@@ -122,6 +122,29 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Portada pública: «Agenda una demo» (clínicas) y «Lista de espera» (estudiantes y docentes). Se crea sin cuenta,
+    // con campos y largos fijos y la hora del servidor; solo el equipo lee; nadie edita ni borra desde la app.
+    function textoOpcional(d, k, max) { return !(k in d) || (d[k] is string && d[k].size() >= 1 && d[k].size() <= max); }
+    match /interesados/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['tipo', 'nombre', 'correo', 'rol', 'telefono', 'clinica', 'sillones', 'institucion', 'mensaje', 'origen', 'fecha'])
+        && request.resource.data.keys().hasAll(['tipo', 'nombre', 'correo', 'rol', 'origen', 'fecha'])
+        && request.resource.data.tipo in ['demo', 'lista']
+        && request.resource.data.origen == 'portada'
+        && request.resource.data.fecha == request.time
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() >= 2 && request.resource.data.nombre.size() <= 100
+        && request.resource.data.correo is string && request.resource.data.correo.size() <= 200
+        && request.resource.data.correo.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && request.resource.data.rol is string && request.resource.data.rol.size() >= 2 && request.resource.data.rol.size() <= 60
+        && (request.resource.data.tipo == 'lista' || (request.resource.data.clinica is string && request.resource.data.clinica.size() >= 2 && request.resource.data.clinica.size() <= 150))
+        && textoOpcional(request.resource.data, 'telefono', 30)
+        && textoOpcional(request.resource.data, 'clinica', 150)
+        && textoOpcional(request.resource.data, 'sillones', 20)
+        && textoOpcional(request.resource.data, 'institucion', 150)
+        && textoOpcional(request.resource.data, 'mensaje', 1000);
+      allow read: if esAdmin();
+      allow update, delete: if false;
+    }
+
     match /solicitudes/{id} {
       allow create: if conSesion()
         && request.resource.data.uid == request.auth.uid

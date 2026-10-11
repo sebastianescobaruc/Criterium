@@ -3,11 +3,13 @@
 // Se comparte con el menú del celular (Web Share con archivo) o se descarga.
 import React, { useEffect, useState } from 'react';
 import { Ic, Btn, Modal } from '../ui.jsx';
+import { svgMarca } from '../marca.js';
 
 const W = 1080, H = 1350, M = 88;
-const C = { deep: '#0F2530', panel: '#1F3441', menta: '#5CCFC0', mentaInk: '#0F2530', blanco: '#FFFFFF', gris: '#A9C3C9', logoBg: '#1B3949', logoAcc: '#346F7D' };
+const C = { deep: '#0F2530', panel: '#1F3441', menta: '#5CCFC0', mentaInk: '#0F2530', blanco: '#FFFFFF', gris: '#A9C3C9' };
 const FUENTE = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif';
-const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="61 60 317 317"><path d="M101 60H338A40 40 0 0 1 378 100V337A40 40 0 0 1 338 377H101A40 40 0 0 1 61 337V100A40 40 0 0 1 101 60Z" fill="${C.logoBg}"/><path d="M301.1 151.1A115 115 0 1 0 270.5 324.6L250.0 289.1A74 74 0 1 1 269.7 177.4Z" fill="#FFFFFF"/><path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" fill="${C.logoAcc}"/><path d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF"/></svg>`;
+// El logo en su ficha oscura (src/marca.js): se ve igual sobre la imagen clara o la oscura
+const LOGO = svgMarca({ ficha: true });
 
 const cargarLogo = () => new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LOGO); });
 const fuente = (peso, px) => `${peso} ${px}px ${FUENTE}`;

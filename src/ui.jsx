@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ESTADOS, iniciales } from './logic.js';
+import { MARCA_C, MARCA_TRAZO, MARCA_PUNTO, MARCA_CAJA } from './marca.js';
 
 export const cx = (...a) => a.filter(Boolean).join(' ');
 
@@ -57,16 +58,15 @@ const PATHS = {
 
 /* Logo: la C de Criterium con una muela al centro y un tramo en verde azulado. Recreado en SVG desde el logo oficial. */
 // despues: algo que va en la misma línea del nombre, sobre su línea base (el cartel «RED» de Criterium Red). El logo no cambia.
+// Logo «El punto de criterio» (src/marca.js): la C y el punto menta, y el nombre en un solo color. `size` = alto de la marca.
 export function Logo({ size = 26, texto = true, oscuro = false, className = '', despues = null }) {
   return (
-    <span className={cx('inline-flex items-center gap-2', className)}>
-      <svg width={size} height={size} viewBox="61 60 317 317" aria-hidden="true" className="flex-none">
-        <path d="M101 60H338A40 40 0 0 1 378 100V337A40 40 0 0 1 338 377H101A40 40 0 0 1 61 337V100A40 40 0 0 1 101 60Z" style={{ fill: 'var(--logo-bg)' }} />
-        <path d="M301.1 151.1A115 115 0 1 0 270.5 324.6L250.0 289.1A74 74 0 1 1 269.7 177.4Z" fill="#FFFFFF" />
-        <path d="M266.1 327.0A115 115 0 0 0 323.2 258L279.2 258A74 74 0 0 1 247.2 290.6Z" style={{ fill: 'var(--logo-acc)' }} />
-        <path d="M210 194C222 184 252 182 254 212C256 232 246 244 242 264C238 282 234 292 228 292C220 292 219 268 210 252C201 268 200 292 192 292C186 292 182 282 178 264C174 244 164 232 166 212C168 182 198 184 210 194Z" fill="#FFFFFF" />
+    <span className={cx('inline-flex items-center', className)} style={{ gap: Math.round(size * 0.36) }}>
+      <svg width={size} height={size} viewBox={MARCA_CAJA} aria-hidden="true" className="flex-none">
+        <path d={MARCA_C} fill="none" strokeWidth={MARCA_TRAZO} style={{ stroke: oscuro ? '#FFFFFF' : 'var(--logo-c)' }} />
+        <circle {...MARCA_PUNTO} style={{ fill: oscuro ? 'var(--menta)' : 'var(--logo-punto)' }} />
       </svg>
-      {texto && <span className="font-bold leading-none tracking-[-.025em]" style={{ fontSize: Math.round(size * 0.86) }}><span className={oscuro ? 'text-panelink' : 'text-deep'}>Criter</span><span className={oscuro ? 'text-menta' : 'text-acento'}>ium</span>{despues}</span>}
+      {texto && <span className={cx('font-bold leading-none tracking-[-.032em]', oscuro ? 'text-panelink' : 'text-[color:var(--logo-c)]')} style={{ fontSize: Math.round(size * 0.86) }}>Criterium{despues}</span>}
     </span>
   );
 }

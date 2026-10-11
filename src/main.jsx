@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { CREATIVA } from './edicion.js';
 import './index.css';
@@ -10,6 +10,20 @@ const recargarUnaVez = () => { try { if (sessionStorage.getItem('criterium-recar
 window.addEventListener('vite:preloadError', (e) => { if (recargarUnaVez()) e.preventDefault(); });
 window.addEventListener('load', () => setTimeout(() => { try { sessionStorage.removeItem('criterium-recargada'); } catch (e) {} }, 10000));
 const App = lazy(() => (CREATIVA ? import('./creativa/App.jsx') : import('./App.jsx')).catch((e) => { if (recargarUnaVez()) return new Promise(() => {}); throw e; }));
+// Página de muestra del sistema de diseño (src/portada/sistema.jsx): solo en desarrollo, con /?sistema. No entra en la compilación.
+const SISTEMA = import.meta.env.DEV && new URLSearchParams(location.search).has('sistema');
+const Raiz = SISTEMA ? lazy(() => import('./portada/sistema.jsx')) : App;
+// Portada sin Firebase (src/portada/publica.jsx): en la Red, a quien index.html marcó como visita pública (clase «publica»).
+// Al tocar Entrar, Crear cuenta o Privacidad se carga la app y AuthGate abre esa pantalla (criterium-pantalla).
+const PUBLICA = CREATIVA && !SISTEMA && document.documentElement.classList.contains('publica');
+const Publica = lazy(() => import('./portada/publica.jsx'));
+const precargarApp = () => { import('./creativa/App.jsx').catch(() => {}); };
+function Inicio() {
+  const [app, setApp] = useState(!PUBLICA);
+  if (app) return <Raiz />;
+  const abrirApp = (pantalla) => { try { if (pantalla) sessionStorage.setItem('criterium-pantalla', pantalla); } catch (e) {} setApp(true); };
+  return <Publica abrirApp={abrirApp} precargar={precargarApp} />;
+}
 
 // Si algo falla al dibujar, en vez de una página en blanco se ve qué pasó y cómo seguir (recargar, o borrar lo guardado
 // en este navegador: preferencias y la copia local de Firestore, sin tocar la cuenta ni los datos en la nube)
@@ -43,6 +57,6 @@ class Protector extends React.Component {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Protector><Suspense fallback={null}><App /></Suspense></Protector>
+    <Protector><Suspense fallback={null}><Inicio /></Suspense></Protector>
   </React.StrictMode>
 );

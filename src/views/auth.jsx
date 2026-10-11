@@ -43,7 +43,8 @@ function Marca() {
 
 /* ═════════ Sin sesión: portada pública → iniciar sesión, crear cuenta o privacidad ═════════ */
 function SinSesion({ Portada }) {
-  const [pantalla, setPantalla] = useState('portada'); // 'portada' | 'login' | 'registro' | 'recuperar' | 'privacidad'
+  // La portada sin Firebase (src/portada/publica.jsx) deja aquí la pantalla que se pidió (Entrar, Crear cuenta, Privacidad)
+  const [pantalla, setPantalla] = useState(() => { try { const p = sessionStorage.getItem('criterium-pantalla'); sessionStorage.removeItem('criterium-pantalla'); return p || 'portada'; } catch (e) { return 'portada'; } }); // 'portada' | 'login' | 'registro' | 'recuperar' | 'privacidad'
   const [desde, setDesde] = useState('portada');
   useEffect(() => { try { window.scrollTo(0, 0); } catch (e) {} }, [pantalla]);
   const verPrivacidad = () => { setDesde(pantalla); setPantalla('privacidad'); };
