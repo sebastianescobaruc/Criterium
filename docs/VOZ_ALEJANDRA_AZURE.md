@@ -54,6 +54,15 @@ El plan gratis permite **20 audios por minuto**. La primera vez el script tarda 
    - En «···», Alejandra aparece primera y elegida. Toca **Probar**.
 7. **Publicar:** `npm run deploy` (o el canal de vista previa).
 
+## Los videos con Alejandra
+
+Con la misma clave, los videos (`npm run video:criterium` y `npm run video:clinica`) los narra Alejandra en vez de la voz del sistema.
+
+- Si `.env.local` tiene `AZURE_SPEECH_KEY` y `AZURE_SPEECH_REGION`, el motor (`scripts/video-motor.mjs`) pide a Azure un audio por escena.
+- Esos audios quedan en `videos/_voz/`, que no se sube a Git. Si vuelves a grabar sin cambiar el texto, no se piden de nuevo.
+- Para forzar la voz del sistema: `npm run video:criterium -- --voz Paulina`.
+- Al final se agrega la música de fondo (`scripts/musica.mjs`, música propia, sin derechos de terceros), bajo la voz. Se omite con `-- --sin-musica`.
+
 ## Ajustes
 
 - **Otra voz de Chile.** Azure también tiene `es-CL-LorenzoNeural` (masculina). Para usarla, agrega `AZURE_VOZ=es-CL-LorenzoNeural` a `.env.local` y borra la carpeta `public/voz/es-CL-Alejandra/` antes de correr `npm run voces`. Si eliges una voz que no existe en tu región, el script muestra las voces de Chile disponibles.

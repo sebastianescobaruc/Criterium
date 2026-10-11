@@ -6,6 +6,8 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import puppeteer from 'puppeteer-core';
+import { createHash } from 'node:crypto';
+import { agregarMusica } from './musica.mjs';
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -52,11 +54,32 @@ export async function grabarVideo({ escenas: ESCENAS, salida, area = 'clinica', 
   const TMP = join(RAIZ, 'videos/_tmp');
   mkdirSync(TMP, { recursive: true }); mkdirSync(dirname(SALIDA), { recursive: true });
   // 1. Narración de cada escena
+  // Con AZURE_SPEECH_KEY y AZURE_SPEECH_REGION en .env.local narra Alejandra (Azure, es-CL-CatalinaNeural); si no, la voz
+  // del sistema (--voz, Paulina por defecto). Los audios de Azure se guardan en videos/_voz/ por texto: no se repiten.
+  const usarAzure = env.AZURE_SPEECH_KEY && env.AZURE_SPEECH_REGION && !process.argv.includes('--voz');
+  const VOZ_AZ = env.AZURE_VOZ || 'es-CL-CatalinaNeural';
+  const CACHE = join(RAIZ, 'videos/_voz'); mkdirSync(CACHE, { recursive: true });
+  const xml = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let ultimo = 0;
   for (const e of ESCENAS) {
-    const aiff = join(TMP, e.id + '.aiff');
-    execFileSync('say', ['-v', VOZ, '-r', '178', '-o', aiff, e.voz]);
-    e.dur = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', aiff]).toString());
+    if (usarAzure) {
+      const archivo = join(CACHE, createHash('sha256').update(VOZ_AZ + '|' + e.voz).digest('hex').slice(0, 20) + '.mp3');
+      if (!existsSync(archivo)) {
+        const espera = 3100 - (Date.now() - ultimo); if (espera > 0) await esperar(espera); // el plan gratis permite 20 por minuto
+        const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-CL"><voice name="${VOZ_AZ}"><prosody rate="-4%">${xml(e.voz)}</prosody></voice></speak>`;
+        const r = await fetch(`https://${env.AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, { method: 'POST', headers: { 'Ocp-Apim-Subscription-Key': env.AZURE_SPEECH_KEY, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-48khz-96kbitrate-mono-mp3', 'User-Agent': 'criterium-video' }, body: ssml });
+        ultimo = Date.now();
+        if (!r.ok) throw new Error(`Azure respondió ${r.status}: revisa AZURE_SPEECH_KEY y AZURE_SPEECH_REGION en .env.local (docs/VOZ_ALEJANDRA_AZURE.md)`);
+        writeFileSync(archivo, Buffer.from(await r.arrayBuffer()));
+      }
+      e.audio = archivo;
+    } else {
+      e.audio = join(TMP, e.id + '.aiff');
+      execFileSync('say', ['-v', VOZ, '-r', '178', '-o', e.audio, e.voz]);
+    }
+    e.dur = parseFloat(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', e.audio]).toString());
   }
+  console.log('· voz:', usarAzure ? 'Alejandra (Azure, ' + VOZ_AZ + ')' : VOZ + ' (voz del sistema)');
   console.log('· narración:', ESCENAS.reduce((s, e) => s + e.dur, 0).toFixed(1), 's');
 
   // 2. Entrar (sin grabar)
@@ -170,9 +193,11 @@ export async function grabarVideo({ escenas: ESCENAS, salida, area = 'clinica', 
 
   // 5. Unir pantalla y narración
   const ins = ['-y', '-f', 'concat', '-safe', '0', '-i', join(TMP, 'cuadros.txt')]; const filtros = [];
-  ESCENAS.forEach((e, k) => { ins.push('-i', join(TMP, e.id + '.aiff')); filtros.push(`[${k + 1}:a]aresample=44100,adelay=${Math.round((e.inicio + 0.35) * 1000)}|${Math.round((e.inicio + 0.35) * 1000)}[a${k}]`); });
+  ESCENAS.forEach((e, k) => { ins.push('-i', e.audio); filtros.push(`[${k + 1}:a]aresample=44100,adelay=${Math.round((e.inicio + 0.35) * 1000)}|${Math.round((e.inicio + 0.35) * 1000)}[a${k}]`); });
   const mezcla = filtros.join(';') + ';' + ESCENAS.map((_, k) => `[a${k}]`).join('') + `amix=inputs=${ESCENAS.length}:normalize=0,apad[aout];[0:v]scale=1920:1080:flags=lanczos,fps=30,format=yuv420p[vout]`;
   execFileSync('ffmpeg', [...ins, '-filter_complex', mezcla, '-map', '[vout]', '-map', '[aout]', '-t', total.toFixed(2), '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', SALIDA], { stdio: 'ignore' });
   rmSync(CUADROS, { recursive: true, force: true });
+  // Música de fondo original, bajo la voz (scripts/musica.mjs); --sin-musica la omite
+  if (!process.argv.includes('--sin-musica')) { agregarMusica(SALIDA); console.log('· música de fondo agregada'); }
   console.log('· video listo:', SALIDA, `(${total.toFixed(0)} s)`);
 }
